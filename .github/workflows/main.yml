@@ -1,34 +1,52 @@
-name: Middle East Risk Simulation # 워크플로우 이름
+name: Iran Risk × ABS/SM Cost Simulation # 워크플로우 이름
 
 on:
   schedule:
-    - cron: '0 0 * * *' # 매일 자정(UTC)에 자동으로 실행
-  workflow_dispatch: # 필요할 때 수동으로 즉시 실행 가능하도록 설정
+    # 평일(월~금) 한국시간 07:00, 12:00, 18:00 실행 (UTC 기준 -9h)
+    - cron: '0 22 * * 0-4'   # KST 07:00 (전일 UTC 22:00)
+    - cron: '0 3 * * 1-5'    # KST 12:00 (UTC 03:00)
+    - cron: '0 9 * * 1-5'    # KST 18:00 (UTC 09:00)
+  workflow_dispatch:           # 수동 즉시 실행 (이란 사태 등 긴급 시)
 
 jobs:
   build:
-    runs-on: ubuntu-latest # 리눅스 환경에서 실행
+    runs-on: ubuntu-latest     # 우분투 최신 환경
 
     steps:
-    - name: Checkout Repository # 코드 체크아웃
+    # ── 1. 코드 체크아웃
+    - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Set up Python # 파이썬 환경 설정
+    # ── 2. 파이썬 3.11 설정
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9' # 파이썬 3.9 버전 사용
+        python-version: '3.11'
 
-    - name: Install Dependencies # 필수 라이브러리 설치
+    # ── 3. 한글 폰트 설치 (차트 한글 깨짐 방지)
+    - name: Install Korean Font
       run: |
-        pip install pandas matplotlib numpy
+        sudo apt-get update -qq
+        sudo apt-get install -y fonts-nanum
+        fc-cache -fv
 
-    - name: Run Simulation # 시뮬레이션 스크립트 실행
+    # ── 4. 파이썬 라이브러리 설치
+    - name: Install Python Dependencies
+      run: |
+        pip install --upgrade pip
+        pip install pandas matplotlib numpy yfinance
+
+    # ── 5. 시뮬레이션 실행 (타임아웃 5분)
+    - name: Run Simulation
+      timeout-minutes: 5
       run: python simulation.py
 
-    - name: Commit and Push Results # 생성된 결과 파일(PNG, CSV)을 GitHub에 업데이트
+    # ── 6. 결과 파일 커밋 & 푸시
+    - name: Commit and Push Results
       run: |
-        git config --local user.email "action@github.com" # 깃 설정
-        git config --local user.name "GitHub Action" # 깃 설정
-        git add risk_simulation_report.png simulation_result.csv # 결과 파일 추가
-        git commit -m "Update Risk Simulation Report [$(date)]" || echo "No changes to commit" # 변경사항 커밋
-        git push # 리포지토리에 반영
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action Bot"
+        git add risk_simulation_report.png simulation_result.csv
+        git commit -m "📊 Risk Update [$(date +'%Y-%m-%d %H:%M KST')] WTI=$(python -c \"import csv; r=list(csv.DictReader(open('simulation_result.csv'))); print(r[0]['WTI']) if r else print('N/A')\")" \
+          || echo "변경사항 없음 - 커밋 스킵"
+        git push
