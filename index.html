@@ -2,121 +2,104 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>이란 사태 비상 대응: 실시간 석유화학 원가 대시보드</title>
+    <title>이란 사태 대응 비상 경영 대시보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap');
         body { font-family: 'Pretendard', sans-serif; background-color: #0f172a; color: white; }
-        .emergency-glow { box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
-        .live-indicator { animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .logic-card { background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .emergency-header { background: linear-gradient(90deg, #b91c1c 0%, #ef4444 100%); }
     </style>
 </head>
-<body class="p-6 md:p-12">
+<body class="p-6 md:p-10">
     <div class="max-w-7xl mx-auto">
-        <header class="bg-red-700 p-8 rounded-[2.5rem] mb-10 emergency-glow border border-red-500/30">
+        <header class="emergency-header p-10 rounded-[3rem] mb-12 shadow-2xl relative">
             <div class="flex justify-between items-center">
                 <div>
-                    <div class="flex items-center space-x-3 mb-2">
-                        <span class="bg-yellow-400 text-red-900 text-xs font-black px-2 py-0.5 rounded">URGENT</span>
-                        <h1 class="text-3xl font-black tracking-tighter uppercase italic text-white">Iran Conflict Strategic Response</h1>
-                    </div>
-                    <p class="text-white/70 font-bold">이란 공습에 따른 실시간 원가 전이 시뮬레이션 (ABS / SM Focus)</p>
+                    <h1 class="text-4xl font-black italic uppercase tracking-tighter text-yellow-300">Emergency: Iran Conflict Simulation</h1>
+                    <p class="text-white/90 font-bold mt-2 text-xl underline decoration-yellow-400 decoration-2 underline-offset-8">실시간 유가 연동 ABS·SM 비상 원가 및 마진 분석 (최근 2개년 로직)</p>
                 </div>
                 <div class="text-right">
-                    <div class="flex items-center justify-end space-x-2 text-green-400 mb-1">
-                        <div class="w-2 h-2 bg-green-400 rounded-full live-indicator"></div>
-                        <span class="text-[10px] font-black uppercase tracking-widest">Live Market Feed</span>
-                    </div>
-                    <p id="live-wti" class="text-5xl font-black text-white tracking-tighter">--.--</p>
-                    <p class="text-xs font-bold text-white/40">WTI CRUDE OIL (USD/BBL)</p>
+                    <p class="text-xs font-black text-white/50 uppercase italic tracking-widest">Live WTI Crude</p>
+                    <p id="wti-val" class="text-5xl font-black text-white leading-none tracking-tighter">--.--</p>
+                    <p class="text-sm font-bold text-white/40 mt-1 uppercase">WTI Apr 26 (CL=F)</p>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-white/10">
-                <h3 class="text-xs font-bold text-slate-400 mb-2">ABS Landed Cost (Risk Incl.)</h3>
-                <p id="abs-val" class="text-3xl font-black text-red-500">--</p>
-                <p class="text-[10px] text-slate-500 mt-2 font-bold uppercase">Formula: WTI × 8.23 + 1,103.5 + $150</p>
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <div class="logic-card p-8 rounded-3xl">
+                <h3 class="text-sm font-black text-red-500 mb-6 uppercase flex items-center">
+                    <span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> ABS Landed Cost Formula
+                </h3>
+                <div class="space-y-4 font-bold text-slate-300">
+                    <p class="flex justify-between border-b border-white/5 pb-2"><span>Base (WTI × 7.58 + 825.5)</span> <span id="abs-base-txt">--</span></p>
+                    <p class="flex justify-between text-red-500 font-black"><span>Iran Conflict Risk Premium</span> <span>+ $ 150.0</span></p>
+                    <p class="flex justify-between pt-2 text-3xl font-black text-white italic"><span>Total Landed</span> <span id="abs-landed-val">--</span></p>
+                </div>
             </div>
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-white/10">
-                <h3 class="text-xs font-bold text-slate-400 mb-2">Benzene Prediction</h3>
-                <p id="bz-val" class="text-3xl font-black text-purple-400">--</p>
-                <p class="text-[10px] text-slate-500 mt-2 font-bold uppercase">Formula: WTI × 10.22 + 151.8</p>
+            <div class="logic-card p-8 rounded-3xl border-l-8 border-l-blue-600">
+                <h3 class="text-sm font-black text-blue-500 mb-6 uppercase flex items-center">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> SM Profitability Logic
+                </h3>
+                <div class="space-y-4 font-bold text-slate-300">
+                    <p class="flex justify-between border-b border-white/5 pb-2"><span>Mfg Cost (BZ*0.8 + ET*0.3)</span> <span id="sm-cost-val">--</span></p>
+                    <p class="flex justify-between text-blue-400"><span>Market Price Prediction</span> <span id="sm-market-val">--</span></p>
+                    <p class="flex justify-between pt-2 text-3xl font-black text-orange-500 italic"><span>Margin Gap (Actual)</span> <span id="sm-margin-val">--</span></p>
+                </div>
             </div>
-            <div class="bg-slate-800/50 p-6 rounded-3xl border border-white/10">
-                <h3 class="text-xs font-bold text-slate-400 mb-2">Ethylene Prediction</h3>
-                <p id="et-val" class="text-3xl font-black text-green-400">--</p>
-                <p class="text-[10px] text-slate-500 mt-2 font-bold uppercase">Formula: WTI × 6.12 + 629.8</p>
-            </div>
-            <div class="bg-white p-6 rounded-3xl shadow-2xl">
-                <h3 class="text-xs font-bold text-slate-400 mb-2 italic">SM Actual Margin Gap</h3>
-                <p id="margin-val" class="text-3xl font-black text-slate-900">--</p>
-                <p class="text-[10px] text-slate-400 mt-2 font-bold uppercase italic text-red-500">Target: $150.0 / Over-supply Risk</p>
-            </div>
-        </div>
+        </section>
 
-        <div class="bg-slate-800/30 p-8 rounded-[3rem] border border-white/5">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-white tracking-tight uppercase">Strategic Analysis Report</h3>
-                <span class="text-xs font-bold text-slate-500 italic">Historical Data based on 'Weekly 원료가 동향'</span>
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div class="lg:col-span-3 bg-white p-10 rounded-[3rem] shadow-2xl overflow-hidden">
+                <h3 class="text-2xl font-black text-slate-900 mb-8 pl-4 border-l-8 border-red-600 uppercase">Visualized Impact Analysis</h3>
+                <img id="report-img" src="risk_simulation_report.png" class="w-full rounded-3xl shadow-inner border border-slate-100">
             </div>
-            <img id="report-img" src="risk_simulation_report.png" class="w-full rounded-2xl opacity-90 border border-white/10">
+            
+            <div class="space-y-6">
+                <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                    <p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Benzene (BZ)</p>
+                    <p id="bz-val" class="text-3xl font-black text-purple-400">--</p>
+                    <p class="text-[10px] text-slate-600 mt-2 font-bold uppercase italic">WTI × 17.05 - 331.3</p>
+                </div>
+                <div class="bg-white/5 p-8 rounded-3xl border border-white/10">
+                    <p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-widest">Ethylene (ET)</p>
+                    <p id="et-val" class="text-3xl font-black text-green-400">--</p>
+                    <p class="text-[10px] text-slate-600 mt-2 font-bold uppercase italic">WTI × 5.55 + 456.2</p>
+                </div>
+                <div class="bg-slate-800 p-8 rounded-3xl shadow-2xl border-2 border-red-500/50">
+                    <h4 class="text-red-500 font-black mb-4 uppercase text-xs tracking-widest">Market Status</h4>
+                    <p class="text-sm font-bold leading-relaxed text-slate-300">
+                        이란 사태로 유가 급등세가 뚜렷하나, 역내 <strong>공급과잉</strong>으로 인해 SM 마진은 타겟($150)을 하회하고 있습니다.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 업로드 파일 분석 결과 반영된 상수
-        const M_ABS = 8.23, B_ABS = 1103.5, RISK_PREMIUM = 150;
-        const M_BZ = 10.22, B_BZ = 151.8;
-        const M_ET = 6.12, B_ET = 629.8;
-        const M_SM = 11.36, B_SM = 132.9;
-
-        async function fetchLiveWTI() {
-            try {
-                // 실시간 유가 API 페칭 (Binance API를 프록시로 활용하여 실시간성 확보)
-                const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT'); // 실제로는 WTI 전용 API 연결
-                // 시연을 위해 현재 유가 약 $78.50 기준으로 랜덤 변동 시뮬레이션
-                const baseWTI = 78.50 + (Math.random() * 0.4 - 0.2); 
-                updateDashboard(baseWTI);
-            } catch (error) {
-                updateDashboard(78.50); // API 실패 시 기본값
-            }
-        }
-
-        function updateDashboard(wti) {
-            // 1. 유가 표시
-            document.getElementById('live-wti').innerText = `$ ${wti.toFixed(2)}`;
-
-            // 2. 실시간 로직 계산
-            const bz = (wti * M_BZ) + B_BZ;
-            const et = (wti * M_ET) + B_ET;
-            const abs = (wti * M_ABS) + B_ABS + RISK_PREMIUM;
-            const smMarket = (wti * M_SM) + B_SM;
-            
-            // SM 원가 로직: 벤젠 * 0.8 + 에틸렌 * 0.3
-            const smCost = (bz * 0.8) + (et * 0.3);
-            const margin = smMarket - smCost;
-
-            // 3. UI 업데이트
-            document.getElementById('bz-val').innerText = `$ ${Math.round(bz)}`;
-            document.getElementById('et-val').innerText = `$ ${Math.round(et)}`;
-            document.getElementById('abs-val').innerText = `$ ${Math.round(abs)}`;
-            document.getElementById('margin-val').innerText = `$ ${margin.toFixed(1)}`;
-            
-            // 마진 상태 시각화
-            const mVal = document.getElementById('margin-val');
-            mVal.style.color = margin < 150 ? '#ef4444' : '#10b981';
-        }
-
-        // 3초마다 실시간 유가 갱신
-        setInterval(fetchLiveWTI, 3000);
-        window.onload = () => {
-            fetchLiveWTI();
-            // 그래프 이미지는 캐시 방지를 위해 타임스탬프 추가
+        function updateDashboard() {
+            Papa.parse("simulation_result.csv", {
+                download: true, header: true,
+                complete: function(r) {
+                    const d = r.data[0];
+                    if (d) {
+                        document.getElementById('wti-val').innerText = `$ ${parseFloat(d.WTI).toFixed(2)}`;
+                        document.getElementById('abs-base-txt').innerText = `$ ${Math.round(d.ABS_Base)}`;
+                        document.getElementById('abs-landed-val').innerText = `$ ${Math.round(d.ABS_Landed)}`;
+                        document.getElementById('sm-cost-val').innerText = `$ ${Math.round(d.SM_Cost)}`;
+                        document.getElementById('sm-market-val').innerText = `$ ${Math.round(d.SM_Market)}`;
+                        document.getElementById('sm-margin-val').innerText = `$ ${parseFloat(d.Margin).toFixed(1)}`;
+                        document.getElementById('bz-val').innerText = `$ ${Math.round(d.BZ)}`;
+                        document.getElementById('et-val').innerText = `$ ${Math.round(d.ET)}`;
+                    }
+                }
+            });
             document.getElementById('report-img').src = "risk_simulation_report.png?t=" + new Date().getTime();
-        };
+        }
+        window.onload = updateDashboard;
+        setInterval(updateDashboard, 15000);
     </script>
 </body>
 </html>
