@@ -1,91 +1,70 @@
-# pip install pandas matplotlib numpy
-import pandas as pd # 데이터 분석을 위한 판다스 라이브러리 임포트
-import numpy as np # 수치 계산을 위한 넘파이 라이브러리 임포트
-import matplotlib.pyplot as plt # 시각화를 위한 맷플롯립 라이브러리 임포트
-import os # 파일 경로 및 환경 설정을 위한 os 라이브러리 임포트
+# pip install pandas matplotlib numpy yfinance
+import pandas as pd # 데이터 분석용
+import numpy as np # 수치 계산용
+import matplotlib.pyplot as plt # 시각화용
+import yfinance as yf # 실시간 유가 API
+import os
 
-def generate_sample_data():
-    """실무 분석을 위한 가상의 과거 시장 데이터 생성 함수"""
+def get_realtime_wti():
+    """Yahoo Finance에서 실시간 WTI 선물 가격 수집"""
     try:
-        # 최근 30일간의 가상 기초 데이터 생성
-        dates = pd.date_range(end=pd.Timestamp.now(), periods=30) # 오늘 기준 과거 30일 날짜 생성
-        oil_prices = np.linspace(75, 85, 30) + np.random.normal(0, 1, 30) # 배럴당 75~85달러 유가 생성
-        
-        # 석유화학 원료 간 상관관계를 반영한 가상 가격 로직 (유가 -> 나프타 -> ABS)
-        data = {
-            'Date': dates, # 날짜 데이터
-            'WTI_Oil': oil_prices, # WTI 유가
-            'Naphtha': oil_prices * 10 + 50, # 나프타 가격 (유가 연동 가상 로직)
-            'SM': oil_prices * 15 + 200, # 스티렌 모노머 가격
-            'BD': oil_prices * 12 + 150, # 부타디엔 가격
-            'ABS_Cost': oil_prices * 18 + 500 # 최종 ABS 제조 원가
-        }
-        return pd.DataFrame(data) # 생성된 데이터를 판다스 데이터프레임으로 반환
+        wti = yf.Ticker("CL=F") # WTI Crude Oil Future 심볼
+        hist = wti.history(period="5d") # 최근 5일 데이터
+        return hist['Close'].iloc[-1] # 가장 최신 종가 반환
     except Exception as e:
-        print(f"데이터 생성 중 오류 발생: {e}") # 에러 메시지 출력
-        return None # 오류 시 빈 값 반환
+        print(f"API 호출 오류, 기본값 사용: {e}")
+        return 75.0 # 오류 시 기본값(75달러) 반환
 
-def run_risk_simulation(df, scenario_level=2):
-    """지정학적 리스크 시나리오별 가격 변동 예측 함수"""
-    # 시나리오 설정: 1(국지적), 2(해협 봉쇄), 3(전면전)
+def run_expert_simulation(current_wti, scenario_level=2):
+    """업로드 데이터 기반 산출된 상관계수 적용 시뮬레이션"""
+    # [데이터 분석으로 도출된 고정 상수값]
+    M_ABS = 8.21
+    B_ABS = 1106.22
+    
+    # 리스크 시나리오 설정
     scenarios = {
-        1: {'oil_jump': 1.10, 'logistics_premium': 1.05}, # 유가 10% 상승, 물류비 5% 상승
-        2: {'oil_jump': 1.30, 'logistics_premium': 1.50}, # 유가 30% 상승, 물류비 50% 상승
-        3: {'oil_jump': 1.60, 'logistics_premium': 3.00}  # 유가 60% 상승, 물류비 200% 상승
+        1: {'oil_jump': 1.05, 'logistics_premium': 50}, # 국지적: 5% 상승, 할증 50불
+        2: {'oil_jump': 1.25, 'logistics_premium': 150}, # 봉쇄: 25% 상승, 할증 150불
+        3: {'oil_jump': 1.50, 'logistics_premium': 400}  # 전면전: 50% 상승, 할증 400불
     }
-    
-    config = scenarios.get(scenario_level, scenarios[1]) # 선택된 시나리오 로직 불러오기
-    
-    try:
-        # 시뮬레이션 결과 데이터프레임 복사
-        sim_df = df.tail(1).copy() # 가장 최근 데이터 기준으로 시뮬레이션 시작
-        sim_df['Scenario'] = f"Level {scenario_level}" # 현재 적용된 시나리오 레벨 기록
-        
-        # 리스크가 반영된 미래 가격 예측 계산
-        sim_df['Pred_WTI'] = sim_df['WTI_Oil'] * config['oil_jump'] # 예측 유가 계산
-        sim_df['Pred_ABS'] = sim_df['ABS_Cost'] * (1 + (config['oil_jump'] - 1) * 0.8) # ABS 원가 전이율 80% 가정
-        sim_df['Landed_Cost'] = sim_df['Pred_ABS'] * config['logistics_premium'] # 물류 프리미엄이 포함된 최종 도착가
-        
-        return sim_df # 시뮬레이션 결과 반환
-    except Exception as e:
-        print(f"시뮬레이션 계산 중 '파일을 찾을 수 없거나 데이터 오류'가 발생했습니다: {e}") # 한글 오류 안내
-        return None
+    config = scenarios.get(scenario_level, scenarios[2])
 
-def visualize_and_save(df, sim_result):
-    """결과를 그래프로 시각화하고 파일로 저장하는 함수"""
-    try:
-        plt.figure(figsize=(12, 6)) # 그래프 크기 설정
-        plt.plot(df['Date'], df['ABS_Cost'], label='Historical ABS Cost', color='blue', marker='o') # 과거 가격 선 그래프
-        
-        # 예측 데이터 포인트 추가
-        future_date = df['Date'].iloc[-1] + pd.Timedelta(days=7) # 현재로부터 7일 후 날짜 설정
-        plt.scatter(future_date, sim_result['Landed_Cost'], color='red', s=200, label='Projected Landed Cost (Risk)') # 리스크 반영 지점 표시
-        
-        plt.title('Middle East Conflict: ABS Cost & Logistics Risk Projection', fontsize=15) # 그래프 제목
-        plt.xlabel('Date') # X축 라벨
-        plt.ylabel('Cost (USD/MT)') # Y축 라벨
-        plt.legend() # 범례 표시
-        plt.grid(True, linestyle='--') # 그리드 추가
-        
-        # 결과 저장
-        plt.savefig('risk_simulation_report.png') # 그래프를 이미지 파일로 저장
-        sim_result.to_csv('simulation_result.csv', index=False) # 상세 수치를 CSV로 저장
-        print("시뮬레이션 리포트(이미지 및 CSV)가 성공적으로 생성되었습니다.") # 완료 메시지
-    except Exception as e:
-        print(f"시각화 파일 생성 중 오류 발생: {e}") # 에러 메시지 출력
+    # 리스크 반영 예측 계산
+    pred_wti = current_wti * config['oil_jump']
+    pred_abs_base = (pred_wti * M_ABS) + B_ABS # 도출된 수식 적용 (y = mx + b)
+    landed_cost = pred_abs_base + config['logistics_premium'] # 물류비 합산
+
+    # 결과 데이터 생성
+    result = {
+        'Date': pd.Timestamp.now().strftime('%Y-%m-%d'),
+        'Current_WTI': current_wti,
+        'Pred_WTI': pred_wti,
+        'Pred_ABS': pred_abs_base,
+        'Landed_Cost': landed_cost,
+        'Scenario': f"Level {scenario_level}"
+    }
+    return pd.DataFrame([result])
 
 def main():
-    """메인 실행 로직"""
-    # 1. 데이터 로드
-    market_data = generate_sample_data() # 가상 데이터 생성
-    if market_data is None: return # 데이터 없으면 종료
+    # 1. 실시간 데이터 수집
+    current_wti = get_realtime_wti()
+    print(f"현재 실시간 WTI 가격: ${current_wti:.2f}")
+
+    # 2. 리스크 시뮬레이션 (현재 이란 상황 고려 Level 2 적용)
+    sim_result = run_expert_simulation(current_wti, scenario_level=2)
+
+    # 3. 결과 저장 (index.html 대시보드 연동용)
+    sim_result.to_csv('simulation_result.csv', index=False)
     
-    # 2. 리스크 시뮬레이션 실행 (현재 상황을 고려하여 Level 2: 해협 봉쇄 시나리오 적용)
-    simulation_result = run_risk_simulation(market_data, scenario_level=2) # 시나리오 실행
-    
-    # 3. 결과 저장 및 시각화
-    if simulation_result is not None:
-        visualize_and_save(market_data, simulation_result) # 파일 저장 실행
+    # 4. 시각화 리포트 생성
+    plt.figure(figsize=(10,6))
+    plt.bar(['Current WTI', 'Projected WTI', 'Projected ABS (Landed)'], 
+            [current_wti, sim_result['Pred_WTI'][0], sim_result['Landed_Cost'][0]], 
+            color=['gray', 'orange', 'red'])
+    plt.title(f"Real-time Risk Impact Analysis (WTI ${current_wti:.2f})")
+    plt.ylabel("Price (USD)")
+    plt.savefig('risk_simulation_report.png')
+    print("GitHub 대시보드 데이터 업데이트 완료.")
 
 if __name__ == "__main__":
-    main() # 스크립트 실행
+    main()
