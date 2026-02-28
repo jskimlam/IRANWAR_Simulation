@@ -1,72 +1,73 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import yfinance as yf
-import datetime
+# pip install pandas matplotlib numpy yfinance
+import pandas as pd # 데이터 분석용 판다스 임포트
+import numpy as np # 수치 연산용 넘파이 임포트
+import matplotlib.pyplot as plt # 시각화용 맷플롯립 임포트
+import yfinance as yf # 실시간 유가 API 임포트
+import datetime # 시간 처리용
 
-def get_market_data():
-    """실시간 WTI 가격 및 이란 사태 리스크 파라미터 적용"""
+def get_realtime_data():
+    """실시간 WTI 시세 수집 및 2개년 로직 적용"""
     try:
-        # 실시간 WTI 선물 시세 (정확한 가격 추출)
-        wti_ticker = yf.Ticker("CL=F")
-        current_wti = wti_ticker.history(period="1d")['Close'].iloc[-1]
-    except:
-        current_wti = 78.50 # API 장애 시 최근 시장가 기준
+        # WTI Apr 26 (CL=F) 실시간 가격 수집
+        wti = yf.Ticker("CL=F")
+        current_wti = wti.history(period="1d")['Close'].iloc[-1]
+    except Exception:
+        current_wti = 67.02 # 지적하신 실시간 시세 $67.02 강제 적용
 
-    # 1. 업로드 데이터 기반 상관계수
-    BZ_M, BZ_B = 10.22, 151.78 # 벤젠
-    ET_M, ET_B = 6.12, 629.75  # 에틸렌
-    ABS_M, ABS_B = 8.23, 1103.54 # ABS
-    SM_MARKET_M, SM_MARKET_B = 11.36, 132.90 # SM 시장가
-
-    # 2. 실시간 가격 산출
-    bz_p = (current_wti * BZ_M) + BZ_B
-    et_p = (current_wti * ET_M) + ET_B
-    abs_base = (current_wti * ABS_M) + ABS_B
-    sm_market = (current_wti * SM_MARKET_M) + SM_MARKET_B
-    
-    # 3. SM 원가 로직 (사용자 정의: 벤젠 0.8 + 에틸렌 0.3)
-    sm_cost = (bz_p * 0.8) + (et_p * 0.3)
-    
-    # 4. 이란 사태 리스크 할증 (Logistics & Insurance)
-    risk_premium = 150.0
-    abs_landed = abs_base + risk_premium
-    sm_landed = sm_market + risk_premium
-
-    return {
-        'Update_Time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
-        'WTI': current_wti,
-        'BZ': bz_p, 'ET': et_p,
-        'ABS_Base': abs_base, 'ABS_Landed': abs_landed,
-        'SM_Market': sm_market, 'SM_Cost': sm_cost, 'SM_Landed': sm_landed,
-        'Margin': sm_market - sm_cost,
-        'Risk_Premium': risk_premium
+    # 최근 2개년 데이터 기반 도출된 상관계수 (m: 기울기, b: 절편)
+    logic = {
+        'BZ':  {'m': 17.05, 'b': -331.34},
+        'ET':  {'m': 5.55,  'b': 456.21},
+        'SM':  {'m': 19.86, 'b': -450.23},
+        'ABS': {'m': 7.58,  'b': 825.47}
     }
 
-def create_report(d):
-    """이란 사태 대응 비상 경영 리포트 생성"""
+    # 가격 및 원가 계산
+    bz_p = (current_wti * logic['BZ']['m']) + logic['BZ']['b']
+    et_p = (current_wti * logic['ET']['m']) + logic['ET']['b']
+    sm_market = (current_wti * logic['SM']['m']) + logic['SM']['b']
+    abs_base = (current_wti * logic['ABS']['m']) + logic['ABS']['b']
+    
+    # SM 제조원가 로직: (Benzene * 0.8) + (Ethylene * 0.3)
+    sm_cost = (bz_p * 0.8) + (et_p * 0.3)
+    
+    # 이란 사태 리스크 할증 적용 (Logistics & Insurance)
+    risk_premium = 150.0
+    abs_landed = abs_base + risk_premium
+
+    return {
+        'Time': datetime.datetime.now().strftime('%H:%M:%S'),
+        'WTI': current_wti, 'BZ': bz_p, 'ET': et_p,
+        'SM_Market': sm_market, 'SM_Cost': sm_cost, 'Margin': sm_market - sm_cost,
+        'ABS_Landed': abs_landed, 'Risk_P': risk_premium
+    }
+
+def generate_report(d):
+    """경영진 보고용 비상 대응 시각화 리포트 생성"""
     plt.figure(figsize=(14, 7), facecolor='#ffffff')
     
-    # [좌측] ABS/SM 원가 상승 트렌드
+    # [좌측] SM 원가 구조 및 마진 갭 분석
     plt.subplot(1, 2, 1)
-    labels = ['ABS Base', 'ABS Landed', 'SM Cost', 'SM Market']
-    values = [d['ABS_Base'], d['ABS_Landed'], d['SM_Cost'], d['SM_Market']]
-    plt.bar(labels, values, color=['#94a3b8', '#ef4444', '#fb923c', '#3b82f6'])
-    plt.title("Iran Conflict: Cost Impact Analysis", fontsize=14, fontweight='bold')
-    for i, v in enumerate(values):
-        plt.text(i, v + 10, f"${v:,.1f}", ha='center', fontweight='bold')
+    labels = ['SM Market', 'SM Mfg Cost', 'Benzene(x0.8)', 'Ethylene(x0.3)']
+    vals = [d['SM_Market'], d['SM_Cost'], d['BZ']*0.8, d['ET']*0.3]
+    plt.bar(labels, vals, color=['#3b82f6', '#ef4444', '#8b5cf6', '#10b981'], alpha=0.8)
+    plt.title(f"SM Profitability Analysis (WTI ${d['WTI']:.2f})", fontsize=14, fontweight='bold', pad=15)
+    for i, v in enumerate(vals):
+        plt.text(i, v + 10, f"${v:,.0f}", ha='center', fontweight='bold')
 
-    # [우측] SM 수익성 및 리스크 할증 비중
+    # [우측] ABS 비상 대응 원가 (이란 리스크 포함)
     plt.subplot(1, 2, 2)
-    plt.pie([d['SM_Cost'], d['Risk_Premium'], max(0, d['Margin'])], 
-            labels=['Production Cost', 'Iran Risk', 'Margin'],
-            autopct='%1.1f%%', colors=['#cbd5e1', '#f87171', '#60a5fa'], startangle=140)
-    plt.title("SM Revenue Structure (incl. Risk)", fontsize=14, fontweight='bold')
+    plt.bar(['ABS Base', 'Iran Risk', 'Total Landed'], 
+            [d['ABS_Landed']-d['Risk_P'], d['Risk_P'], d['ABS_Landed']], 
+            color=['#94a3b8', '#f87171', '#b91c1c'], width=0.6)
+    plt.title("ABS Emergency Cost Impact", fontsize=14, fontweight='bold', pad=15)
+    for i, v in enumerate([d['ABS_Landed']-d['Risk_P'], d['Risk_P'], d['ABS_Landed']]):
+        plt.text(i, v + 10, f"${v:,.0f}", ha='center', fontweight='bold')
 
     plt.tight_layout()
     plt.savefig('risk_simulation_report.png', dpi=150)
     pd.DataFrame([d]).to_csv('simulation_result.csv', index=False)
 
 if __name__ == "__main__":
-    data = get_market_data()
-    create_report(data)
+    data = get_realtime_data()
+    generate_report(data)
