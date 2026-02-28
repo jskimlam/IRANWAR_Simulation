@@ -1,72 +1,108 @@
-# pip install pandas matplotlib numpy yfinance
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import yfinance as yf
-import datetime
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>SM 원가 로직 및 수익성 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        .logic-box { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+    </style>
+</head>
+<body class="p-6 md:p-10">
+    <div class="max-w-7xl mx-auto">
+        <header class="flex justify-between items-end mb-10 border-b-2 border-slate-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">SM Strategic Profitability Analyzer</h1>
+                <p class="text-slate-500 font-bold mt-2">벤젠/에틸렌 연동 원가 로직 및 실시간 마진 모니터링</p>
+            </div>
+            <div class="text-right">
+                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Live Market WTI</span>
+                <p id="wti-val" class="text-3xl font-black text-blue-600">--.--</p>
+            </div>
+        </header>
 
-def run_sm_profitability_analysis():
-    # 1. 실시간 WTI 유가 수집 (Yahoo Finance)
-    try:
-        wti_ticker = yf.Ticker("CL=F")
-        current_wti = wti_ticker.history(period="1d")['Close'].iloc[-1]
-    except:
-        current_wti = 78.45 # API 호출 실패 시 최근 시세 적용
+        <section class="logic-box rounded-[2.5rem] p-8 mb-10 text-white shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <h3 class="text-orange-400 font-black text-xl mb-6 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    Calculation Logic & Formula Path
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                        <p class="text-xs font-bold text-slate-400 mb-3 uppercase">Step 1. Feedstock correlation</p>
+                        <div class="space-y-2 text-sm">
+                            <p>Benzene = (WTI × <span class="text-purple-400 font-bold">10.22</span>) + 151.8</p>
+                            <p>Ethylene = (WTI × <span class="text-green-400 font-bold">6.12</span>) + 629.8</p>
+                        </div>
+                    </div>
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/10">
+                        <p class="text-xs font-bold text-slate-400 mb-3 uppercase">Step 2. SM Mfg Cost Formula</p>
+                        <p class="text-lg font-bold">
+                            (Benzene × <span class="text-orange-400">0.8</span>) + (Ethylene × <span class="text-orange-400">0.3</span>)
+                        </p>
+                    </div>
+                    <div class="bg-white/5 p-6 rounded-2xl border border-orange-500/50 bg-orange-500/5">
+                        <p class="text-xs font-bold text-orange-400 mb-3 uppercase">Step 3. Profitability Gap</p>
+                        <p class="text-lg font-bold">SM Market - SM Mfg Cost</p>
+                        <p class="text-xs text-slate-400 mt-2 italic">Target Margin: $ 150.0</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    # 2. 업로드 데이터 기반 상관계수 산출 결과
-    # Benzene (Row 22), Ethylene (Row 8), SM (Row 24)
-    bz_m, bz_b = 10.22, 151.78   # 벤젠 연동식
-    et_m, et_b = 6.12, 629.75    # 에틸렌 연동식
-    sm_m, sm_b = 11.36, 132.90   # SM 시장가 연동식
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-1">Benzene Prediction</p>
+                <p id="bz-p" class="text-3xl font-black text-slate-800">--</p>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-1">Ethylene Prediction</p>
+                <p id="et-p" class="text-3xl font-black text-slate-800">--</p>
+            </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-1">SM Mfg Cost</p>
+                <p id="sm-c" class="text-3xl font-black text-red-600">--</p>
+            </div>
+            <div id="margin-status" class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-1">Actual Margin</p>
+                <p id="sm-m" class="text-3xl font-black text-orange-500">--</p>
+            </div>
+        </div>
 
-    # 3. 실시간 가격 및 원가 계산 (사용자 정의 로직 적용)
-    benzene = (current_wti * bz_m) + bz_b
-    ethylene = (current_wti * et_m) + et_b
-    sm_market_price = (current_wti * sm_m) + sm_b
-    
-    # SM 원가 로직: 벤젠 * 0.8 + 에틸렌 * 0.3 [사용자 제시 로직]
-    sm_mfg_cost = (benzene * 0.8) + (ethylene * 0.3)
-    
-    # 수익성 분석
-    actual_margin = sm_market_price - sm_mfg_cost
-    target_margin = 150 # 적정 마진 기준
-    margin_gap = actual_margin - target_margin
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+            <h3 class="text-xl font-black text-slate-800 mb-6">Visualized Margin Analysis</h3>
+            <img id="report-img" src="risk_simulation_report.png" class="w-full rounded-2xl border border-slate-50 shadow-inner">
+            <p class="text-center text-xs text-slate-400 mt-6 font-bold uppercase tracking-widest">Data Source: Weekly Market Report & Yahoo Finance API</p>
+        </div>
+    </div>
 
-    # 4. 결과 저장
-    res_data = {
-        'Update_Time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
-        'WTI': current_wti,
-        'Benzene': benzene,
-        'Ethylene': ethylene,
-        'SM_Market': sm_market_price,
-        'SM_Cost': sm_mfg_cost,
-        'Margin': actual_margin,
-        'Status': 'Margin Squeeze' if actual_margin < target_margin else 'Healthy'
-    }
-    pd.DataFrame([res_data]).to_csv('simulation_result.csv', index=False)
-
-    # 5. 경영진 보고용 그래프 생성
-    plt.figure(figsize=(12, 6), facecolor='#f8fafc')
-    
-    # SM Market vs Cost 비교
-    plt.subplot(1, 2, 1)
-    plt.bar(['Market Price', 'Mfg Cost'], [sm_market_price, sm_mfg_cost], color=['#3b82f6', '#ef4444'], alpha=0.8)
-    plt.title("SM Price vs Cost (Real-time)", fontsize=13, fontweight='bold')
-    plt.ylabel("USD/MT")
-    for i, v in enumerate([sm_market_price, sm_mfg_cost]):
-        plt.text(i, v + 10, f"${v:,.1f}", ha='center', fontweight='bold')
-
-    # 마진 현황 (Target $150 대비)
-    plt.subplot(1, 2, 2)
-    plt.bar(['Target', 'Actual'], [target_margin, actual_margin], color=['#10b981', '#f59e0b'], alpha=0.8)
-    plt.axhline(y=target_margin, color='red', linestyle='--', alpha=0.5)
-    plt.title(f"SM Margin Gap (Target $150)", fontsize=13, fontweight='bold')
-    for i, v in enumerate([target_margin, actual_margin]):
-        plt.text(i, v + 5, f"${v:,.1f}", ha='center', fontweight='bold')
-
-    plt.tight_layout()
-    plt.savefig('risk_simulation_report.png', dpi=150)
-    print(f"분석 완료: WTI ${current_wti}, SM 마진 ${actual_margin:.1f}")
-
-if __name__ == "__main__":
-    run_sm_profitability_analysis()
+    <script>
+        function updateUI() {
+            Papa.parse("simulation_result.csv", {
+                download: true, header: true,
+                complete: function(results) {
+                    const d = results.data[0];
+                    if (d) {
+                        document.getElementById('bz-p').innerText = `$ ${Math.round(d.BZ)}`;
+                        document.getElementById('et-p').innerText = `$ ${Math.round(d.ET)}`;
+                        document.getElementById('sm-c').innerText = `$ ${Math.round(d.SM_Cost)}`;
+                        document.getElementById('sm-m').innerText = `$ ${parseFloat(d.Margin).toFixed(1)}`;
+                        document.getElementById('wti-val').innerText = `$ ${parseFloat(d.WTI).toFixed(2)}`;
+                        
+                        const mStatus = document.getElementById('margin-status');
+                        if (parseFloat(d.Margin) < 150) {
+                            mStatus.classList.add('bg-red-50', 'border-red-200');
+                        }
+                    }
+                }
+            });
+            document.getElementById('report-img').src = "risk_simulation_report.png?t=" + new Date().getTime();
+        }
+        window.onload = updateUI;
+        setInterval(updateUI, 10000); // 10초마다 대시보드 새로고침
+    </script>
+</body>
+</html>
