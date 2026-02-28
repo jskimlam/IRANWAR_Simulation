@@ -2,104 +2,98 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 ABS 원가 리스크 대시보드</title>
+    <title>SM 수익성 경영 보고 대시보드</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
-        .live-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f1f5f9; }
+        .danger-bg { background-color: #fef2f2; border-color: #fca5a5; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-8">
     <div class="max-w-6xl mx-auto">
-        <header class="mb-8 flex justify-between items-center border-b pb-6">
+        <header class="flex justify-between items-end mb-10 border-b-2 border-slate-200 pb-6">
             <div>
-                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Real-time ABS Cost Tracker</h1>
-                <p class="text-slate-500 mt-1 font-medium">실시간 유가 연동 및 원가 전이 시뮬레이션</p>
+                <h1 class="text-4xl font-black text-slate-900 tracking-tight">Executive Summary: SM Market & Margin</h1>
+                <p class="text-slate-500 font-bold mt-2">벤젠, 에틸렌 연동 원가 및 SM 공급과잉 리스크 분석</p>
             </div>
-            <div class="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
-                <div class="w-2 h-2 bg-green-500 rounded-full live-pulse"></div>
-                <span class="text-xs font-bold text-green-700 uppercase">Live Market Data</span>
-            </div>
+            <div id="wti-badge" class="bg-slate-800 text-white px-6 py-2 rounded-2xl font-black text-xl shadow-lg">WTI $--.--</div>
         </header>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">실시간 WTI 유가</h3>
-                <div class="flex items-baseline space-x-2">
-                    <p id="live-wti" class="text-4xl font-black text-blue-600">--.--</p>
-                    <span class="text-lg font-bold text-slate-400">USD</span>
-                </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Benzene (FOB Korea)</p>
+                <p id="v-bz" class="text-3xl font-black text-blue-600">--</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">예상 ABS Landed Cost</h3>
-                <div class="flex items-baseline space-x-2">
-                    <p id="live-abs" class="text-4xl font-black text-red-600">--.--</p>
-                    <span class="text-lg font-bold text-slate-400">USD/MT</span>
-                </div>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-2 uppercase">Ethylene (CFR Taiwan)</p>
+                <p id="v-et" class="text-3xl font-black text-green-600">--</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-l-orange-500">
-                <h3 class="text-xs font-bold text-orange-500 uppercase tracking-wider mb-2">구매 시니어 가이드</h3>
-                <p id="action-guide" class="text-lg font-bold text-slate-800">데이터 수집 중...</p>
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <p class="text-xs font-bold text-slate-400 mb-2 uppercase">SM Market Price</p>
+                <p id="v-sm-m" class="text-3xl font-black text-slate-800">--</p>
+            </div>
+            <div id="margin-card" class="p-6 rounded-3xl shadow-sm border-2">
+                <p class="text-xs font-bold text-slate-500 mb-2 uppercase">SM Actual Margin</p>
+                <p id="v-margin" class="text-3xl font-black">--</p>
             </div>
         </div>
 
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h3 class="font-bold text-slate-800 mb-6 flex items-center">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="Standard-9"></path></svg>
-                상세 분석 및 트렌드 리포트
-            </h3>
-            <img id="risk-chart" src="risk_simulation_report.png" class="w-full rounded-xl" alt="Report Graph">
+        <div class="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-2xl font-black text-slate-800 tracking-tight">Financial Impact Visualization</h3>
+                <div class="flex space-x-2">
+                    <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">Margin Squeeze Warning</span>
+                    <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">Over-supply Impact</span>
+                </div>
+            </div>
+            <img id="risk-chart" src="risk_simulation_report.png" class="w-full h-auto rounded-3xl border border-slate-50 shadow-inner">
+            
+            <div class="mt-10 p-8 rounded-3xl bg-slate-50 border border-slate-200">
+                <h4 class="text-lg font-black text-slate-900 mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11H9v4h2V7zm0 6H9v2h2v-2z"></path></svg>
+                    경영진 판단 참고사항
+                </h4>
+                <p id="insight-text" class="text-slate-700 font-bold leading-relaxed text-lg">
+                    데이터를 로딩 중입니다...
+                </p>
+            </div>
         </div>
     </div>
 
     <script>
-        // 업로드 파일 분석을 통해 도출한 상수
-        const M_ABS = 8.21;
-        const B_ABS = 1106.22;
-        const FREIGHT_PREMIUM = 150; // 이란 리스크 할증료 (고정)
+        function updateDashboard() {
+            Papa.parse("simulation_result.csv", {
+                download: true, header: true,
+                complete: function(r) {
+                    const d = r.data[0];
+                    if (d) {
+                        document.getElementById('v-bz').innerText = `$${Math.round(d.Benzene)}`;
+                        document.getElementById('v-et').innerText = `$${Math.round(d.Ethylene)}`;
+                        document.getElementById('v-sm-m').innerText = `$${Math.round(d.SM_Market)}`;
+                        document.getElementById('v-margin').innerText = `$${parseFloat(d.Margin).toFixed(1)}`;
+                        document.getElementById('wti-badge').innerText = `LIVE WTI $${parseFloat(d.WTI).toFixed(2)}`;
+                        
+                        const mCard = document.getElementById('margin-card');
+                        const mVal = document.getElementById('v-margin');
+                        const insight = document.getElementById('insight-text');
 
-        async function fetchLivePrice() {
-            try {
-                // 실시간 유가 API 호출 (무료 API 예시: 캔들스틱 데이터 사용)
-                // 실제 운영 시에는 본인의 API Key를 사용하는 것이 안정적입니다.
-                const response = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTTRY'); // 테스트용 프록시
-                // 실제 WTI 데이터는 yfinance 결과 파일을 읽거나 전용 API 연동 필요
-                // 여기서는 시연을 위해 동작 구조만 구현
-                
-                // 가상 실시간 유가 (실제로는 API에서 가져온 값을 넣음)
-                const currentWti = 78.45 + (Math.random() - 0.5); 
-                
-                updateUI(currentWti);
-            } catch (error) {
-                console.error("실시간 데이터 호출 실패:", error);
-            }
+                        if (d.Margin < 0) {
+                            mCard.className = "p-6 rounded-3xl shadow-sm border-2 danger-bg";
+                            mVal.className = "text-3xl font-black text-red-600";
+                            insight.innerHTML = "현재 SM 시장가는 제조원가(벤젠*0.8 + 에틸렌*0.3)를 하회하고 있습니다. <br><span class='text-red-600 uppercase text-sm font-black'>[결론]</span> 중동발 유가 상승에도 불구하고 역내 공급과잉으로 인해 판가 전이가 불가능한 심각한 마진 스프레드 훼손 구간입니다.";
+                        } else if (d.Margin < 150) {
+                            mCard.className = "p-6 rounded-3xl shadow-sm border-2 bg-orange-50 border-orange-200";
+                            mVal.className = "text-3xl font-black text-orange-600";
+                            insight.innerHTML = "목표 마진($150)에 미달하는 저마진 구간입니다. <br><span class='text-orange-600 uppercase text-sm font-black'>[결론]</span> 원재료비는 유가와 연동되어 급등하고 있으나, 수요 부진과 공급 과잉이 겹쳐 수익성 방어가 매우 어렵습니다.";
+                        }
+                    }
+                }
+            });
+            document.getElementById('risk-chart').src = "risk_simulation_report.png?t=" + new Date().getTime();
         }
-
-        function updateUI(wti) {
-            // 수식 적용: ABS = m * WTI + b
-            const absBase = (wti * M_ABS) + B_ABS;
-            const landedCost = absBase + FREIGHT_PREMIUM;
-
-            document.getElementById('live-wti').innerText = wti.toFixed(2);
-            document.getElementById('live-abs').innerText = landedCost.toFixed(2);
-
-            // 가이드 자동 업데이트
-            const guide = document.getElementById('action-guide');
-            if (landedCost > 1800) {
-                guide.innerText = "🚨 즉시 선확보 (강력 권고)";
-                guide.classList.add('text-red-600');
-            } else {
-                guide.innerText = "✅ 분할 구매 및 모니터링";
-                guide.classList.remove('text-red-600');
-            }
-        }
-
-        // 5초마다 실시간 가격 갱신
-        setInterval(fetchLivePrice, 5000);
-        window.onload = fetchLivePrice;
+        window.onload = updateDashboard;
     </script>
 </body>
 </html>
