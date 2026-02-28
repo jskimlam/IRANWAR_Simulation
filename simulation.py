@@ -1,76 +1,72 @@
-# 필수 라이브러리 설치: pip install pandas matplotlib numpy yfinance
-import pandas as pd # 데이터 분석용
-import numpy as np # 수치 연산용
-import matplotlib.pyplot as plt # 시각화용
-import yfinance as yf # 실시간 유가 API
+# pip install pandas matplotlib numpy yfinance
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import yfinance as yf
 import datetime
 
-def get_market_data():
-    """실시간 WTI 유가 및 분석된 상관계수 로직 적용"""
+def run_sm_profitability_analysis():
+    # 1. 실시간 WTI 유가 수집 (Yahoo Finance)
     try:
-        wti = yf.Ticker("CL=F").history(period="1d")['Close'].iloc[-1]
+        wti_ticker = yf.Ticker("CL=F")
+        current_wti = wti_ticker.history(period="1d")['Close'].iloc[-1]
     except:
-        wti = 78.45 # API 실패 시 현재 시세 반영
+        current_wti = 78.45 # API 호출 실패 시 최근 시세 적용
 
-    # [분석 결과] 벤젠, 에틸렌, SM의 유가 연동 수식
-    # y = m * WTI + b
-    bz_m, bz_b = 10.22, 151.78 # 벤젠 (Benzene) 연동식
-    et_m, et_b = 6.12, 629.75  # 에틸렌 (Ethylene) 연동식
-    sm_market_m, sm_market_b = 11.36, 132.90 # SM 시장가 연동식
+    # 2. 업로드 데이터 기반 상관계수 산출 결과
+    # Benzene (Row 22), Ethylene (Row 8), SM (Row 24)
+    bz_m, bz_b = 10.22, 151.78   # 벤젠 연동식
+    et_m, et_b = 6.12, 629.75    # 에틸렌 연동식
+    sm_m, sm_b = 11.36, 132.90   # SM 시장가 연동식
 
-    # 1. 원료별 실시간 예상가 산출
-    benzene = (wti * bz_m) + bz_b
-    ethylene = (wti * et_m) + et_b
-    sm_market = (wti * sm_market_m) + sm_market_b
-
-    # 2. SM 제조원가 로직 적용 (Benzene * 0.8 + Ethylene * 0.3)
-    sm_cost = (benzene * 0.8) + (ethylene * 0.3)
+    # 3. 실시간 가격 및 원가 계산 (사용자 정의 로직 적용)
+    benzene = (current_wti * bz_m) + bz_b
+    ethylene = (current_wti * et_m) + et_b
+    sm_market_price = (current_wti * sm_m) + sm_b
     
-    # 3. 마진 분석 (시장가 - 제조원가)
-    current_margin = sm_market - sm_cost
-    target_margin = 150 # 경영 목표 마진
+    # SM 원가 로직: 벤젠 * 0.8 + 에틸렌 * 0.3 [사용자 제시 로직]
+    sm_mfg_cost = (benzene * 0.8) + (ethylene * 0.3)
     
-    return {
-        'WTI': wti, 'Benzene': benzene, 'Ethylene': ethylene,
-        'SM_Market': sm_market, 'SM_Cost': sm_cost, 
-        'Margin': current_margin, 'Target': target_margin
+    # 수익성 분석
+    actual_margin = sm_market_price - sm_mfg_cost
+    target_margin = 150 # 적정 마진 기준
+    margin_gap = actual_margin - target_margin
+
+    # 4. 결과 저장
+    res_data = {
+        'Update_Time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M'),
+        'WTI': current_wti,
+        'Benzene': benzene,
+        'Ethylene': ethylene,
+        'SM_Market': sm_market_price,
+        'SM_Cost': sm_mfg_cost,
+        'Margin': actual_margin,
+        'Status': 'Margin Squeeze' if actual_margin < target_margin else 'Healthy'
     }
+    pd.DataFrame([res_data]).to_csv('simulation_result.csv', index=False)
 
-def create_executive_report(d):
-    """경영진 보고용 분석 그래프 생성"""
-    plt.figure(figsize=(14, 8), facecolor='#f8fafc')
+    # 5. 경영진 보고용 그래프 생성
+    plt.figure(figsize=(12, 6), facecolor='#f8fafc')
     
-    # [좌측] SM 수익성 분석 (Market vs Cost)
+    # SM Market vs Cost 비교
     plt.subplot(1, 2, 1)
-    labels = ['SM Market Price', 'SM Mfg Cost']
-    values = [d['SM_Market'], d['SM_Cost']]
-    colors = ['#3b82f6', '#ef4444']
-    
-    plt.bar(labels, values, color=colors, alpha=0.8, width=0.6)
-    plt.title("SM Profitability Analysis", fontsize=15, fontweight='bold', pad=20)
-    plt.ylabel("USD / MT")
-    for i, v in enumerate(values):
-        plt.text(i, v + 20, f"${v:,.1f}", ha='center', fontweight='bold', fontsize=12)
+    plt.bar(['Market Price', 'Mfg Cost'], [sm_market_price, sm_mfg_cost], color=['#3b82f6', '#ef4444'], alpha=0.8)
+    plt.title("SM Price vs Cost (Real-time)", fontsize=13, fontweight='bold')
+    plt.ylabel("USD/MT")
+    for i, v in enumerate([sm_market_price, sm_mfg_cost]):
+        plt.text(i, v + 10, f"${v:,.1f}", ha='center', fontweight='bold')
 
-    # [우측] 마진 갭 분석 (Target $150 vs Current)
+    # 마진 현황 (Target $150 대비)
     plt.subplot(1, 2, 2)
-    margin_labels = ['Target Margin', 'Current Margin']
-    margin_values = [d['Target'], d['Margin']]
-    margin_colors = ['#10b981', '#dc2626' if d['Margin'] < d['Target'] else '#3b82f6']
-    
-    plt.bar(margin_labels, margin_values, color=margin_colors, width=0.6)
-    plt.axhline(y=0, color='black', linewidth=1)
-    plt.title(f"SM Margin Status (WTI ${d['WTI']:.2f})", fontsize=15, fontweight='bold', pad=20)
-    for i, v in enumerate(margin_values):
-        plt.text(i, v + (5 if v > 0 else -15), f"${v:,.1f}", ha='center', fontweight='bold', fontsize=12)
+    plt.bar(['Target', 'Actual'], [target_margin, actual_margin], color=['#10b981', '#f59e0b'], alpha=0.8)
+    plt.axhline(y=target_margin, color='red', linestyle='--', alpha=0.5)
+    plt.title(f"SM Margin Gap (Target $150)", fontsize=13, fontweight='bold')
+    for i, v in enumerate([target_margin, actual_margin]):
+        plt.text(i, v + 5, f"${v:,.1f}", ha='center', fontweight='bold')
 
     plt.tight_layout()
     plt.savefig('risk_simulation_report.png', dpi=150)
-    
-    # 결과 데이터 CSV 저장
-    pd.DataFrame([d]).to_csv('simulation_result.csv', index=False)
-    print("경영진 보고용 리포트 생성 완료.")
+    print(f"분석 완료: WTI ${current_wti}, SM 마진 ${actual_margin:.1f}")
 
 if __name__ == "__main__":
-    data = get_market_data()
-    create_executive_report(data)
+    run_sm_profitability_analysis()
