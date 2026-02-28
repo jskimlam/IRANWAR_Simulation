@@ -1,0 +1,34 @@
+name: Middle East Risk Simulation # 워크플로우 이름
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # 매일 자정(UTC)에 자동으로 실행
+  workflow_dispatch: # 필요할 때 수동으로 즉시 실행 가능하도록 설정
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 리눅스 환경에서 실행
+
+    steps:
+    - name: Checkout Repository # 코드 체크아웃
+      uses: actions/checkout@v3
+
+    - name: Set up Python # 파이썬 환경 설정
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9' # 파이썬 3.9 버전 사용
+
+    - name: Install Dependencies # 필수 라이브러리 설치
+      run: |
+        pip install pandas matplotlib numpy
+
+    - name: Run Simulation # 시뮬레이션 스크립트 실행
+      run: python simulation.py
+
+    - name: Commit and Push Results # 생성된 결과 파일(PNG, CSV)을 GitHub에 업데이트
+      run: |
+        git config --local user.email "action@github.com" # 깃 설정
+        git config --local user.name "GitHub Action" # 깃 설정
+        git add risk_simulation_report.png simulation_result.csv # 결과 파일 추가
+        git commit -m "Update Risk Simulation Report [$(date)]" || echo "No changes to commit" # 변경사항 커밋
+        git push # 리포지토리에 반영
