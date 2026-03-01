@@ -2855,6 +2855,15 @@ function renderSensR2Gauges() {
   }).join('');
 }
 
+// ABS 원가 계산 헬퍼 (민감도 Before/After 공용)
+function calcAbsCost(sens, w) {
+  const dWti = w - G.wti_rt;
+  const smC  = (G.sm_act + dWti * sens.sm) * ABS_R.sm;
+  const anC  = (G.an     + dWti * sens.an) * ABS_R.an;
+  const bdC  = (G.bd     + dWti * sens.bd) * ABS_R.bd;
+  return Math.round(smC + anC + bdC);
+}
+
 // ④ Before/After 시뮬
 function renderSensBeforeAfter() {
   const wti    = parseFloat(document.getElementById('sens-ba-slider')?.value || 67);
@@ -2886,15 +2895,6 @@ function renderSensBeforeAfter() {
 
   // WTI 구간 $50~$100 $5 단위
   const wtiRange = [50,55,60,65,70,75,80,85,90,95,100];
-
-  // 현재 SENS로 ABS 원가 계산
-  const calcAbsCost = (sens, w) => {
-    const dWti   = w - G.wti_rt;
-    const smC    = (G.sm_act + dWti * sens.sm) * ABS_R.sm;
-    const anC    = (G.an     + dWti * sens.an) * ABS_R.an;
-    const bdC    = (G.bd     + dWti * sens.bd) * ABS_R.bd;
-    return Math.round(smC + anC + bdC);
-  };
 
   const currentCosts = wtiRange.map(w => calcAbsCost(SENS, w));
   const defaultCosts = wtiRange.map(w => calcAbsCost(DEFAULT_SENS, w));
