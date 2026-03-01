@@ -605,6 +605,47 @@
       <div id="scenario-table" class="space-y-2"></div>
       <div class="mt-3 text-xs text-slate-700">★ BD = WTI 회귀 + 크래커마진악화 타이트프리미엄 | 수급신호 4종 병기</div>
     </div>
+
+    <!-- ══ 시나리오 히트맵 테이블 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">🌡 시나리오 히트맵 — 값에 따른 색상 등급</h3>
+          <p class="text-xs text-slate-600 mt-0.5">셀 색상: 🟢 좋음 · 🟡 주의 · 🔴 위험</p>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs border-collapse" id="scenario-heatmap"></table>
+      </div>
+    </div>
+
+    <!-- ══ 시나리오 차트 패널 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">📈 시나리오별 차트</h3>
+          <p class="text-xs text-slate-600 mt-0.5">WTI 구간별 주요 지표 시각화</p>
+        </div>
+        <div class="flex gap-2 flex-wrap items-center">
+          <!-- 차트 타입 -->
+          <span class="text-xs text-slate-700 font-bold">차트:</span>
+          <button onclick="setScChartMode('gap')"    id="sct-gap"    class="sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600">ABS Gap존</button>
+          <button onclick="setScChartMode('cost')"   id="sct-cost"   class="sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">원가구조</button>
+          <button onclick="setScChartMode('margin')" id="sct-margin" class="sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">마진비교</button>
+          <button onclick="setScChartMode('cracker')"id="sct-cracker"class="sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">크래커</button>
+          <span class="text-xs text-slate-600 mx-1">|</span>
+          <!-- 품목 토글 -->
+          <span class="text-xs text-slate-700 font-bold">품목:</span>
+          <button onclick="toggleScItem('absGap')"  id="si-absGap"  class="si-btn text-xs px-2 py-1 rounded border font-bold transition bg-emerald-100 text-emerald-700 border-emerald-300">ABS Gap</button>
+          <button onclick="toggleScItem('smMargin')"id="si-smMargin"class="si-btn text-xs px-2 py-1 rounded border font-bold transition bg-blue-100 text-blue-700 border-blue-300">SM Margin</button>
+          <button onclick="toggleScItem('cracker')" id="si-cracker" class="si-btn text-xs px-2 py-1 rounded border font-bold transition bg-orange-100 text-orange-700 border-orange-300">크래커마진</button>
+          <button onclick="toggleScItem('bdTight')" id="si-bdTight" class="si-btn text-xs px-2 py-1 rounded border font-bold transition bg-red-100 text-red-700 border-red-300">BD타이트</button>
+        </div>
+      </div>
+      <div class="relative" style="height:320px">
+        <canvas id="scenario-chart"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -1399,7 +1440,285 @@ const SCENARIOS = [
   {label:'Crisis $100',  wti:100,   risk:200, color:'#b91c1c'},
 ];
 
+// ══════════════════════════════════════════════
+// 시나리오 히트맵 + 차트
+// ══════════════════════════════════════════════
+let scChart = null;
+let scChartMode = 'gap';
+
+const SC_ITEMS = {
+  absGap:   { on:true,  label:'ABS Gap 실측',  color:'rgba(16,185,129,',  key:'absGap'   },
+  smMargin: { on:true,  label:'SM Margin 실측', color:'rgba(59,130,246,',  key:'smMargin' },
+  cracker:  { on:true,  label:'크래커마진',      color:'rgba(249,115,22,',  key:'crackerSim'},
+  bdTight:  { on:false, label:'BD 타이트 프리미엄',color:'rgba(239,68,68,', key:'bdTight'  },
+};
+
+const SC_BTN_ON  = { absGap:'bg-emerald-100 text-emerald-700 border-emerald-300', smMargin:'bg-blue-100 text-blue-700 border-blue-300', cracker:'bg-orange-100 text-orange-700 border-orange-300', bdTight:'bg-red-100 text-red-700 border-red-300' };
+const SC_BTN_OFF = 'bg-slate-50 text-slate-400 border-slate-200';
+
+function toggleScItem(key) {
+  SC_ITEMS[key].on = !SC_ITEMS[key].on;
+  const btn = document.getElementById('si-'+key);
+  if (btn) btn.className = `si-btn text-xs px-2 py-1 rounded border font-bold transition ${SC_ITEMS[key].on ? SC_BTN_ON[key] : SC_BTN_OFF}`;
+  renderScenarioChart();
+}
+
+function setScChartMode(mode) {
+  scChartMode = mode;
+  document.querySelectorAll('.sct-btn').forEach(b => b.className = 'sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300');
+  const active = document.getElementById('sct-'+mode);
+  if (active) active.className = 'sct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600';
+  renderScenarioChart();
+}
+
+// 히트맵 셀 색상
+function heatColor(v, type) {
+  if (type === 'absGap')   return v >= 150 ? '#bbf7d0' : v >= 0 ? '#fef9c3' : '#fecaca';
+  if (type === 'smMargin') return v >= 0   ? '#bbf7d0' : v >= -100 ? '#fef9c3' : '#fecaca';
+  if (type === 'cracker')  return v >= 50  ? '#bbf7d0' : v >= 0 ? '#fef9c3' : '#fecaca';
+  if (type === 'bdTight')  return v <= 0   ? '#bbf7d0' : v <= 80 ? '#fef9c3' : '#fecaca';
+  if (type === 'absCost')  return v <= 1200 ? '#bbf7d0' : v <= 1400 ? '#fef9c3' : '#fecaca';
+  return '#f1f5f9';
+}
+function heatText(v, type) {
+  if (type === 'absGap')   return v >= 150 ? '#065f46' : v >= 0 ? '#713f12' : '#7f1d1d';
+  if (type === 'smMargin') return v >= 0   ? '#065f46' : v >= -100 ? '#713f12' : '#7f1d1d';
+  if (type === 'cracker')  return v >= 50  ? '#065f46' : v >= 0 ? '#713f12' : '#7f1d1d';
+  if (type === 'bdTight')  return v <= 0   ? '#065f46' : v <= 80 ? '#713f12' : '#7f1d1d';
+  if (type === 'absCost')  return v <= 1200 ? '#065f46' : v <= 1400 ? '#713f12' : '#7f1d1d';
+  return '#334155';
+}
+
+function renderScenarioHeatmap() {
+  const el = document.getElementById('scenario-heatmap');
+  if (!el) return;
+  const cols = [
+    { label:'시나리오',   key:null,        type:null        },
+    { label:'ABS Gap 실측 ③', key:'absGap',    type:'absGap'   },
+    { label:'ABS Gap 이론 ④', key:'absGapTh',  type:'absGap'   },
+    { label:'SM Margin 실측 ①', key:'smMargin',  type:'smMargin' },
+    { label:'SM Margin 이론 ②', key:'smMarginTh',type:'smMargin' },
+    { label:'크래커마진', key:'crackerSim', type:'cracker'  },
+    { label:'BD 타이트',  key:'bdTight',   type:'bdTight'  },
+    { label:'ABS 원가',   key:'absCost',   type:'absCost'  },
+    { label:'구매신호',   key:null,        type:'signal'   },
+  ];
+
+  const headerRow = `<tr>${cols.map(c =>
+    `<th class="px-3 py-2 text-center font-bold text-slate-700 bg-slate-700 text-white border border-slate-600 whitespace-nowrap">${c.label}</th>`
+  ).join('')}</tr>`;
+
+  const bodyRows = SCENARIOS.map(s => {
+    const r = calcAll(s.wti, s.risk);
+    const signal = r.absGap >= 150 ? '✅ 매수' : r.absGap >= 0 ? '⚠ 관망' : '🔴 위험';
+    const sigBg  = r.absGap >= 150 ? '#bbf7d0' : r.absGap >= 0 ? '#fef9c3' : '#fecaca';
+    const sigTx  = r.absGap >= 150 ? '#065f46' : r.absGap >= 0 ? '#713f12' : '#7f1d1d';
+    return `<tr>${cols.map(c => {
+      if (!c.key && c.type !== 'signal') {
+        return `<td class="px-3 py-2 font-black text-center border border-slate-200 whitespace-nowrap" style="background:${s.color}22;color:${s.color}">${s.label}</td>`;
+      }
+      if (c.type === 'signal') {
+        return `<td class="px-3 py-2 font-black text-center border border-slate-200 whitespace-nowrap" style="background:${sigBg};color:${sigTx}">${signal}</td>`;
+      }
+      const v  = Math.round(r[c.key]);
+      const bg = heatColor(v, c.type);
+      const tx = heatText(v, c.type);
+      const prefix = c.type === 'absCost' || c.type === 'bdTight' ? '' : (v >= 0 ? '+' : '');
+      return `<td class="px-3 py-2 font-black text-center border border-slate-200 whitespace-nowrap" style="background:${bg};color:${tx}">${prefix}$${v}</td>`;
+    }).join('')}</tr>`;
+  }).join('');
+
+  el.innerHTML = `<thead>${headerRow}</thead><tbody>${bodyRows}</tbody>`;
+}
+
+function renderScenarioChart() {
+  const canvas = document.getElementById('scenario-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  const labels  = SCENARIOS.map(s => s.label);
+  const wtiVals = SCENARIOS.map(s => s.wti);
+  const data    = SCENARIOS.map(s => calcAll(s.wti, s.risk));
+  const colors  = SCENARIOS.map(s => s.color);
+
+  if (scChartMode === 'gap') {
+    // ABS Gap 라인 + 구매존 배경
+    const activeItems = Object.values(SC_ITEMS).filter(v => v.on);
+    const datasets = activeItems.map(item => ({
+      label: item.label,
+      data: data.map(r => Math.round(r[item.key])),
+      borderColor: item.color + '1)',
+      backgroundColor: item.color + '0.15)',
+      fill: false,
+      tension: 0.4,
+      borderWidth: 2.5,
+      pointRadius: 6,
+      pointBackgroundColor: data.map(r => {
+        const v = r[item.key];
+        return v >= 150 ? '#10b981' : v >= 0 ? '#f59e0b' : '#ef4444';
+      }),
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      datalabels: {
+        display: true,
+        anchor: 'end', align: 'top',
+        color: '#1e293b',
+        font: { size: 10, weight: 'bold' },
+        formatter: v => (v >= 0 ? '+' : '') + '$' + v,
+      }
+    }));
+
+    scChart = new Chart(newCanvas, {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top', labels: { font:{size:11}, color:'#334155' } },
+          datalabels: { display: true },
+          annotation: {
+            annotations: {
+              buyZone:   { type:'box', yMin:150,  yMax:600,  backgroundColor:'rgba(16,185,129,0.07)',  borderWidth:0, label:{display:true,content:'✅ 매수존',  position:{x:'start',y:'start'}, color:'#059669', font:{size:10}} },
+              watchZone: { type:'box', yMin:0,    yMax:150,  backgroundColor:'rgba(245,158,11,0.07)', borderWidth:0, label:{display:true,content:'⚠ 관망존',   position:{x:'start',y:'start'}, color:'#d97706', font:{size:10}} },
+              riskZone:  { type:'box', yMin:-400, yMax:0,    backgroundColor:'rgba(239,68,68,0.07)',  borderWidth:0, label:{display:true,content:'🔴 위험존',  position:{x:'start',y:'start'}, color:'#dc2626', font:{size:10}} },
+              zeroLine:  { type:'line', yMin:0, yMax:0, borderColor:'rgba(239,68,68,0.5)', borderWidth:1.5, borderDash:[4,3] },
+              buyLine:   { type:'line', yMin:150, yMax:150, borderColor:'rgba(16,185,129,0.5)', borderWidth:1.5, borderDash:[4,3] },
+            }
+          },
+          tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y >= 0 ? '+' : ''}$${ctx.parsed.y}` } }
+        },
+        scales: {
+          x: { ticks:{ color:'#334155', font:{size:11} }, grid:{ color:'rgba(148,163,184,0.15)' } },
+          y: { ticks:{ color:'#334155', callback: v => (v>=0?'+':'')+'$'+v }, grid:{ color:'rgba(148,163,184,0.2)' } }
+        }
+      }
+    });
+
+  } else if (scChartMode === 'cost') {
+    // 원가 구조 스택 영역 + ABS 시장가 라인
+    const smCosts = data.map(r => Math.round(r.sm  * ABS_R.sm));
+    const anCosts = data.map(r => Math.round(r.an  * ABS_R.an));
+    const bdCosts = data.map(r => Math.round(r.bd  * ABS_R.bd));
+    const absMkts = data.map(r => Math.round(r.absMkt));
+
+    scChart = new Chart(newCanvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label:'SM 원가', data:smCosts, borderColor:'rgba(59,130,246,1)', backgroundColor:'rgba(59,130,246,0.4)', fill:true, stack:'cost', tension:0.4, borderWidth:2, pointRadius:4, datalabels:{display:false} },
+          { label:'AN 원가', data:anCosts, borderColor:'rgba(217,119,6,1)',  backgroundColor:'rgba(217,119,6,0.4)',  fill:true, stack:'cost', tension:0.4, borderWidth:2, pointRadius:4, datalabels:{display:false} },
+          { label:'BD 원가', data:bdCosts, borderColor:'rgba(249,115,22,1)', backgroundColor:'rgba(249,115,22,0.4)', fill:true, stack:'cost', tension:0.4, borderWidth:2, pointRadius:4, datalabels:{display:false} },
+          { label:'ABS 시장가', data:absMkts, borderColor:'#1e293b', backgroundColor:'transparent', fill:false, tension:0.4, borderWidth:2.5, borderDash:[5,4], pointRadius:6, pointBackgroundColor:'#1e293b', datalabels:{ display:true, anchor:'end', align:'top', color:'#1e293b', font:{size:10,weight:'bold'}, formatter:v=>'$'+v } },
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend:{ display:true, position:'top', labels:{font:{size:11},color:'#334155'} },
+          datalabels:{ display:false },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y}` } }
+        },
+        scales: {
+          x:{ stacked:true, ticks:{color:'#334155',font:{size:11}}, grid:{color:'rgba(148,163,184,0.15)'} },
+          y:{ stacked:true, ticks:{color:'#334155',callback:v=>'$'+v}, grid:{color:'rgba(148,163,184,0.2)'} }
+        }
+      }
+    });
+
+  } else if (scChartMode === 'margin') {
+    // SM/ABS 실측·이론 마진 4개 라인
+    const activeItems = Object.values(SC_ITEMS).filter(v => v.on);
+    scChart = new Chart(newCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: activeItems.map(item => ({
+          label: item.label,
+          data: data.map(r => Math.round(r[item.key])),
+          backgroundColor: data.map(r => {
+            const v = r[item.key];
+            return item.color + (v >= 0 ? '0.75)' : '0.4)');
+          }),
+          borderColor: item.color + '1)',
+          borderWidth: 2,
+          borderRadius: 6,
+          datalabels: {
+            display: true,
+            anchor: d => data[d.dataIndex][item.key] >= 0 ? 'end' : 'start',
+            align:  d => data[d.dataIndex][item.key] >= 0 ? 'top' : 'bottom',
+            color: '#1e293b',
+            font: { size: 9, weight: 'bold' },
+            formatter: v => (v>=0?'+':'')+'$'+v,
+          }
+        }))
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend:{ display:true, position:'top', labels:{font:{size:11},color:'#334155'} },
+          datalabels:{ display:true },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y>=0?'+':''}$${ctx.parsed.y}` } }
+        },
+        scales: {
+          x:{ ticks:{color:'#334155',font:{size:11}}, grid:{color:'rgba(148,163,184,0.15)'} },
+          y:{ ticks:{color:'#334155',callback:v=>(v>=0?'+':'')+'$'+v}, grid:{color:'rgba(148,163,184,0.2)'} }
+        }
+      }
+    });
+
+  } else if (scChartMode === 'cracker') {
+    // 크래커마진 + BD 타이트 콤보
+    const crackerVals = data.map(r => Math.round(r.crackerSim));
+    const bdTightVals = data.map(r => Math.round(r.bdTight));
+
+    scChart = new Chart(newCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '크래커마진',
+            data: crackerVals,
+            backgroundColor: crackerVals.map(v => v >= 50 ? 'rgba(16,185,129,0.75)' : v >= 0 ? 'rgba(245,158,11,0.75)' : 'rgba(239,68,68,0.75)'),
+            borderColor: crackerVals.map(v => v >= 50 ? '#059669' : v >= 0 ? '#d97706' : '#dc2626'),
+            borderWidth: 2, borderRadius: 6,
+            datalabels: { display:true, anchor:'end', align:'top', color:'#1e293b', font:{size:10,weight:'bold'}, formatter:v=>(v>=0?'+':'')+'$'+v }
+          },
+          {
+            label: 'BD 타이트 프리미엄',
+            data: bdTightVals,
+            type: 'line',
+            borderColor: 'rgba(239,68,68,0.9)',
+            backgroundColor: 'rgba(239,68,68,0.1)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2.5,
+            pointRadius: 5,
+            pointBackgroundColor: '#ef4444',
+            datalabels: { display:true, anchor:'end', align:'top', color:'#ef4444', font:{size:10,weight:'bold'}, formatter:v=>'+$'+v }
+          }
+        ]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend:{ display:true, position:'top', labels:{font:{size:11},color:'#334155'} },
+          datalabels:{ display:false },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y>=0?'+':''}$${ctx.parsed.y}` } }
+        },
+        scales: {
+          x:{ ticks:{color:'#334155',font:{size:11}}, grid:{color:'rgba(148,163,184,0.15)'} },
+          y:{ ticks:{color:'#334155',callback:v=>(v>=0?'+':'')+'$'+v}, grid:{color:'rgba(148,163,184,0.2)'} }
+        }
+      }
+    });
+  }
+}
+
 function renderScenarios() {
+  // 기존 텍스트 테이블
   document.getElementById('scenario-table').innerHTML = SCENARIOS.map(s => {
     const r  = calcAll(s.wti, s.risk);
     const gc = r.absGap < 0 ? '#ef4444' : r.absGap < 150 ? '#f59e0b' : '#10b981';
@@ -1418,6 +1737,12 @@ function renderScenarios() {
       </div>
     </div>`;
   }).join('');
+
+  // 히트맵 + 차트
+  setTimeout(() => {
+    renderScenarioHeatmap();
+    setScChartMode('gap');
+  }, 100);
 }
 
 // ══════════════════════════════════════════════
