@@ -266,74 +266,74 @@
           </div>
 
           <!-- ── SM / ABS 원가 구조 실시간 패널 ── -->
-          <div class="mt-3 rounded-xl border border-slate-600 bg-slate-800/60 p-3 text-xs space-y-3">
-            <div class="text-slate-300 font-black uppercase tracking-widest text-[10px] mb-1">📐 SM / ABS 원가 구조 (실시간)</div>
+          <div class="mt-3 rounded-xl border border-slate-200 bg-white p-3 text-xs space-y-3 shadow-sm">
+            <div class="text-slate-500 font-black uppercase tracking-widest text-[10px] mb-1">📐 SM / ABS 원가 구조 (실시간)</div>
 
             <!-- SM 원가 분해 -->
-            <div class="bg-slate-700/50 rounded-lg p-2.5">
-              <div class="text-blue-300 font-bold mb-2">① SM Cost 실측 = BZ×0.67 + ET×0.25 + NAP×0.05 + $150</div>
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-2.5">
+              <div class="text-blue-700 font-bold mb-2">① SM Cost 실측 = BZ×0.67 + ET×0.25 + NAP×0.05 + $150</div>
               <div class="grid grid-cols-4 gap-1 text-center">
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-purple-300 text-[10px]">BZ×0.67</div>
-                  <div id="exp-bz-sm" class="font-black text-purple-200">$--</div>
+                <div class="bg-white border border-purple-200 rounded p-1.5">
+                  <div class="text-purple-600 text-[10px] font-bold">BZ×0.67</div>
+                  <div id="exp-bz-sm" class="font-black text-purple-700">$--</div>
                 </div>
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-emerald-300 text-[10px]">ET×0.25</div>
-                  <div id="exp-et-sm" class="font-black text-emerald-200">$--</div>
+                <div class="bg-white border border-emerald-200 rounded p-1.5">
+                  <div class="text-emerald-600 text-[10px] font-bold">ET×0.25</div>
+                  <div id="exp-et-sm" class="font-black text-emerald-700">$--</div>
                 </div>
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-slate-300 text-[10px]">NAP×0.05</div>
-                  <div id="exp-nap-sm" class="font-black text-slate-200">$--</div>
+                <div class="bg-white border border-slate-200 rounded p-1.5">
+                  <div class="text-slate-500 text-[10px] font-bold">NAP×0.05</div>
+                  <div id="exp-nap-sm" class="font-black text-slate-700">$--</div>
                 </div>
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-slate-400 text-[10px]">고정비</div>
-                  <div class="font-black text-slate-300">$150</div>
+                <div class="bg-white border border-slate-200 rounded p-1.5">
+                  <div class="text-slate-500 text-[10px] font-bold">고정비</div>
+                  <div class="font-black text-slate-600">$150</div>
                 </div>
               </div>
-              <div class="mt-2 flex justify-between items-center border-t border-slate-600 pt-1.5">
-                <span class="text-slate-300">SM Cost 합계</span>
-                <span id="exp-sm-cost-total" class="font-black text-blue-300 text-sm">$--</span>
+              <div class="mt-2 flex justify-between items-center border-t border-blue-200 pt-1.5">
+                <span class="text-slate-600 font-medium">SM Cost 합계</span>
+                <span id="exp-sm-cost-total" class="font-black text-blue-700 text-sm">$--</span>
               </div>
               <div class="mt-1 flex justify-between items-center text-[10px]">
-                <span class="text-slate-400">SM 시장가 (WTI만 반응 · 이란리스크 미전가)</span>
-                <span id="exp-sm-mkt" class="font-black text-blue-200">$--</span>
+                <span class="text-slate-500">SM 시장가 (WTI만 반응 · 이란리스크 미전가)</span>
+                <span id="exp-sm-mkt" class="font-black text-blue-600">$--</span>
               </div>
               <div class="mt-1 flex justify-between items-center">
-                <span class="text-slate-300">SM Margin (시장가 − Cost)</span>
+                <span class="text-slate-600 font-medium">SM Margin (시장가 − Cost)</span>
                 <span id="exp-sm-margin" class="font-black text-sm">$--</span>
               </div>
             </div>
 
             <!-- ABS 원가 분해 -->
-            <div class="bg-slate-700/50 rounded-lg p-2.5">
-              <div class="text-emerald-300 font-bold mb-2">② ABS Cost = SM×0.60 + AN×0.25 + BD×0.15</div>
+            <div class="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5">
+              <div class="text-emerald-700 font-bold mb-2">② ABS Cost = SM×0.60 + AN×0.25 + BD×0.15</div>
               <div class="grid grid-cols-3 gap-1 text-center">
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-blue-300 text-[10px]">SM×0.60</div>
-                  <div id="exp-sm-abs" class="font-black text-blue-200">$--</div>
+                <div class="bg-white border border-blue-200 rounded p-1.5">
+                  <div class="text-blue-600 text-[10px] font-bold">SM×0.60</div>
+                  <div id="exp-sm-abs" class="font-black text-blue-700">$--</div>
                 </div>
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-violet-300 text-[10px]">AN×0.25</div>
-                  <div id="exp-an-abs" class="font-black text-violet-200">$--</div>
+                <div class="bg-white border border-violet-200 rounded p-1.5">
+                  <div class="text-violet-600 text-[10px] font-bold">AN×0.25</div>
+                  <div id="exp-an-abs" class="font-black text-violet-700">$--</div>
                 </div>
-                <div class="bg-slate-800/70 rounded p-1.5">
-                  <div class="text-orange-300 text-[10px]">BD×0.15</div>
-                  <div id="exp-bd-abs" class="font-black text-orange-200">$--</div>
+                <div class="bg-white border border-orange-200 rounded p-1.5">
+                  <div class="text-orange-600 text-[10px] font-bold">BD×0.15</div>
+                  <div id="exp-bd-abs" class="font-black text-orange-700">$--</div>
                 </div>
               </div>
-              <div class="mt-2 flex justify-between items-center border-t border-slate-600 pt-1.5">
-                <span class="text-slate-300">ABS Cost 합계</span>
-                <span id="exp-abs-cost-total" class="font-black text-emerald-300 text-sm">$--</span>
+              <div class="mt-2 flex justify-between items-center border-t border-emerald-200 pt-1.5">
+                <span class="text-slate-600 font-medium">ABS Cost 합계</span>
+                <span id="exp-abs-cost-total" class="font-black text-emerald-700 text-sm">$--</span>
               </div>
               <div class="mt-1 flex justify-between items-center text-[10px]">
-                <span class="text-slate-400">ABS Gap 회귀 기준 (WTI +$1 → Gap −$5.76 | R²=0.54)</span>
-                <span id="exp-abs-gap-sens" class="font-black text-slate-300">--</span>
+                <span class="text-slate-500">ABS Gap 회귀 기준 (WTI +$1 → Gap −$5.76 | R²=0.54)</span>
+                <span id="exp-abs-gap-sens" class="font-black text-slate-600">--</span>
               </div>
               <div class="mt-1 flex justify-between items-center">
-                <span class="text-emerald-300 font-bold">ABS Gap 실측 ③</span>
+                <span class="text-emerald-700 font-bold">ABS Gap 실측 ③</span>
                 <span id="exp-abs-gap" class="font-black text-sm">$--</span>
               </div>
-              <div class="mt-2 pt-2 border-t border-slate-600 text-[10px] text-slate-400 leading-relaxed">
+              <div class="mt-2 pt-2 border-t border-emerald-200 text-[10px] text-slate-500 leading-relaxed">
                 ★ 가격 전가 탄성: 원료(Cost) &gt; SM시장가 &gt; ABS시장가 순으로 둔감<br>
                 WTI↑ → Cost 빠르게 상승 → Gap 축소 (다운스트림 마진 압박)<br>
                 WTI↓ → Cost 빠르게 하락 → Gap 개선 (스프레드 회복)
@@ -414,6 +414,53 @@
       <!-- 차트 캔버스 -->
       <div class="relative" style="height:320px">
         <canvas id="wti-sim-chart"></canvas>
+      </div>
+
+      <!-- 실데이터 회귀 레퍼런스 -->
+      <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-amber-700 font-black text-[10px] uppercase tracking-widest">📊 실데이터 회귀 레퍼런스</span>
+          <span class="text-slate-500 text-[10px]">2024~2026 · 544일 · ABS Gap vs WTI 실측</span>
+        </div>
+        <div class="grid grid-cols-5 gap-1 text-center mb-2">
+          <!-- WTI 구간 헤더 -->
+          <div class="bg-amber-100 border border-amber-200 rounded p-1.5">
+            <div class="text-amber-600 text-[10px] font-bold">WTI 구간</div>
+            <div class="text-amber-800 font-black text-[11px]">실측평균</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded p-1.5">
+            <div class="text-slate-500 text-[10px]">$50–60</div>
+            <div class="font-black text-emerald-700 text-[11px]">+$299</div>
+          </div>
+          <div class="bg-white border border-slate-200 rounded p-1.5">
+            <div class="text-slate-500 text-[10px]">$60–70</div>
+            <div class="font-black text-emerald-600 text-[11px]">+$293</div>
+          </div>
+          <div class="bg-white border border-amber-200 rounded p-1.5">
+            <div class="text-slate-500 text-[10px]">$70–80</div>
+            <div class="font-black text-amber-600 text-[11px]">+$218</div>
+          </div>
+          <div class="bg-white border border-orange-200 rounded p-1.5">
+            <div class="text-slate-500 text-[10px]">$80–90</div>
+            <div class="font-black text-orange-600 text-[11px]">+$179</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-3 text-[10px] text-slate-600 border-t border-amber-200 pt-2">
+          <span>회귀: <b class="text-slate-800">Gap = −$5.76 × WTI + $656</b></span>
+          <span>R² = <b class="text-slate-800">0.541</b></span>
+          <span>ABS Mkt: <b class="text-slate-800">+$8.12/bbl</b></span>
+          <span>ABS Cost: <b class="text-slate-800">+$13.89/bbl</b></span>
+          <span class="text-amber-700 font-bold">★ WTI↑ → Gap 축소 (전가 지연)</span>
+        </div>
+        <!-- 현재 WTI 기준 예측값 실시간 표시 -->
+        <div class="mt-2 flex items-center gap-2 text-[10px] border-t border-amber-200 pt-2">
+          <span class="text-slate-500">현재 WTI 기준 회귀 예측 Gap:</span>
+          <span id="ref-gap-pred" class="font-black text-slate-800">$--</span>
+          <span class="text-slate-400 mx-1">|</span>
+          <span class="text-slate-500">실시간 Gap:</span>
+          <span id="ref-gap-actual" class="font-black">$--</span>
+          <span id="ref-gap-diff-label" class="text-slate-400">(차이: <span id="ref-gap-diff" class="font-bold">--</span>)</span>
+        </div>
       </div>
 
       <!-- 갭게이지 모드: 별도 렌더 -->
@@ -1302,7 +1349,7 @@ function onWtiSlider() {
   const expSmMEl = document.getElementById('exp-sm-margin');
   if (expSmMEl) {
     expSmMEl.textContent = fmt(r.smMargin, true);
-    expSmMEl.className = 'font-black text-sm ' + (r.smMargin >= 0 ? 'text-emerald-300' : 'text-red-400');
+    expSmMEl.className = 'font-black text-sm ' + (r.smMargin >= 0 ? 'text-emerald-700' : 'text-red-600');
   }
 
   // ABS Cost 분해
@@ -1313,11 +1360,27 @@ function onWtiSlider() {
 
   // ABS Gap: 회귀 민감도 표시 + 실측값
   const dWtiDisp = parseFloat(document.getElementById('slider-wti').value) - G.wti_gs;
-  setT('exp-abs-gap-sens', `현재 dWTI ${dWtiDisp>=0?'+':''}${dWtiDisp.toFixed(1)} → Gap변화 ${(dWtiDisp*SENS.abs_gap).toFixed(0)}`);
+  setT('exp-abs-gap-sens', 'dWTI ' + (dWtiDisp>=0?'+':'') + dWtiDisp.toFixed(1) + ' → Gap변화 ' + (dWtiDisp*SENS.abs_gap).toFixed(0));
   const gapEl = document.getElementById('exp-abs-gap');
   if (gapEl) {
     gapEl.textContent = fmt(r.absGap, true);
-    gapEl.className = 'font-black text-sm ' + (r.absGap < 0 ? 'text-red-400 alert-blink' : r.absGap < 150 ? 'text-amber-300' : 'text-emerald-300');
+    gapEl.className = 'font-black text-sm ' + (r.absGap < 0 ? 'text-red-600 alert-blink' : r.absGap < 150 ? 'text-amber-600' : 'text-emerald-700');
+  }
+
+  // ── 회귀 레퍼런스 실시간 업데이트
+  const refPred = Math.round(-5.76 * wti + 656);  // 실데이터 회귀식
+  const refPredEl = document.getElementById('ref-gap-pred');
+  if (refPredEl) refPredEl.textContent = (refPred>=0?'+':'') + '$' + refPred;
+  const refActEl = document.getElementById('ref-gap-actual');
+  if (refActEl) {
+    refActEl.textContent = fmt(r.absGap, true);
+    refActEl.className = 'font-black ' + (r.absGap < 0 ? 'text-red-600' : r.absGap < 150 ? 'text-amber-600' : 'text-emerald-700');
+  }
+  const diff = Math.round(r.absGap - refPred);
+  const diffEl = document.getElementById('ref-gap-diff');
+  if (diffEl) {
+    diffEl.textContent = (diff>=0?'+':'') + '$' + diff;
+    diffEl.className = 'font-bold ' + (Math.abs(diff) < 50 ? 'text-slate-600' : 'text-orange-600');
   }
 
   renderWtiChart();
