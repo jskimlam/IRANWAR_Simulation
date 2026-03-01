@@ -575,6 +575,18 @@
 
 <script>
 // ══════════════════════════════════════════════
+// 탭 함수 — 맨 앞 선언 (HTML onclick 인라인 참조)
+// ══════════════════════════════════════════════
+function showTab(id, btn) {
+  ['tab-main','tab-wti','tab-cracker','tab-scenario','tab-chart','tab-sens']
+    .forEach(t => document.getElementById(t).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (id === 'tab-scenario') renderScenarios();
+}
+
+// ══════════════════════════════════════════════
 // 앵커 상태 & 파라미터
 // ══════════════════════════════════════════════
 let G = {
@@ -598,7 +610,8 @@ const BZ_USG_TO_MT = 26.42;
 const SM_COST   = {bz:0.67, et:0.25, nap:0.05, fixed:150};
 const SM_THEORY = {bz:0.80, et:0.30, fixed:150};
 const ABS_R     = {sm:0.60, an:0.25, bd:0.15};
-const CR_Y      = {et:0.30, pr:0.15,  // PR 0.13→0.15 아시아기준 bd:0.045, bz:0.06};  // 크래커 수율
+// 크래커 수율 (아시아 NAP 크래커 기준: PR 0.13→0.15 반영)
+const CR_Y = {et:0.30, pr:0.15, bd:0.045, bz:0.06};
 const BD_TIGHT_SCALE = 0.5;
 const BD_TIGHT_MAX   = 150;
 
@@ -683,18 +696,6 @@ function calcCrackerDirect(et, pr, bd, bz, nap, smAct, anAct, absMktAct) {
   const absGapTh    = absMktAct - absCostTh;
   return { crackerSim, bdTight, bdFinal, absCost, absCostTh, absGap, absGapTh,
            crackerDelta: crackerSim - G.cracker_act };
-}
-
-// ══════════════════════════════════════════════
-// 탭
-// ══════════════════════════════════════════════
-function showTab(id, btn) {
-  ['tab-main','tab-wti','tab-cracker','tab-scenario','tab-chart','tab-sens']
-    .forEach(t => document.getElementById(t).classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (id === 'tab-scenario') renderScenarios();
 }
 
 // ══════════════════════════════════════════════
