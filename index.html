@@ -169,6 +169,7 @@
           <div class="text-xs text-orange-700 font-bold mb-1">BD 타이트 프리미엄</div>
           <div id="cr-bd-tight-big" class="text-3xl font-black text-orange-700">+$--</div>
           <div class="text-xs text-slate-700 mt-1">크래커마진 악화 반영</div>
+          <div class="text-xs text-slate-600 mt-1">기준(4주평균): <span id="cr-base-margin" class="font-bold text-slate-700">$--</span></div>
         </div>
       </div>
       <div id="cracker-insight" class="mt-3 text-xs text-slate-700 border-t border-white/10 pt-3"></div>
@@ -675,7 +676,7 @@
           <div class="text-orange-700 font-bold mb-2">★ v6.4 크래커마진→BD 공식</div>
           <div>크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
           <div class="text-orange-700">BD타이트 = min(max(0,-(마진-기준마진))×0.5, 150)</div>
-          <div class="text-slate-700 mt-1">기준마진 = 구글시트 최신 실측 기준 동적 계산</div>
+          <div class="text-slate-700 mt-1">기준마진 = CRACKER_HISTORY 최근 4주 평균 (구조적 수급 수준 반영)</div>
         </div>
         <div class="bg-slate-50 rounded-xl p-4 border border-purple-200">
           <div class="text-purple-700 font-bold mb-2">원가 공식</div>
@@ -1070,7 +1071,11 @@ function calcCrackerMargin(et, pr, bd, bz, nap) {
 }
 
 function calcBdTight(crackerSim) {
-  const delta = crackerSim - G.cracker_act;  // 음수 = 악화
+  // 기준마진: CRACKER_HISTORY 최근 4주 평균 (구조적 수준 기준)
+  // 현재 마진이 최근 4주 평균보다 더 악화됐을 때만 타이트 프리미엄 발동
+  const recent4 = CRACKER_HISTORY.slice(-4).map(d => d.margin);
+  const baseMgn = recent4.reduce((a, b) => a + b, 0) / recent4.length;
+  const delta   = crackerSim - baseMgn;  // 음수 = 기준 대비 악화
   return Math.min(Math.max(0, -delta) * BD_TIGHT_SCALE, BD_TIGHT_MAX);
 }
 
@@ -2166,6 +2171,11 @@ function updateDashboard() {
   document.getElementById('cr-bd-contrib').textContent  = `$${Math.round(rt.bd*CR_Y.bd + rt.bz*CR_Y.bz)}`;
   document.getElementById('cr-nap-cost').textContent    = `-$${Math.round(rt.nap)}`;
   document.getElementById('cr-bd-tight-big').textContent = `+$${Math.round(rt.bdTight)}`;
+  // 4주 평균 기준마진 표시
+  const recent4   = CRACKER_HISTORY.slice(-4).map(d => d.margin);
+  const baseMgn4w = Math.round(recent4.reduce((a, b) => a + b, 0) / recent4.length);
+  const crBaseEl  = document.getElementById('cr-base-margin');
+  if (crBaseEl) crBaseEl.textContent = `$${baseMgn4w}`;
   const ci = document.getElementById('cracker-insight');
   if (rt.crackerSim < 0)
     ci.innerHTML = `🔴 크래커 적자 ${fmt(rt.crackerSim,true)}/t — ET 약세로 크래커 가동 수익성 악화. BD 공급 축소 압력 발생. ABS Cost에 +$${Math.round(rt.bdTight)}/t 타이트 프리미엄 자동 반영됨.`;
