@@ -610,8 +610,9 @@
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#3b82f6"></span>PR 기여</span>
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#f97316"></span>BD 기여</span>
           <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#a855f7"></span>BZ 기여</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#ef4444"></span>NAP 비용</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-slate-600"></span>순마진</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#ef4444;opacity:0.6"></span>NAP+OPEX 비용↓</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed" style="border-color:#ca8a04"></span>적정기여합</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-slate-800"></span>순마진</span>
         </div>
       </div>
       <div class="relative" style="height:300px">
@@ -3187,60 +3188,113 @@ function renderCrackerHistoryChart() {
 
   const labels = CRACKER_HISTORY.map(d => d.week);
 
+  // ── 적정 기여 합산 (4주평균 NAP 기준)
+  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+  const targetTotal = (nap4w+CR_SPREAD.et)*CR_Y.et + (nap4w+CR_SPREAD.pr)*CR_Y.pr
+                    + (nap4w+CR_SPREAD.bd)*CR_Y.bd + (nap4w+CR_SPREAD.bz)*CR_Y.bz;
+
+  // ── chart.js Bar+Line 혼합형
+  // 수익(ET/PR/BD/BZ) → 양수 스택바, NAP+OPEX → 음수 스택바
+  // 순마진 = 수익합 - NAP - 50 → 점선 라인
   const datasets = [
+    // ── 양수 스택 (수익 기여)
     {
+      type: 'bar',
       label: 'ET 기여',
       data: CRACKER_HISTORY.map(d => d.et),
+      backgroundColor: 'rgba(16,185,129,0.75)',
       borderColor: 'rgba(16,185,129,1)',
-      backgroundColor: 'rgba(16,185,129,0.4)',
-      fill: true,
-      stack: 'contrib',
-      tension: 0.35,
-      pointRadius: 3,
-      borderWidth: 2,
-      order: 2,
+      borderWidth: 1,
+      stack: 'revenue',
+      order: 3,
       datalabels: { display: false },
     },
     {
+      type: 'bar',
       label: 'PR 기여',
       data: CRACKER_HISTORY.map(d => d.pr),
+      backgroundColor: 'rgba(59,130,246,0.75)',
       borderColor: 'rgba(59,130,246,1)',
-      backgroundColor: 'rgba(59,130,246,0.4)',
-      fill: true,
-      stack: 'contrib',
-      tension: 0.35,
-      pointRadius: 3,
-      borderWidth: 2,
-      order: 2,
+      borderWidth: 1,
+      stack: 'revenue',
+      order: 3,
       datalabels: { display: false },
     },
     {
+      type: 'bar',
       label: 'BD 기여',
       data: CRACKER_HISTORY.map(d => d.bd),
+      backgroundColor: 'rgba(249,115,22,0.75)',
       borderColor: 'rgba(249,115,22,1)',
-      backgroundColor: 'rgba(249,115,22,0.4)',
-      fill: true,
-      stack: 'contrib',
-      tension: 0.35,
-      pointRadius: 3,
-      borderWidth: 2,
-      order: 2,
+      borderWidth: 1,
+      stack: 'revenue',
+      order: 3,
       datalabels: { display: false },
     },
     {
+      type: 'bar',
       label: 'BZ 기여',
       data: CRACKER_HISTORY.map(d => d.bz),
+      backgroundColor: 'rgba(168,85,247,0.75)',
       borderColor: 'rgba(168,85,247,1)',
-      backgroundColor: 'rgba(168,85,247,0.4)',
-      fill: true,
-      stack: 'contrib',
-      tension: 0.35,
-      pointRadius: 3,
-      borderWidth: 2,
-      order: 2,
-      datalabels: { display: false },
+      borderWidth: 1,
+      stack: 'revenue',
+      order: 3,
+      datalabels: {
+        // 수익 합계를 맨 위 바에만 표시
+        display: true,
+        anchor: 'end',
+        align: 'top',
+        color: '#475569',
+        font: { size: 9, weight: 'bold' },
+        formatter: (v, ctx) => {
+          // BZ가 마지막 스택 → 합계 표시
+          const d = CRACKER_HISTORY[ctx.dataIndex];
+          return '$' + (d.et+d.pr+d.bd+d.bz);
+        }
+      },
     },
+    // ── 음수 스택 (NAP 비용 + OPEX $50)
     {
+      type: 'bar',
+      label: 'NAP+OPEX 비용',
+      data: CRACKER_HISTORY.map(d => -(d.nap + 50)),  // 음수로 내려감
+      backgroundColor: 'rgba(239,68,68,0.55)',
+      borderColor: 'rgba(239,68,68,0.9)',
+      borderWidth: 1,
+      stack: 'cost',
+      order: 3,
+      datalabels: {
+        display: true,
+        anchor: 'end',
+        align: 'bottom',
+        color: '#dc2626',
+        font: { size: 9, weight: 'bold' },
+        formatter: (v, ctx) => '-$' + CRACKER_HISTORY[ctx.dataIndex].nap,
+      },
+    },
+    // ── 적정 기여 합산 기준선 (수평 점선)
+    {
+      type: 'line',
+      label: '적정 기여합 (4주NAP기준)',
+      data: CRACKER_HISTORY.map(() => Math.round(targetTotal)),
+      borderColor: 'rgba(234,179,8,0.9)',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      fill: false,
+      order: 1,
+      datalabels: {
+        display: (ctx) => ctx.dataIndex === CRACKER_HISTORY.length - 1,
+        anchor: 'end', align: 'right',
+        color: '#ca8a04', font: { size: 10, weight: 'bold' },
+        formatter: v => '적정 $' + v,
+      },
+    },
+    // ── 순마진 점선
+    {
+      type: 'line',
       label: '순마진',
       data: CRACKER_HISTORY.map(d => d.margin),
       borderColor: '#1e293b',
@@ -3266,7 +3320,7 @@ function renderCrackerHistoryChart() {
   ];
 
   crackerHistChart = new Chart(newCanvas, {
-    type: 'line',
+    type: 'bar',
     data: { labels, datasets },
     options: {
       responsive: true,
@@ -3276,7 +3330,7 @@ function renderCrackerHistoryChart() {
         legend: {
           display: true,
           position: 'top',
-          labels: { font:{size:11}, color:'#1e293b', usePointStyle:true, pointStyleWidth:10 }
+          labels: { font:{size:10}, color:'#1e293b', usePointStyle:true, pointStyleWidth:10 }
         },
         tooltip: {
           backgroundColor: '#1e293b',
@@ -3285,7 +3339,15 @@ function renderCrackerHistoryChart() {
           callbacks: {
             label: ctx => {
               const v = ctx.parsed.y;
+              if (v == null) return '';
               return ` ${ctx.dataset.label}: ${v >= 0 ? '+' : ''}$${Math.round(v)}`;
+            },
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              const d = CRACKER_HISTORY[idx];
+              const rev = d.et+d.pr+d.bd+d.bz;
+              const gap = rev - d.nap - 50;
+              return [`─────────────`, `수익합: $${rev}`, `NAP+OPEX: -$${d.nap+50}`, `순마진: ${gap>=0?'+':''}$${gap}`];
             }
           }
         },
@@ -3299,24 +3361,29 @@ function renderCrackerHistoryChart() {
         },
         y: {
           stacked: true,
-          ticks: { color:'#334155', font:{size:10}, callback: v => '$'+v },
-          grid: { color:'rgba(148,163,184,0.2)' },
-          title: { display:true, text:'$/mt', color:'#64748b', font:{size:11} }
+          ticks: { color:'#334155', font:{size:10}, callback: v => (v>=0?'$':'-$') + Math.abs(v) },
+          grid: { color:'rgba(148,163,184,0.2)', lineWidth: ctx => ctx.tick.value===0 ? 2 : 1 },
+          title: { display:true, text:'$/mt (양수=수익기여 / 음수=NAP비용)', color:'#64748b', font:{size:10} }
         }
       }
     }
   });
 
-  // 주차별 요약 카드 렌더링
+  // 주차별 요약 카드 렌더링 (ET 적자 여부 표시 추가)
   const summaryEl = document.getElementById('cracker-history-summary');
   if (summaryEl) {
     summaryEl.innerHTML = CRACKER_HISTORY.map(d => {
       const color = d.margin >= 0 ? 'text-emerald-700' : d.margin > -100 ? 'text-amber-700' : 'text-red-700';
       const bg    = d.margin >= 0 ? 'bg-emerald-50 border-emerald-200' : d.margin > -100 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
+      // ET 적정가 대비 부족액
+      const etTarget = d.nap + CR_SPREAD.et;
+      const etGap = d.etP - etTarget;
+      const etStatus = etGap >= 0 ? `<div class="text-emerald-600 text-xs">ET✅</div>` : `<div class="text-red-600 text-xs">ET -$${Math.abs(Math.round(etGap))}</div>`;
       return `<div class="rounded-lg border ${bg} p-2 text-center">
-        <div class="text-slate-600 font-bold">${d.week}</div>
+        <div class="text-slate-600 font-bold text-xs">${d.week}</div>
         <div class="font-black ${color} text-sm">${d.margin >= 0 ? '+' : ''}$${d.margin}</div>
-        <div class="text-slate-500 text-xs mt-0.5">NAP $${d.nap}</div>
+        <div class="text-slate-500 text-xs">NAP $${d.nap}</div>
+        ${etStatus}
       </div>`;
     }).join('');
   }
