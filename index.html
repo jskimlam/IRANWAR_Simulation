@@ -310,6 +310,72 @@
         </div>
       </div>
     </div>
+
+    <!-- ══ WTI 시뮬레이터 차트 패널 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">📊 WTI 시뮬레이션 차트</h3>
+          <p class="text-xs text-slate-600 mt-0.5">슬라이더 조작 시 실시간 반영</p>
+        </div>
+        <!-- 차트 타입 전환 -->
+        <div class="flex gap-2 flex-wrap items-center">
+          <span class="text-xs text-slate-700 font-bold">차트:</span>
+          <button onclick="setWtiChartMode('radar')"  id="wct-radar"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600">민감도</button>
+          <button onclick="setWtiChartMode('bar')"    id="wct-bar"    class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">변동폭</button>
+          <button onclick="setWtiChartMode('donut')"  id="wct-donut"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">원가비중</button>
+          <button onclick="setWtiChartMode('gauge')"  id="wct-gauge"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">갭게이지</button>
+          <span class="text-xs text-slate-600 mx-1">|</span>
+          <!-- 품목 토글 (레이더/변동폭 모드용) -->
+          <span class="text-xs text-slate-700 font-bold">품목:</span>
+          <button onclick="toggleWtiItem('NAP')" id="wi-NAP" class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-100 text-slate-700 border-slate-300">NAP</button>
+          <button onclick="toggleWtiItem('BZ')"  id="wi-BZ"  class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-purple-100 text-purple-700 border-purple-300">BZ</button>
+          <button onclick="toggleWtiItem('ET')"  id="wi-ET"  class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-emerald-100 text-emerald-700 border-emerald-300">ET</button>
+          <button onclick="toggleWtiItem('BD')"  id="wi-BD"  class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-orange-100 text-orange-700 border-orange-300">BD</button>
+          <button onclick="toggleWtiItem('AN')"  id="wi-AN"  class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-amber-100 text-amber-700 border-amber-300">AN</button>
+          <button onclick="toggleWtiItem('SM')"  id="wi-SM"  class="wi-btn text-xs px-2 py-1 rounded border font-bold transition bg-blue-100 text-blue-700 border-blue-300">SM</button>
+        </div>
+      </div>
+
+      <!-- 차트 캔버스 -->
+      <div class="relative" style="height:320px">
+        <canvas id="wti-sim-chart"></canvas>
+      </div>
+
+      <!-- 갭게이지 모드: 별도 렌더 -->
+      <div id="wti-gauge-panel" class="hidden mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- ABS Gap 게이지 -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-2">ABS Gap 실측 존</div>
+          <div id="gauge-abs-zone" class="text-3xl font-black mb-1">--</div>
+          <div id="gauge-abs-bar" class="w-full h-4 rounded-full bg-slate-200 overflow-hidden mt-2">
+            <div id="gauge-abs-fill" class="h-full rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-600 mt-1"><span>역마진</span><span>관망</span><span>매수</span></div>
+          <div id="gauge-abs-val" class="text-lg font-black mt-2">$---</div>
+        </div>
+        <!-- SM Margin 게이지 -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-2">SM Margin 실측</div>
+          <div id="gauge-sm-zone" class="text-3xl font-black mb-1">--</div>
+          <div id="gauge-sm-bar" class="w-full h-4 rounded-full bg-slate-200 overflow-hidden mt-2">
+            <div id="gauge-sm-fill" class="h-full rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-600 mt-1"><span>적자</span><span>균형</span><span>흑자</span></div>
+          <div id="gauge-sm-val" class="text-lg font-black mt-2">$---</div>
+        </div>
+        <!-- 크래커마진 게이지 -->
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-2">크래커마진 존</div>
+          <div id="gauge-cr-zone" class="text-3xl font-black mb-1">--</div>
+          <div id="gauge-cr-bar" class="w-full h-4 rounded-full bg-slate-200 overflow-hidden mt-2">
+            <div id="gauge-cr-fill" class="h-full rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-600 mt-1"><span>적자</span><span>BEP</span><span>흑자</span></div>
+          <div id="gauge-cr-val" class="text-lg font-black mt-2">$---</div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -317,7 +383,12 @@
   ══════════════════════════════════════ -->
   <div id="tab-cracker" class="hidden">
     <div class="bg-sky-50/90 border border-orange-200 rounded-2xl p-5">
-      <h2 class="text-orange-700 text-xs font-bold uppercase tracking-widest mb-1">⚗ 나프타 크래커 마진 시뮬레이터 v6.4</h2>
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-orange-700 text-xs font-bold uppercase tracking-widest">⚗ 나프타 크래커 마진 시뮬레이터 v6.4</h2>
+        <button onclick="resetCrackerSliders()" class="text-xs bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+          🔄 현재가로 초기화
+        </button>
+      </div>
       <p class="text-slate-700 text-xs mb-4">
         크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50
         | 크래커마진 악화 → BD 타이트 프리미엄 자동 계산 → ABS Cost 반영
@@ -503,10 +574,30 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- ══════════════════════════════════════
-       탭4: 시나리오
+    <!-- ══ 9주 크래커마진 누적 기여도 차트 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">📊 크래커마진 주간 기여도 추이 (9주)</h3>
+          <p class="text-xs text-slate-600 mt-0.5">ET·PR·BD·BZ 수익 기여 vs NAP 비용 — 막대 높이가 마진 구조를 나타냄</p>
+        </div>
+        <div class="flex gap-3 text-xs flex-wrap">
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#10b981"></span>ET 기여</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#3b82f6"></span>PR 기여</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#f97316"></span>BD 기여</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#a855f7"></span>BZ 기여</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#ef4444"></span>NAP 비용</span>
+          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-slate-600"></span>순마진</span>
+        </div>
+      </div>
+      <div class="relative" style="height:300px">
+        <canvas id="cracker-history-chart"></canvas>
+      </div>
+      <div class="mt-3 grid grid-cols-3 md:grid-cols-9 gap-2 text-xs" id="cracker-history-summary"></div>
+    </div>
+  </div>
+  </div>
   ══════════════════════════════════════ -->
   <div id="tab-scenario" class="hidden">
     <div class="bg-sky-50/90 border border-slate-200 rounded-2xl p-5">
@@ -776,6 +867,8 @@ function showTab(id, btn) {
   btn.classList.add('active');
   if (id === 'tab-scenario') renderScenarios();
   if (id === 'tab-forecast') renderForecast();
+  if (id === 'tab-cracker') setTimeout(renderCrackerHistoryChart, 150);
+  if (id === 'tab-wti') setTimeout(() => { setWtiChartMode('radar'); onWtiSlider(); }, 150);
 }
 
 // ══════════════════════════════════════════════
@@ -944,12 +1037,239 @@ function onWtiSlider() {
 
   document.getElementById('wsim-abs-gap-th').textContent = fmt(r.absGapTh, true);
   document.getElementById('wti-strategy').innerHTML      = buildStrategy(r);
+  renderWtiChart();
 }
 
 function setWtiScenario(wti, risk) {
   document.getElementById('slider-wti').value  = wti;
   document.getElementById('slider-risk').value = risk;
   onWtiSlider();
+}
+
+// ══════════════════════════════════════════════
+// WTI 시뮬 차트
+// ══════════════════════════════════════════════
+let wtiSimChart = null;
+let wtiChartMode = 'radar';  // radar | bar | donut | gauge
+
+// 품목 표시 여부
+const WTI_ITEMS = {
+  NAP: { on:true,  color:'rgba(100,116,139,', label:'NAP',  key:'nap'  },
+  BZ:  { on:true,  color:'rgba(168,85,247,',  label:'BZ',   key:'bz'   },
+  ET:  { on:true,  color:'rgba(16,185,129,',  label:'ET',   key:'et'   },
+  BD:  { on:true,  color:'rgba(249,115,22,',  label:'BD',   key:'bd'   },
+  AN:  { on:true,  color:'rgba(217,119,6,',   label:'AN',   key:'an'   },
+  SM:  { on:true,  color:'rgba(59,130,246,',  label:'SM',   key:'sm'   },
+};
+
+const WTI_BTN_ON  = { NAP:'bg-slate-100 text-slate-700 border-slate-300', BZ:'bg-purple-100 text-purple-700 border-purple-300', ET:'bg-emerald-100 text-emerald-700 border-emerald-300', BD:'bg-orange-100 text-orange-700 border-orange-300', AN:'bg-amber-100 text-amber-700 border-amber-300', SM:'bg-blue-100 text-blue-700 border-blue-300' };
+const WTI_BTN_OFF = 'bg-slate-50 text-slate-400 border-slate-200';
+
+function toggleWtiItem(key) {
+  WTI_ITEMS[key].on = !WTI_ITEMS[key].on;
+  const btn = document.getElementById('wi-'+key);
+  if (btn) btn.className = `wi-btn text-xs px-2 py-1 rounded border font-bold transition ${WTI_ITEMS[key].on ? WTI_BTN_ON[key] : WTI_BTN_OFF}`;
+  renderWtiChart();
+}
+
+function setWtiChartMode(mode) {
+  wtiChartMode = mode;
+  document.querySelectorAll('.wct-btn').forEach(b => b.className = 'wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300');
+  const active = document.getElementById('wct-'+mode);
+  if (active) active.className = 'wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600';
+  // 게이지 패널 토글
+  const gp = document.getElementById('wti-gauge-panel');
+  const canvas = document.getElementById('wti-sim-chart');
+  if (mode === 'gauge') {
+    if (gp) gp.classList.remove('hidden');
+    if (canvas) canvas.parentElement.classList.add('hidden');
+  } else {
+    if (gp) gp.classList.add('hidden');
+    if (canvas) canvas.parentElement.classList.remove('hidden');
+  }
+  renderWtiChart();
+}
+
+function renderWtiChart() {
+  if (wtiChartMode === 'gauge') { renderWtiGauge(); return; }
+
+  const canvas = document.getElementById('wti-sim-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  const wti  = parseFloat(document.getElementById('slider-wti').value);
+  const risk = parseFloat(document.getElementById('slider-risk').value);
+  const r    = calcAll(wti, risk);
+  const base = calcAll(G.wti_rt, 0);  // 현재가 기준
+
+  // 활성 품목만
+  const active = Object.entries(WTI_ITEMS).filter(([,v]) => v.on);
+
+  if (wtiChartMode === 'radar') {
+    // 레이더: WTI $1 변동 시 품목별 민감도(SENS) — 단위 통일로 비교 의미 있음
+    const sensMap = { NAP: SENS.nap, BZ: SENS.bz, ET: SENS.et, BD: SENS.bd, AN: SENS.an, SM: SENS.sm };
+    const labels  = active.map(([k]) => k);
+    const sensV   = active.map(([k]) => Math.round(sensMap[k] * 10) / 10);  // 소수1자리
+
+    wtiSimChart = new Chart(newCanvas, {
+      type: 'radar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'WTI $1 상승 시 가격 변화 ($/mt)',
+          data: sensV,
+          borderColor: 'rgba(239,68,68,0.9)',
+          backgroundColor: 'rgba(239,68,68,0.15)',
+          pointBackgroundColor: active.map(([,v]) => v.color + '1)'),
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          borderWidth: 2.5,
+          pointRadius: 6,
+          datalabels: {
+            display: true,
+            color: '#1e293b',
+            font: { size: 10, weight: 'bold' },
+            formatter: v => '+$' + v,
+          }
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: true, position: 'top', labels: { font:{size:11}, color:'#334155' } },
+          datalabels: { display: true },
+          tooltip: { callbacks: { label: ctx => ` WTI +$1 → ${ctx.chart.data.labels[ctx.dataIndex]} +$${ctx.parsed.r}` } }
+        },
+        scales: {
+          r: {
+            beginAtZero: true,
+            ticks: { color:'#64748b', font:{size:10}, callback: v => '+$'+v },
+            grid:  { color:'rgba(148,163,184,0.3)' },
+            pointLabels: { color:'#334155', font:{size:13, weight:'bold'} }
+          }
+        }
+      }
+    });
+
+  } else if (wtiChartMode === 'bar') {
+    // 수평 바: 현재가 대비 변동폭
+    const labels  = active.map(([,v]) => v.label);
+    const deltas  = active.map(([,v]) => Math.round((r[v.key]||0) - (base[v.key]||0)));
+    const colors  = deltas.map(d => d >= 0 ? 'rgba(239,68,68,0.8)' : 'rgba(59,130,246,0.8)');
+
+    wtiSimChart = new Chart(newCanvas, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'WTI 변동 시 가격 변화 ($/mt)',
+          data: deltas,
+          backgroundColor: colors,
+          borderRadius: 6,
+          datalabels: {
+            display: true,
+            anchor: d => deltas[d.dataIndex] >= 0 ? 'end' : 'start',
+            align:  d => deltas[d.dataIndex] >= 0 ? 'right' : 'left',
+            color: '#1e293b',
+            font: { size:11, weight:'bold' },
+            formatter: v => (v>=0?'+':'')+'$'+v,
+          }
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend:{ display:false },
+          datalabels:{ display:true },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x>=0?'+':''}$${ctx.parsed.x}` } }
+        },
+        scales: {
+          x: { ticks:{ color:'#334155', callback: v=>(v>=0?'+':'')+'$'+v }, grid:{ color:'rgba(148,163,184,0.2)' } },
+          y: { ticks:{ color:'#334155', font:{size:12, weight:'bold'} } }
+        }
+      }
+    });
+
+  } else if (wtiChartMode === 'donut') {
+    // 도넛: ABS 원가 비중
+    const smC  = r.sm  * ABS_R.sm;
+    const anC  = r.an  * ABS_R.an;
+    const bdC  = r.bd  * ABS_R.bd;
+    const fixC = 150;
+    const total = smC + anC + bdC + fixC;
+
+    wtiSimChart = new Chart(newCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['SM 원가', 'AN 원가', 'BD 원가', '고정비'],
+        datasets: [{
+          data: [Math.round(smC), Math.round(anC), Math.round(bdC), fixC],
+          backgroundColor: ['rgba(59,130,246,0.8)','rgba(217,119,6,0.8)','rgba(249,115,22,0.8)','rgba(100,116,139,0.6)'],
+          borderColor: ['#2563eb','#d97706','#ea580c','#64748b'],
+          borderWidth: 2,
+          hoverOffset: 8,
+          datalabels: {
+            display: true,
+            color: '#fff',
+            font: { size:11, weight:'bold' },
+            formatter: (v, ctx) => {
+              const pct = ((v/total)*100).toFixed(1);
+              return ctx.chart.data.labels[ctx.dataIndex] + '\n$'+v+'\n('+pct+'%)';
+            }
+          }
+        }]
+      },
+      options: {
+        responsive:true, maintainAspectRatio:false,
+        plugins: {
+          legend:{ display:true, position:'right', labels:{ font:{size:11}, color:'#334155' } },
+          tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: $${ctx.parsed} (${((ctx.parsed/total)*100).toFixed(1)}%)` } },
+          datalabels:{ display:true },
+        }
+      }
+    });
+  }
+}
+
+function renderWtiGauge() {
+  const wti  = parseFloat(document.getElementById('slider-wti').value);
+  const risk = parseFloat(document.getElementById('slider-risk').value);
+  const r    = calcAll(wti, risk);
+
+  // ABS Gap 게이지 ($0~$300 기준)
+  const absGapPct = Math.min(100, Math.max(0, ((r.absGap + 100) / 400) * 100));
+  const absColor  = r.absGap < 0 ? '#ef4444' : r.absGap < 150 ? '#f59e0b' : '#10b981';
+  const absZone   = r.absGap < 0 ? '🔴' : r.absGap < 150 ? '🟡' : '🟢';
+  document.getElementById('gauge-abs-zone').textContent = absZone;
+  document.getElementById('gauge-abs-val').textContent  = (r.absGap>=0?'+':'')+'$'+Math.round(r.absGap);
+  document.getElementById('gauge-abs-val').style.color  = absColor;
+  const absFill = document.getElementById('gauge-abs-fill');
+  absFill.style.width = absGapPct+'%';
+  absFill.style.background = absColor;
+
+  // SM Margin 게이지
+  const smPct   = Math.min(100, Math.max(0, ((r.smMargin + 200) / 600) * 100));
+  const smColor = r.smMargin < -100 ? '#ef4444' : r.smMargin < 0 ? '#f59e0b' : '#10b981';
+  const smZone  = r.smMargin < -100 ? '🔴' : r.smMargin < 0 ? '🟡' : '🟢';
+  document.getElementById('gauge-sm-zone').textContent = smZone;
+  document.getElementById('gauge-sm-val').textContent  = (r.smMargin>=0?'+':'')+'$'+Math.round(r.smMargin);
+  document.getElementById('gauge-sm-val').style.color  = smColor;
+  const smFill = document.getElementById('gauge-sm-fill');
+  smFill.style.width = smPct+'%';
+  smFill.style.background = smColor;
+
+  // 크래커마진 게이지
+  const crPct   = Math.min(100, Math.max(0, ((r.crackerSim + 300) / 600) * 100));
+  const crColor = r.crackerSim < 0 ? '#ef4444' : r.crackerSim < 50 ? '#f59e0b' : '#10b981';
+  const crZone  = r.crackerSim < 0 ? '🔴' : r.crackerSim < 50 ? '🟡' : '🟢';
+  document.getElementById('gauge-cr-zone').textContent = crZone;
+  document.getElementById('gauge-cr-val').textContent  = (r.crackerSim>=0?'+':'')+'$'+Math.round(r.crackerSim);
+  document.getElementById('gauge-cr-val').style.color  = crColor;
+  const crFill = document.getElementById('gauge-cr-fill');
+  crFill.style.width = crPct+'%';
+  crFill.style.background = crColor;
 }
 
 // ══════════════════════════════════════════════
@@ -1709,6 +2029,170 @@ function renderFcChart() {
   });
 }
 
+
+// ══════════════════════════════════════════════
+// 크래커마진 9주 히스토리 차트
+// ══════════════════════════════════════════════
+
+// xlsx에서 추출한 주차별 크래커마진 기여도 (ET×0.30, PR×0.15, BD×0.045, BZ×0.06)
+const CRACKER_HISTORY = [
+  { week:'12/29', et:224, pr:111, bd:43, bz:40, nap:530, margin:-162 },
+  { week:'01/05', et:223, pr:112, bd:46, bz:40, nap:536, margin:-167 },
+  { week:'01/12', et:218, pr:116, bd:52, bz:42, nap:557, margin:-180 },
+  { week:'01/19', et:213, pr:119, bd:54, bz:45, nap:560, margin:-179 },
+  { week:'01/26', et:210, pr:123, bd:57, bz:46, nap:584, margin:-197 },
+  { week:'02/02', et:209, pr:124, bd:57, bz:46, nap:594, margin:-208 },
+  { week:'02/09', et:210, pr:124, bd:57, bz:46, nap:607, margin:-219 },
+  { week:'02/16', et:212, pr:125, bd:57, bz:46, nap:600, margin:-211 },
+  { week:'02/23', et:212, pr:125, bd:57, bz:47, nap:623, margin:-232 },
+];
+
+let crackerHistChart = null;
+
+function renderCrackerHistoryChart() {
+  const canvas = document.getElementById('cracker-history-chart');
+  if (!canvas) return;
+
+  // canvas 재생성
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  const labels = CRACKER_HISTORY.map(d => d.week);
+
+  const datasets = [
+    {
+      label: 'ET 기여',
+      data: CRACKER_HISTORY.map(d => d.et),
+      borderColor: 'rgba(16,185,129,1)',
+      backgroundColor: 'rgba(16,185,129,0.4)',
+      fill: true,
+      stack: 'contrib',
+      tension: 0.35,
+      pointRadius: 3,
+      borderWidth: 2,
+      order: 2,
+      datalabels: { display: false },
+    },
+    {
+      label: 'PR 기여',
+      data: CRACKER_HISTORY.map(d => d.pr),
+      borderColor: 'rgba(59,130,246,1)',
+      backgroundColor: 'rgba(59,130,246,0.4)',
+      fill: true,
+      stack: 'contrib',
+      tension: 0.35,
+      pointRadius: 3,
+      borderWidth: 2,
+      order: 2,
+      datalabels: { display: false },
+    },
+    {
+      label: 'BD 기여',
+      data: CRACKER_HISTORY.map(d => d.bd),
+      borderColor: 'rgba(249,115,22,1)',
+      backgroundColor: 'rgba(249,115,22,0.4)',
+      fill: true,
+      stack: 'contrib',
+      tension: 0.35,
+      pointRadius: 3,
+      borderWidth: 2,
+      order: 2,
+      datalabels: { display: false },
+    },
+    {
+      label: 'BZ 기여',
+      data: CRACKER_HISTORY.map(d => d.bz),
+      borderColor: 'rgba(168,85,247,1)',
+      backgroundColor: 'rgba(168,85,247,0.4)',
+      fill: true,
+      stack: 'contrib',
+      tension: 0.35,
+      pointRadius: 3,
+      borderWidth: 2,
+      order: 2,
+      datalabels: { display: false },
+    },
+    {
+      label: '순마진',
+      data: CRACKER_HISTORY.map(d => d.margin),
+      borderColor: '#1e293b',
+      backgroundColor: 'transparent',
+      fill: false,
+      borderWidth: 2.5,
+      borderDash: [5, 4],
+      pointRadius: 5,
+      pointBackgroundColor: CRACKER_HISTORY.map(d => d.margin >= 0 ? '#10b981' : '#ef4444'),
+      pointBorderColor: '#fff',
+      pointBorderWidth: 2,
+      tension: 0.3,
+      order: 1,
+      datalabels: {
+        display: true,
+        anchor: 'end',
+        align: d => CRACKER_HISTORY[d.dataIndex].margin >= 0 ? 'top' : 'bottom',
+        color: d => CRACKER_HISTORY[d.dataIndex].margin >= 0 ? '#10b981' : '#ef4444',
+        font: { size: 10, weight: 'bold' },
+        formatter: v => v != null ? (v >= 0 ? '+' : '') + '$' + Math.round(v) : '',
+      },
+    },
+  ];
+
+  crackerHistChart = new Chart(newCanvas, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { font:{size:11}, color:'#1e293b', usePointStyle:true, pointStyleWidth:10 }
+        },
+        tooltip: {
+          backgroundColor: '#1e293b',
+          titleColor: '#e2e8f0',
+          bodyColor: '#cbd5e1',
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              return ` ${ctx.dataset.label}: ${v >= 0 ? '+' : ''}$${Math.round(v)}`;
+            }
+          }
+        },
+        datalabels: { display: false },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color:'#334155', font:{size:11} },
+          grid: { color:'rgba(148,163,184,0.15)' },
+        },
+        y: {
+          stacked: true,
+          ticks: { color:'#334155', font:{size:10}, callback: v => '$'+v },
+          grid: { color:'rgba(148,163,184,0.2)' },
+          title: { display:true, text:'$/mt', color:'#64748b', font:{size:11} }
+        }
+      }
+    }
+  });
+
+  // 주차별 요약 카드 렌더링
+  const summaryEl = document.getElementById('cracker-history-summary');
+  if (summaryEl) {
+    summaryEl.innerHTML = CRACKER_HISTORY.map(d => {
+      const color = d.margin >= 0 ? 'text-emerald-700' : d.margin > -100 ? 'text-amber-700' : 'text-red-700';
+      const bg    = d.margin >= 0 ? 'bg-emerald-50 border-emerald-200' : d.margin > -100 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
+      return `<div class="rounded-lg border ${bg} p-2 text-center">
+        <div class="text-slate-600 font-bold">${d.week}</div>
+        <div class="font-black ${color} text-sm">${d.margin >= 0 ? '+' : ''}$${d.margin}</div>
+        <div class="text-slate-500 text-xs mt-0.5">NAP $${d.nap}</div>
+      </div>`;
+    }).join('');
+  }
+}
 
 // 초기화
 updateDashboard();
