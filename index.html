@@ -96,7 +96,7 @@
         <div class="text-slate-700 mt-1">
           크래커마진 = ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 + (ET-NAP)×0.40 - NAP - $25<br>
           정상 스프레드: ET+$300 / PR+$250 / BD+$450 / BZ+$150 (ET 정상화 → 크래커 흑자)<br>
-          <span class="text-orange-700">ET 정상가 $937 도달 시 크래커마진 ≈ 0 (손익분기)</span>
+          <span class="text-orange-700">BEP: 부산물수익 ≥ NAP+$25(OPEX) | NAP 상승 시 BEP도 함께 상승</span>
         </div>
       </div>
       <div>
@@ -1848,15 +1848,13 @@ function onCrackerSlider() {
         ⚠ 정상 스프레드가는 크래커 종합 마진과 다릅니다
       </div>
       <div class="text-slate-600 leading-relaxed">
-        각 품목의 <b>정상 스프레드가</b>는 <b>해당 품목이 납사(NAP) 대비 역사적으로 정상 수익을 내는 가격</b>입니다.
-        4품목 모두 정상 스프레드를 달성해도 크래커 전체가 흑자가 되는 것은 아닙니다.<br>
-        <b>크래커 흑자 조건:</b>
-        <span class="font-mono" style="color:#1e293b">
-          ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 + (ET-NAP)×0.40 ≥ NAP + $25
-        </span>
-        <span style="color:${bannerColor}">
-          → 현재 수익합 <b>$${Math.round(revenueNow)}</b> vs 필요 <b>$${Math.round(totalNeeded)}</b>
-          = <b>${revGap>=0?'+':''}$${Math.round(revGap)}</b>
+        <span class="font-mono text-slate-800">
+          크래커마진 = ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 + max(0,ET-NAP)×0.40 - NAP - $25
+        </span><br>
+        BEP: 4대 부산물 수익 + 기타수익(ET스프레드×0.40) ≥ NAP + $25
+        <span class="text-slate-500">| $25 = OPEX(납사 1톤당 최소 운영비 · NAP 상승 시 BEP도 상승)</span>
+        <span style="color:${bannerColor}; margin-left:4px">
+          → 현재 수익 <b>$${Math.round(revenueNow)}</b> vs 필요 <b>$${Math.round(totalNeeded)}</b> = <b>${revGap>=0?'+':''}$${Math.round(revGap)}</b>
         </span>
       </div>
     </div>`;
@@ -1990,7 +1988,7 @@ function buildCrackerStrategy(margin, absGap, etRoom) {
   if (margin < -100)
     return `<span class="text-red-700 font-bold">🔴 크래커 심각 적자(${fmt(margin,true)}) — 가동률 하락 압력. BD 공급 축소 가능성. 선매입 검토.</span>`;
   if (margin < 0)
-    return `<span class="text-orange-700 font-bold">🟠 크래커 적자 — ABS Gap 압박(${fmt(absGap,true)}). ET 정상가 $937 회복 여부 모니터링.</span>`;
+    return `<span class="text-orange-700 font-bold">🟠 크래커 적자 — ABS Gap 압박(${fmt(absGap,true)}). 부산물수익 ≥ NAP+$25 달성 여부 모니터링.</span>`;
   if (etRoom < 50)
     return `<span class="text-amber-700">🟡 ET 추가 하락 여유 $${Math.round(etRoom)} 미만 — 손익분기 근접. 수급 모니터링 강화.</span>`;
   return `<span class="text-emerald-700">🟢 크래커 정상 — 현행 조달 전략 유지.</span>`;
