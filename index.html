@@ -884,8 +884,8 @@
         <!-- AN -->
         <div class="bg-slate-50 border border-yellow-200 rounded-xl overflow-hidden">
           <div class="bg-yellow-50 px-4 py-2 flex justify-between items-center">
-            <span class="text-amber-700 font-black text-sm">AN (Acrylonitrile) CFR FE Asia</span>
-            <span class="text-xs text-slate-700">현재 <span id="fc-cur-an" class="text-amber-700 font-bold">$1060</span> | σ=±$52.6/주</span>
+            <span class="text-violet-700 font-black text-sm">AN (Acrylonitrile) CFR FE Asia</span>
+            <span class="text-xs text-slate-700">현재 <span id="fc-cur-an" class="text-violet-700 font-bold">$1060</span> | σ=±$52.6/주</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
@@ -946,7 +946,7 @@
             <!-- 표시 품목 토글 -->
             <span class="text-xs text-slate-700 font-bold">품목:</span>
             <button onclick="toggleFcLine('SM')"  id="fc-toggle-sm"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-blue-100 text-blue-700 border-blue-300">SM</button>
-            <button onclick="toggleFcLine('AN')"  id="fc-toggle-an"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-yellow-100 text-amber-800 border-yellow-300">AN</button>
+            <button onclick="toggleFcLine('AN')"  id="fc-toggle-an"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-violet-100 text-violet-700 border-violet-300">AN</button>
             <button onclick="toggleFcLine('BD')"  id="fc-toggle-bd"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-orange-100 text-orange-700 border-orange-300">BD</button>
             <span class="text-xs text-slate-600 mx-1">|</span>
             <!-- 라인 스타일 -->
@@ -2557,7 +2557,7 @@ function renderFcChart() {
   const curPrices = {SM: G.sm_act, AN: G.an, BD: G.bd};
   const colors = {
     SM: {line:'#2563eb', ci:'rgba(37,99,235,0.12)', seas:'rgba(37,99,235,0.5)', flat:'rgba(37,99,235,0.35)'},
-    AN: {line:'#d97706', ci:'rgba(217,119,6,0.12)',  seas:'rgba(217,119,6,0.5)',  flat:'rgba(217,119,6,0.35)'},
+    AN: {line:'#7c3aed', ci:'rgba(124,58,237,0.12)',  seas:'rgba(124,58,237,0.5)',  flat:'rgba(124,58,237,0.35)'},
     BD: {line:'#ea580c', ci:'rgba(234,88,12,0.12)',  seas:'rgba(234,88,12,0.5)',  flat:'rgba(234,88,12,0.35)'},
   };
 
