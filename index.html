@@ -3,29 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iran Risk × ABS/SM + 크래커마진 v6.4</title>
+  <title>LAM 석유화학 원가 대시보드 v6.4</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
-    body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background:#0f172a; color:#e2e8f0; }
+    body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background:#f0f4f8; color:#1e293b; }
     @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.4} }
     .alert-blink { animation: pulse-red 1.4s ease-in-out infinite; }
-    input[type=range] { -webkit-appearance:none; height:6px; border-radius:3px; background:#334155; outline:none; }
+    input[type=range] { -webkit-appearance:none; height:6px; border-radius:3px; background:#cbd5e1; outline:none; }
     input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#f59e0b; cursor:pointer; }
     input[type=range].green-thumb::-webkit-slider-thumb { background:#10b981; }
     input[type=range].red-thumb::-webkit-slider-thumb   { background:#ef4444; }
     input[type=range].blue-thumb::-webkit-slider-thumb  { background:#3b82f6; }
-    .metric-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:1rem; padding:1rem 1.2rem; transition:border-color 0.3s; }
-    .metric-card:hover { border-color:rgba(255,255,255,0.2); }
-    .scenario-row { background:rgba(255,255,255,0.03); border-radius:0.75rem; padding:0.65rem 1rem; border-left:4px solid transparent; }
-    .badge-ok    { background:#065f46; color:#6ee7b7; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
-    .badge-warn  { background:#78350f; color:#fcd34d; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
-    .badge-danger{ background:#7f1d1d; color:#fca5a5; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
-    .cracker-positive { background:linear-gradient(135deg,#064e3b,#065f46); border:1px solid #059669; }
-    .cracker-negative { background:linear-gradient(135deg,#450a0a,#7f1d1d); border:1px solid #dc2626; }
-    .cracker-warn     { background:linear-gradient(135deg,#451a03,#78350f); border:1px solid #d97706; }
-    .tab-btn { padding:.5rem 1.2rem; border-radius:.5rem; font-size:.8rem; font-weight:700; cursor:pointer; transition:all .2s; border:1px solid #334155; color:#94a3b8; }
-    .tab-btn.active { background:#1e40af; color:white; border-color:#3b82f6; }
+    .metric-card { background:#ffffff; border:1px solid #e2e8f0; border-radius:1rem; padding:1rem 1.2rem; transition:border-color 0.3s; }
+    .metric-card:hover { border-color:#94a3b8; }
+    .scenario-row { background:#f8fafc; border-radius:0.75rem; padding:0.65rem 1rem; border-left:4px solid transparent; }
+    .badge-ok    { background:#d1fae5; color:#065f46; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
+    .badge-warn  { background:#fef3c7; color:#92400e; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
+    .badge-danger{ background:#fee2e2; color:#991b1b; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
+    .cracker-positive { background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid #059669; }
+    .cracker-negative { background:linear-gradient(135deg,#fff1f2,#fee2e2); border:1px solid #dc2626; }
+    .cracker-warn     { background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1px solid #d97706; }
+    .tab-btn { padding:.5rem 1.2rem; border-radius:.5rem; font-size:.8rem; font-weight:700; cursor:pointer; transition:all .2s; border:1px solid #cbd5e1; color:#475569; }
+    .tab-btn.active { background:#2563eb; color:white; border-color:#1d4ed8; }
 
   </style>
 </head>
@@ -36,14 +37,14 @@
 <div class="max-w-7xl mx-auto space-y-4">
 
   <!-- ══ 헤더 ══ -->
-  <header class="bg-gradient-to-r from-red-950 to-slate-900 p-5 rounded-2xl border border-red-800/40 shadow-2xl">
+  <header class="bg-gradient-to-r from-red-700 to-slate-700 p-5 rounded-2xl border border-red-200 shadow-2xl">
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-black text-yellow-400 tracking-tight">
+        <h1 class="text-2xl font-black text-yellow-300 tracking-tight">
           🔴 IRAN RISK · ABS/SM + 크래커마진 대시보드
           <span class="text-sm text-red-400 ml-2">v6.4</span>
         </h1>
-        <p class="text-slate-400 text-xs mt-1">
+        <p class="text-slate-500 text-xs mt-1">
           LAM Advanced Procurement  |  WTI CL=F 실시간  |  구글시트 실측앵커
           <span class="text-orange-400 ml-2 font-bold">★ 크래커마진→BD타이트 자동반영 | 수급신호 4종 병기</span>
         </p>
@@ -64,7 +65,7 @@
       <div class="text-center">
         <div class="text-xs text-slate-500 mb-1">크래커마진</div>
         <div id="hdr-cracker" class="text-2xl font-black">$--</div>
-        <div class="text-xs text-slate-600">ET×0.30+...</div>
+        <div class="text-xs text-slate-500">ET×0.30+...</div>
       </div>
       <div class="text-center">
         <div class="text-xs text-orange-500 mb-1 font-bold">BD 타이트프리미엄</div>
@@ -86,11 +87,11 @@
   </header>
 
   <!-- ══ v6.4 로직 배너 ══ -->
-  <div class="bg-slate-800/50 border border-orange-800/40 rounded-xl p-3 text-xs leading-relaxed">
+  <div class="bg-white/50 border border-orange-200 rounded-xl p-3 text-xs leading-relaxed">
     <div class="grid md:grid-cols-2 gap-3">
       <div>
         <span class="text-orange-400 font-black">★ v6.4 크래커마진→BD 타이트 로직:</span>
-        <div class="text-slate-300 mt-1">
+        <div class="text-slate-700 mt-1">
           크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50<br>
           BD타이트프리미엄 = min(max(0, -(마진변화)) × 0.5, 150)<br>
           <span class="text-orange-300">ET 약세 → 크래커 적자 → 가동률↓ → BD 공급↓ → BD 타이트</span>
@@ -98,7 +99,7 @@
       </div>
       <div>
         <span class="text-blue-400 font-black">★ 수급신호 4종:</span>
-        <div class="text-slate-300 mt-1">
+        <div class="text-slate-700 mt-1">
           ① SM Margin 실측 (SM - 실측원가) — 현재 SM 흑적자<br>
           ② SM Margin 이론 (SM - 이론원가) — 메이커 감산 트리거<br>
           ③ ABS Gap 실측 (ABS Mkt - 실측Cost) — 구매자 핵심<br>
@@ -116,7 +117,7 @@
     <button class="tab-btn" onclick="showTab('tab-scenario',this)">📋 시나리오 테이블</button>
     <button class="tab-btn" onclick="showTab('tab-chart',this)">📈 차트</button>
     <button class="tab-btn" onclick="showTab('tab-sens',this)">⚙ 민감도</button>
-    <button class="tab-btn" onclick="showTab('tab-forecast',this)">📅 13주 가격예측</button>
+    <button class="tab-btn" onclick="showTab('tab-forecast',this)">📅 사전원가 예측</button>
   </div>
 
   <!-- ══════════════════════════════════════
@@ -125,100 +126,100 @@
   <div id="tab-main">
     <!-- 원료 카드 -->
     <div class="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-10 gap-2 mb-3">
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">WTI</div><div id="c-wti" class="text-lg font-black text-yellow-400">--</div><div class="text-xs text-slate-600">$/bbl</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">NAP</div><div id="c-nap" class="text-lg font-black text-slate-300">--</div><div class="text-xs text-slate-600">$/mt</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">BZ</div><div id="c-bz" class="text-lg font-black text-purple-400">--</div><div id="c-bz-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card border border-green-900/50"><div class="text-xs text-green-400 mb-1 font-bold">ET ★</div><div id="c-et" class="text-lg font-black text-green-400">--</div><div id="c-et-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card border border-orange-900/50"><div class="text-xs text-orange-400 mb-1 font-bold">BD ★타이트</div><div id="c-bd" class="text-lg font-black text-orange-400">--</div><div id="c-bd-tight" class="text-xs text-orange-600">+$0 프리미엄</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">AN</div><div id="c-an" class="text-lg font-black text-yellow-400">--</div><div id="c-an-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card"><div class="text-xs text-cyan-500 mb-1">PR</div><div id="c-pr" class="text-lg font-black text-cyan-400">--</div><div id="c-pr-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">SM Market</div><div id="c-sm-mkt" class="text-lg font-black text-blue-400">--</div><div id="c-sm-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">ABS Market</div><div id="c-abs-mkt" class="text-lg font-black text-blue-300">--</div><div id="c-abs-mkt-act" class="text-xs text-slate-600">실측 $---</div></div>
-      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">BZ Korea-ARA</div><div id="c-bz-spread" class="text-lg font-black text-fuchsia-400">--</div><div class="text-xs text-slate-600">스프레드</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">WTI</div><div id="c-wti" class="text-lg font-black text-yellow-400">--</div><div class="text-xs text-slate-500">$/bbl</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">NAP</div><div id="c-nap" class="text-lg font-black text-slate-700">--</div><div class="text-xs text-slate-500">$/mt</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">BZ</div><div id="c-bz" class="text-lg font-black text-purple-400">--</div><div id="c-bz-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card border border-green-200"><div class="text-xs text-green-400 mb-1 font-bold">ET ★</div><div id="c-et" class="text-lg font-black text-green-400">--</div><div id="c-et-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card border border-orange-300"><div class="text-xs text-orange-400 mb-1 font-bold">BD ★타이트</div><div id="c-bd" class="text-lg font-black text-orange-400">--</div><div id="c-bd-tight" class="text-xs text-orange-600">+$0 프리미엄</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">AN</div><div id="c-an" class="text-lg font-black text-yellow-400">--</div><div id="c-an-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card"><div class="text-xs text-cyan-500 mb-1">PR</div><div id="c-pr" class="text-lg font-black text-cyan-400">--</div><div id="c-pr-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">SM Market</div><div id="c-sm-mkt" class="text-lg font-black text-blue-400">--</div><div id="c-sm-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">ABS Market</div><div id="c-abs-mkt" class="text-lg font-black text-blue-300">--</div><div id="c-abs-mkt-act" class="text-xs text-slate-500">실측 $---</div></div>
+      <div class="metric-card"><div class="text-xs text-slate-500 mb-1">BZ Korea-ARA</div><div id="c-bz-spread" class="text-lg font-black text-fuchsia-400">--</div><div class="text-xs text-slate-500">스프레드</div></div>
     </div>
 
     <!-- 크래커 마진 패널 -->
     <div id="cracker-panel" class="rounded-xl p-4 mb-3 cracker-negative">
       <div class="flex flex-col md:flex-row md:items-center gap-4">
         <div class="text-center md:text-left">
-          <div class="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">⚗ 나프타 크래커 마진</div>
+          <div class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-1">⚗ 나프타 크래커 마진</div>
           <div id="cracker-margin-val" class="text-4xl font-black">$--</div>
-          <div class="text-xs text-slate-400 mt-1">ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
+          <div class="text-xs text-slate-500 mt-1">ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
         </div>
         <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
-          <div class="bg-black/20 rounded-lg p-2 text-center">
-            <div class="text-slate-400">ET 기여</div>
+          <div class="bg-white/60 rounded-lg p-2 text-center">
+            <div class="text-slate-500">ET 기여</div>
             <div id="cr-et-contrib" class="font-black text-green-400">$--</div>
           </div>
-          <div class="bg-black/20 rounded-lg p-2 text-center">
-            <div class="text-slate-400">PR 기여</div>
+          <div class="bg-white/60 rounded-lg p-2 text-center">
+            <div class="text-slate-500">PR 기여</div>
             <div id="cr-pr-contrib" class="font-black text-cyan-400">$--</div>
           </div>
-          <div class="bg-black/20 rounded-lg p-2 text-center">
-            <div class="text-slate-400">BD+BZ 기여</div>
+          <div class="bg-white/60 rounded-lg p-2 text-center">
+            <div class="text-slate-500">BD+BZ 기여</div>
             <div id="cr-bd-contrib" class="font-black text-orange-400">$--</div>
           </div>
-          <div class="bg-black/20 rounded-lg p-2 text-center">
-            <div class="text-slate-400">NAP 비용</div>
+          <div class="bg-white/60 rounded-lg p-2 text-center">
+            <div class="text-slate-500">NAP 비용</div>
             <div id="cr-nap-cost" class="font-black text-red-400">$--</div>
           </div>
         </div>
-        <div class="text-center bg-black/30 rounded-xl px-5 py-3">
+        <div class="text-center bg-white/80 rounded-xl px-5 py-3">
           <div class="text-xs text-orange-400 font-bold mb-1">BD 타이트 프리미엄</div>
           <div id="cr-bd-tight-big" class="text-3xl font-black text-orange-400">+$--</div>
           <div class="text-xs text-slate-500 mt-1">크래커마진 악화 반영</div>
         </div>
       </div>
-      <div id="cracker-insight" class="mt-3 text-xs text-slate-300 border-t border-white/10 pt-3"></div>
+      <div id="cracker-insight" class="mt-3 text-xs text-slate-700 border-t border-white/10 pt-3"></div>
     </div>
 
     <!-- 수급신호 4종 -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-      <div class="metric-card border border-green-900/60">
+      <div class="metric-card border border-green-200">
         <div class="text-xs text-green-400 font-bold mb-1">① SM Margin 실측</div>
         <div id="sig-sm-act" class="text-2xl font-black">--</div>
         <div class="text-xs text-slate-500 mt-1">SM - 실측원가</div>
-        <div id="sig-sm-act-sub" class="text-xs text-slate-600 mt-0.5"></div>
+        <div id="sig-sm-act-sub" class="text-xs text-slate-500 mt-0.5"></div>
       </div>
       <div class="metric-card border border-yellow-900/50">
         <div class="text-xs text-yellow-500 font-bold mb-1">② SM Margin 이론</div>
         <div id="sig-sm-th" class="text-2xl font-black">--</div>
         <div class="text-xs text-slate-500 mt-1">SM - 이론원가 (BZ×0.80)</div>
-        <div id="sig-sm-th-sub" class="text-xs text-slate-600 mt-0.5">메이커 감산 트리거</div>
+        <div id="sig-sm-th-sub" class="text-xs text-slate-500 mt-0.5">메이커 감산 트리거</div>
       </div>
       <div class="metric-card border border-emerald-800/80">
         <div class="text-xs text-emerald-400 font-bold mb-1">③ ABS Gap 실측</div>
         <div id="sig-abs-act" class="text-2xl font-black">--</div>
         <div class="text-xs text-slate-500 mt-1">ABS Mkt - 실측Cost</div>
-        <div id="sig-abs-act-sub" class="text-xs text-slate-600 mt-0.5">구매자 핵심 지표</div>
+        <div id="sig-abs-act-sub" class="text-xs text-slate-500 mt-0.5">구매자 핵심 지표</div>
       </div>
       <div class="metric-card border border-blue-900/50">
         <div class="text-xs text-blue-400 font-bold mb-1">④ ABS Gap 이론</div>
         <div id="sig-abs-th" class="text-2xl font-black">--</div>
         <div class="text-xs text-slate-500 mt-1">ABS Mkt - 이론Cost</div>
-        <div id="sig-abs-th-sub" class="text-xs text-slate-600 mt-0.5">이론 기준 마진</div>
+        <div id="sig-abs-th-sub" class="text-xs text-slate-500 mt-0.5">이론 기준 마진</div>
       </div>
     </div>
 
     <!-- BZ 스프레드 -->
-    <div class="bg-slate-800/40 border border-purple-800/40 rounded-xl p-4">
+    <div class="bg-white/80 border border-purple-800/40 rounded-xl p-4">
       <div class="text-purple-400 text-xs font-bold uppercase tracking-widest mb-3">🌐 BZ 글로벌 스프레드</div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-        <div class="bg-slate-900/60 rounded-xl p-3 border border-purple-900/50">
+        <div class="bg-slate-50 rounded-xl p-3 border border-purple-200">
           <div class="text-xs text-purple-300 font-bold mb-2">Korea vs ARA</div>
-          <div class="flex justify-between mb-1"><span class="text-slate-400">BZ FOB Korea</span><span id="sp-bz-k" class="text-purple-400 font-black">$---</span></div>
-          <div class="flex justify-between mb-1"><span class="text-slate-400">BZ CIF ARA</span><span id="sp-bz-ara" class="text-indigo-400 font-black">$---</span></div>
-          <div class="flex justify-between pt-2 border-t border-slate-700"><span class="font-bold">Spread</span><span id="sp-bz-spread-ara" class="font-black text-fuchsia-400">$---</span></div>
+          <div class="flex justify-between mb-1"><span class="text-slate-500">BZ FOB Korea</span><span id="sp-bz-k" class="text-purple-400 font-black">$---</span></div>
+          <div class="flex justify-between mb-1"><span class="text-slate-500">BZ CIF ARA</span><span id="sp-bz-ara" class="text-indigo-400 font-black">$---</span></div>
+          <div class="flex justify-between pt-2 border-t border-slate-200"><span class="font-bold">Spread</span><span id="sp-bz-spread-ara" class="font-black text-fuchsia-400">$---</span></div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-3 border border-amber-900/50">
+        <div class="bg-slate-50 rounded-xl p-3 border border-amber-200">
           <div class="text-xs text-amber-300 font-bold mb-2">Korea vs USG</div>
-          <div class="flex justify-between mb-1"><span class="text-slate-400">BZ FOB Korea</span><span id="sp-bz-k2" class="text-purple-400 font-black">$---</span></div>
-          <div class="flex justify-between mb-1"><span class="text-slate-400">BZ USG ($/mt)</span><span id="sp-bz-usg" class="text-amber-400 font-black">$---</span></div>
-          <div class="flex justify-between pt-2 border-t border-slate-700"><span class="font-bold">Spread</span><span id="sp-bz-spread-usg" class="font-black text-amber-400">$---</span></div>
+          <div class="flex justify-between mb-1"><span class="text-slate-500">BZ FOB Korea</span><span id="sp-bz-k2" class="text-purple-400 font-black">$---</span></div>
+          <div class="flex justify-between mb-1"><span class="text-slate-500">BZ USG ($/mt)</span><span id="sp-bz-usg" class="text-amber-400 font-black">$---</span></div>
+          <div class="flex justify-between pt-2 border-t border-slate-200"><span class="font-bold">Spread</span><span id="sp-bz-spread-usg" class="font-black text-amber-400">$---</span></div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-3 border border-slate-700">
-          <div class="text-xs text-slate-300 font-bold mb-2">스프레드 해석</div>
-          <div id="bz-insight" class="text-xs text-slate-400 leading-relaxed">로드 중...</div>
+        <div class="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div class="text-xs text-slate-700 font-bold mb-2">스프레드 해석</div>
+          <div id="bz-insight" class="text-xs text-slate-500 leading-relaxed">로드 중...</div>
         </div>
       </div>
     </div>
@@ -228,13 +229,13 @@
        탭2: WTI 시뮬레이터
   ══════════════════════════════════════ -->
   <div id="tab-wti" class="hidden">
-    <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-5">
-      <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">🎚 인터랙티브 WTI 시뮬레이터 v6.4</h2>
+    <div class="bg-white/80 border border-slate-200 rounded-2xl p-5">
+      <h2 class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">🎚 인터랙티브 WTI 시뮬레이터 v6.4</h2>
 
       <!-- 리스크 WTI 등가 배너 -->
-      <div id="risk-equiv-bar" class="mb-4 p-3 rounded-lg bg-yellow-950/40 border border-yellow-800/50 text-xs text-yellow-300 hidden">
+      <div id="risk-equiv-bar" class="mb-4 p-3 rounded-lg bg-yellow-950/40 border border-yellow-200 text-xs text-yellow-300 hidden">
         <span class="font-black">리스크 WTI 등가:</span>
-        <span id="risk-equiv-val" class="text-white font-black mx-2">+$0/bbl</span>
+        <span id="risk-equiv-val" class="text-slate-800 font-black mx-2">+$0/bbl</span>
         → BZ +<span id="risk-bz">$0</span> | ET +<span id="risk-et">$0</span> | BD +<span id="risk-bd">$0</span> | AN +<span id="risk-an">$0</span>
       </div>
 
@@ -243,19 +244,19 @@
         <div class="space-y-5">
           <div>
             <div class="flex justify-between items-center mb-2">
-              <label class="text-sm text-slate-400 font-bold">WTI 유가</label>
+              <label class="text-sm text-slate-500 font-bold">WTI 유가</label>
               <span id="wti-slider-val" class="text-yellow-400 font-black text-lg">$67.00/bbl</span>
             </div>
             <input type="range" id="slider-wti" min="40" max="120" step="0.5" value="67" class="w-full" oninput="onWtiSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$40</span><span>$60</span><span>$80</span><span>$100</span><span>$120</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$40</span><span>$60</span><span>$80</span><span>$100</span><span>$120</span></div>
           </div>
           <div>
             <div class="flex justify-between items-center mb-2">
-              <label class="text-sm text-slate-400 font-bold">이란 리스크 프리미엄</label>
+              <label class="text-sm text-slate-500 font-bold">이란 리스크 프리미엄</label>
               <span id="risk-slider-val" class="text-red-400 font-black text-lg">+$0/t</span>
             </div>
             <input type="range" id="slider-risk" min="0" max="300" step="10" value="0" class="w-full red-thumb" oninput="onWtiSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>Base</span><span>+$75</span><span>+$150</span><span>+$225</span><span>+$300</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>Base</span><span>+$75</span><span>+$150</span><span>+$225</span><span>+$300</span></div>
           </div>
           <div class="flex flex-wrap gap-2">
             <button onclick="setWtiScenario(59.44,0)"  class="text-xs bg-emerald-900/60 text-emerald-400 border border-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-800 transition">Base $59</button>
@@ -269,42 +270,42 @@
         <!-- 결과 -->
         <div class="space-y-1.5 text-sm">
           <div class="grid grid-cols-3 gap-1.5 mb-2">
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">BZ</span><span id="wsim-bz" class="text-purple-400 font-black text-sm">$---</span></div>
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">ET</span><span id="wsim-et" class="text-green-400 font-black text-sm">$---</span></div>
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-orange-400 text-xs font-bold">BD★</span><span id="wsim-bd" class="text-orange-400 font-black text-sm">$---</span></div>
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">AN</span><span id="wsim-an" class="text-yellow-400 font-black text-sm">$---</span></div>
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-cyan-500 text-xs">PR</span><span id="wsim-pr" class="text-cyan-400 font-black text-sm">$---</span></div>
-            <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">SM</span><span id="wsim-sm" class="text-blue-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">BZ</span><span id="wsim-bz" class="text-purple-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">ET</span><span id="wsim-et" class="text-green-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-orange-400 text-xs font-bold">BD★</span><span id="wsim-bd" class="text-orange-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">AN</span><span id="wsim-an" class="text-yellow-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-cyan-500 text-xs">PR</span><span id="wsim-pr" class="text-cyan-400 font-black text-sm">$---</span></div>
+            <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">SM</span><span id="wsim-sm" class="text-blue-400 font-black text-sm">$---</span></div>
           </div>
-          <div class="bg-orange-950/30 border border-orange-900/50 rounded-lg px-3 py-2">
+          <div class="bg-orange-50 border border-orange-300 rounded-lg px-3 py-2">
             <div class="flex justify-between"><span class="text-orange-400 text-xs font-bold">크래커마진</span><span id="wsim-cracker" class="font-black">$---</span></div>
             <div class="flex justify-between"><span class="text-orange-400 text-xs">BD 타이트프리미엄</span><span id="wsim-bd-tight" class="font-black text-orange-400">+$---</span></div>
           </div>
-          <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">SM Cost 실측</span><span id="wsim-sm-cost" class="text-red-400 font-black text-sm">$---</span></div>
-          <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-yellow-600 text-xs">SM Cost 이론</span><span id="wsim-sm-cost-th" class="text-yellow-400 font-black text-sm">$---</span></div>
+          <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">SM Cost 실측</span><span id="wsim-sm-cost" class="text-red-400 font-black text-sm">$---</span></div>
+          <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-yellow-600 text-xs">SM Cost 이론</span><span id="wsim-sm-cost-th" class="text-yellow-400 font-black text-sm">$---</span></div>
           <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-800 rounded-lg p-2 text-center">
-              <div class="text-xs text-slate-400">SM Margin 실측 ①</div>
+            <div class="bg-white rounded-lg p-2 text-center">
+              <div class="text-xs text-slate-500">SM Margin 실측 ①</div>
               <div id="wsim-sm-margin" class="font-black text-lg">$---</div>
             </div>
-            <div class="bg-slate-800 rounded-lg p-2 text-center">
-              <div class="text-xs text-slate-400">SM Margin 이론 ②</div>
+            <div class="bg-white rounded-lg p-2 text-center">
+              <div class="text-xs text-slate-500">SM Margin 이론 ②</div>
               <div id="wsim-sm-margin-th" class="font-black text-lg">$---</div>
             </div>
           </div>
-          <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">ABS Market</span><span id="wsim-abs-mkt" class="text-blue-300 font-black text-sm">$---</span></div>
-          <div class="flex justify-between border-b border-slate-700 pb-1"><span class="text-slate-400 text-xs">ABS Cost</span><span id="wsim-abs-cost" class="text-red-400 font-black text-sm">$---</span></div>
+          <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">ABS Market</span><span id="wsim-abs-mkt" class="text-blue-300 font-black text-sm">$---</span></div>
+          <div class="flex justify-between border-b border-slate-200 pb-1"><span class="text-slate-500 text-xs">ABS Cost</span><span id="wsim-abs-cost" class="text-red-400 font-black text-sm">$---</span></div>
           <div class="grid grid-cols-2 gap-2">
-            <div class="bg-slate-800 rounded-lg p-2 text-center">
-              <div class="text-xs text-slate-400">ABS Gap 실측 ③</div>
+            <div class="bg-white rounded-lg p-2 text-center">
+              <div class="text-xs text-slate-500">ABS Gap 실측 ③</div>
               <div id="wsim-abs-gap" class="font-black text-2xl">$---</div>
             </div>
-            <div class="bg-slate-800 rounded-lg p-2 text-center">
-              <div class="text-xs text-slate-400">ABS Gap 이론 ④</div>
+            <div class="bg-white rounded-lg p-2 text-center">
+              <div class="text-xs text-slate-500">ABS Gap 이론 ④</div>
               <div id="wsim-abs-gap-th" class="font-black text-xl text-yellow-400">$---</div>
             </div>
           </div>
-          <div id="wti-strategy" class="p-3 rounded-lg bg-slate-800 border border-slate-600 text-xs mt-1"></div>
+          <div id="wti-strategy" class="p-3 rounded-lg bg-white border border-slate-300 text-xs mt-1"></div>
         </div>
       </div>
     </div>
@@ -314,7 +315,7 @@
        탭3: 크래커 마진 시뮬레이터 ★ v6.4 신규
   ══════════════════════════════════════ -->
   <div id="tab-cracker" class="hidden">
-    <div class="bg-slate-800/40 border border-orange-800/40 rounded-2xl p-5">
+    <div class="bg-white/80 border border-orange-200 rounded-2xl p-5">
       <h2 class="text-orange-400 text-xs font-bold uppercase tracking-widest mb-1">⚗ 나프타 크래커 마진 시뮬레이터 v6.4</h2>
       <p class="text-slate-500 text-xs mb-4">
         크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50
@@ -325,141 +326,141 @@
         <!-- 크래커 슬라이더 -->
         <div class="space-y-4">
           <!-- ET 슬라이더 -->
-          <div class="bg-green-950/30 border border-green-900/50 rounded-xl p-4">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-4">
             <div class="flex justify-between items-center mb-2">
               <label class="text-sm text-green-400 font-black">ET (에틸렌) CFR NEA</label>
               <span id="cr-et-val" class="text-green-400 font-black text-lg">$710/mt</span>
             </div>
             <input type="range" id="cr-slider-et" min="300" max="1200" step="10" value="710" class="w-full green-thumb" oninput="onCrackerSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$300</span><span>$600</span><span>$900</span><span>$1200</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$300</span><span>$600</span><span>$900</span><span>$1200</span></div>
             <div class="text-xs text-green-700 mt-1">현재 실측: <span id="cr-et-actual" class="text-green-500">$710</span></div>
           </div>
 
           <!-- NAP 슬라이더 -->
-          <div class="bg-slate-800/60 border border-slate-600 rounded-xl p-4">
+          <div class="bg-white/90 border border-slate-300 rounded-xl p-4">
             <div class="flex justify-between items-center mb-2">
-              <label class="text-sm text-slate-300 font-black">NAP (나프타) C+F Japan</label>
-              <span id="cr-nap-val" class="text-slate-300 font-black text-lg">$637/mt</span>
+              <label class="text-sm text-slate-700 font-black">NAP (나프타) C+F Japan</label>
+              <span id="cr-nap-val" class="text-slate-700 font-black text-lg">$637/mt</span>
             </div>
             <input type="range" id="cr-slider-nap" min="400" max="1000" step="10" value="637" class="w-full" oninput="onCrackerSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$400</span><span>$600</span><span>$800</span><span>$1000</span></div>
-            <div class="text-xs text-slate-600 mt-1">현재 실측: <span id="cr-nap-actual" class="text-slate-400">$637</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$400</span><span>$600</span><span>$800</span><span>$1000</span></div>
+            <div class="text-xs text-slate-500 mt-1">현재 실측: <span id="cr-nap-actual" class="text-slate-500">$637</span></div>
           </div>
 
           <!-- PR 슬라이더 -->
-          <div class="bg-cyan-950/30 border border-cyan-900/50 rounded-xl p-4">
+          <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-4">
             <div class="flex justify-between items-center mb-2">
               <label class="text-sm text-cyan-400 font-bold">PR (프로필렌) CFR China</label>
               <span id="cr-pr-val" class="text-cyan-400 font-black text-lg">$870/mt</span>
             </div>
             <input type="range" id="cr-slider-pr" min="400" max="1200" step="10" value="870" class="w-full blue-thumb" oninput="onCrackerSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$400</span><span>$700</span><span>$1000</span><span>$1200</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$400</span><span>$700</span><span>$1000</span><span>$1200</span></div>
           </div>
 
           <!-- BZ 슬라이더 (크래커용) -->
-          <div class="bg-purple-950/30 border border-purple-900/50 rounded-xl p-4">
+          <div class="bg-purple-50 border border-purple-200 rounded-xl p-4">
             <div class="flex justify-between items-center mb-2">
               <label class="text-sm text-purple-400 font-bold">BZ (벤젠) FOB Korea</label>
               <span id="cr-bz-val" class="text-purple-400 font-black text-lg">$772/mt</span>
             </div>
             <input type="range" id="cr-slider-bz" min="400" max="1500" step="10" value="772" class="w-full" oninput="onCrackerSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$400</span><span>$800</span><span>$1200</span><span>$1500</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$400</span><span>$800</span><span>$1200</span><span>$1500</span></div>
           </div>
 
           <!-- BD 슬라이더 -->
-          <div class="bg-orange-950/30 border border-orange-900/50 rounded-xl p-4">
+          <div class="bg-orange-50 border border-orange-300 rounded-xl p-4">
             <div class="flex justify-between items-center mb-2">
               <label class="text-sm text-orange-400 font-bold">BD (부타디엔) CFR China</label>
               <span id="cr-bd-val" class="text-orange-400 font-black text-lg">$1270/mt</span>
             </div>
             <input type="range" id="cr-slider-bd" min="600" max="2500" step="10" value="1270" class="w-full red-thumb" oninput="onCrackerSlider()">
-            <div class="flex justify-between text-xs text-slate-600 mt-1"><span>$600</span><span>$1300</span><span>$2000</span><span>$2500</span></div>
+            <div class="flex justify-between text-xs text-slate-500 mt-1"><span>$600</span><span>$1300</span><span>$2000</span><span>$2500</span></div>
             <div class="text-xs text-orange-700 mt-1">크래커마진 악화 시 자동 타이트프리미엄 반영</div>
           </div>
 
-          <button onclick="resetCrackerSliders()" class="text-xs bg-slate-700 text-slate-300 border border-slate-600 rounded-lg px-4 py-2 hover:bg-slate-600 transition w-full">↺ 실측값으로 초기화</button>
+          <button onclick="resetCrackerSliders()" class="text-xs bg-slate-700 text-slate-700 border border-slate-300 rounded-lg px-4 py-2 hover:bg-slate-600 transition w-full">↺ 실측값으로 초기화</button>
         </div>
 
         <!-- 크래커 결과 패널 -->
         <div class="space-y-3">
           <!-- 크래커 마진 대형 표시 -->
           <div id="cr-result-panel" class="rounded-2xl p-5 border text-center">
-            <div class="text-xs text-slate-400 uppercase tracking-widest mb-2">나프타 크래커 마진</div>
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">나프타 크래커 마진</div>
             <div id="cr-margin-big" class="text-5xl font-black mb-1">$--</div>
             <div id="cr-margin-label" class="text-sm font-bold">계산 중...</div>
           </div>
 
           <!-- 수율별 기여 분해 -->
-          <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
-            <div class="text-xs text-slate-400 font-bold mb-3 uppercase tracking-widest">수율별 수익 분해</div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="text-xs text-slate-500 font-bold mb-3 uppercase tracking-widest">수율별 수익 분해</div>
             <div class="space-y-2">
               <div class="flex items-center gap-2">
                 <span class="text-xs text-green-400 w-24">ET ×0.30</span>
-                <div class="flex-1 bg-slate-800 rounded-full h-4 overflow-hidden">
+                <div class="flex-1 bg-white rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-et" class="h-full bg-green-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-et" class="text-xs text-green-400 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-cyan-400 w-24">PR ×0.15</span>
-                <div class="flex-1 bg-slate-800 rounded-full h-4 overflow-hidden">
+                <div class="flex-1 bg-white rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-pr" class="h-full bg-cyan-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-pr" class="text-xs text-cyan-400 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-orange-400 w-24">BD ×0.045</span>
-                <div class="flex-1 bg-slate-800 rounded-full h-4 overflow-hidden">
+                <div class="flex-1 bg-white rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-bd" class="h-full bg-orange-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-bd" class="text-xs text-orange-400 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-purple-400 w-24">BZ ×0.06</span>
-                <div class="flex-1 bg-slate-800 rounded-full h-4 overflow-hidden">
+                <div class="flex-1 bg-white rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-bz" class="h-full bg-purple-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-bz" class="text-xs text-purple-400 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-xs text-red-400 w-24">NAP (비용)</span>
-                <div class="flex-1 bg-slate-800 rounded-full h-4 overflow-hidden">
+                <div class="flex-1 bg-white rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-nap" class="h-full bg-red-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-nap" class="text-xs text-red-400 w-16 text-right font-black">$--</span>
               </div>
-              <div class="border-t border-slate-700 pt-2 flex justify-between">
-                <span class="text-xs text-white font-bold">합계 (크래커마진)</span>
+              <div class="border-t border-slate-200 pt-2 flex justify-between">
+                <span class="text-xs text-slate-800 font-bold">합계 (크래커마진)</span>
                 <span id="cr-val-total" class="text-sm font-black">$--</span>
               </div>
             </div>
           </div>
 
           <!-- BD 타이트 프리미엄 & ABS 영향 -->
-          <div class="bg-orange-950/30 border border-orange-900/50 rounded-xl p-4">
+          <div class="bg-orange-50 border border-orange-300 rounded-xl p-4">
             <div class="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">BD 타이트 → ABS Cost 영향</div>
             <div class="grid grid-cols-2 gap-3 text-xs">
-              <div class="bg-black/20 rounded-lg p-2 text-center">
-                <div class="text-slate-400">크래커마진 변화</div>
+              <div class="bg-white/60 rounded-lg p-2 text-center">
+                <div class="text-slate-500">크래커마진 변화</div>
                 <div id="cr-margin-delta" class="font-black text-lg">$--</div>
               </div>
-              <div class="bg-black/20 rounded-lg p-2 text-center">
+              <div class="bg-white/60 rounded-lg p-2 text-center">
                 <div class="text-orange-400 font-bold">BD 타이트프리미엄</div>
                 <div id="cr-bd-prem" class="font-black text-lg text-orange-400">+$--</div>
               </div>
-              <div class="bg-black/20 rounded-lg p-2 text-center">
-                <div class="text-slate-400">BD (기준)</div>
+              <div class="bg-white/60 rounded-lg p-2 text-center">
+                <div class="text-slate-500">BD (기준)</div>
                 <div id="cr-bd-base" class="font-black text-lg">$--</div>
               </div>
-              <div class="bg-black/20 rounded-lg p-2 text-center">
+              <div class="bg-white/60 rounded-lg p-2 text-center">
                 <div class="text-orange-400 font-bold">BD (타이트후)</div>
                 <div id="cr-bd-final" class="font-black text-lg text-orange-400">$--</div>
               </div>
             </div>
             <!-- ABS Cost/Gap 영향 -->
-            <div class="mt-3 border-t border-orange-900/50 pt-3 grid grid-cols-3 gap-2 text-xs text-center">
+            <div class="mt-3 border-t border-orange-300 pt-3 grid grid-cols-3 gap-2 text-xs text-center">
               <div>
-                <div class="text-slate-400">ABS Cost</div>
+                <div class="text-slate-500">ABS Cost</div>
                 <div id="cr-abs-cost" class="font-black text-red-400">$--</div>
               </div>
               <div>
@@ -474,26 +475,26 @@
           </div>
 
           <!-- 전략 인사이트 -->
-          <div id="cracker-strategy" class="p-3 rounded-lg bg-slate-800 border border-slate-600 text-xs leading-relaxed"></div>
+          <div id="cracker-strategy" class="p-3 rounded-lg bg-white border border-slate-300 text-xs leading-relaxed"></div>
 
           <!-- 감산 임계 분석 -->
-          <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
-            <div class="text-xs text-slate-400 font-bold mb-3 uppercase">크래커 감산 임계 분석</div>
+          <div class="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <div class="text-xs text-slate-500 font-bold mb-3 uppercase">크래커 감산 임계 분석</div>
             <div class="space-y-1.5 text-xs">
               <div class="flex justify-between">
-                <span class="text-slate-400">현재 크래커마진</span>
+                <span class="text-slate-500">현재 크래커마진</span>
                 <span id="cr-thresh-current" class="font-black">$--</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">감산 트리거 (마진=0)</span>
+                <span class="text-slate-500">감산 트리거 (마진=0)</span>
                 <span class="text-red-400 font-bold">$0/t</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">손익분기 ET 가격 (현재 NAP 기준)</span>
+                <span class="text-slate-500">손익분기 ET 가격 (현재 NAP 기준)</span>
                 <span id="cr-break-et" class="font-black text-yellow-400">$--</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-400">현재 ET 대비 추가 하락 여유</span>
+                <span class="text-slate-500">현재 ET 대비 추가 하락 여유</span>
                 <span id="cr-et-room" class="font-black">$--</span>
               </div>
             </div>
@@ -507,10 +508,10 @@
        탭4: 시나리오
   ══════════════════════════════════════ -->
   <div id="tab-scenario" class="hidden">
-    <div class="bg-slate-800/40 border border-slate-700 rounded-2xl p-5">
-      <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">📋 5단계 이란 리스크 시나리오 v6.4</h2>
+    <div class="bg-white/80 border border-slate-200 rounded-2xl p-5">
+      <h2 class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">📋 5단계 이란 리스크 시나리오 v6.4</h2>
       <div id="scenario-table" class="space-y-2"></div>
-      <div class="mt-3 text-xs text-slate-600">★ BD = WTI 회귀 + 크래커마진악화 타이트프리미엄 | 수급신호 4종 병기</div>
+      <div class="mt-3 text-xs text-slate-500">★ BD = WTI 회귀 + 크래커마진악화 타이트프리미엄 | 수급신호 4종 병기</div>
     </div>
   </div>
 
@@ -520,10 +521,10 @@
   <div id="tab-chart" class="hidden">
     <div class="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-slate-300 font-black text-sm uppercase tracking-widest border-l-4 border-red-600 pl-3">📈 REPORT (9패널 v6.4)</h2>
-        <button onclick="refreshImg()" class="text-xs text-slate-400 border border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-700 transition">🔄 새로고침</button>
+        <h2 class="text-slate-700 font-black text-sm uppercase tracking-widest border-l-4 border-red-600 pl-3">📈 REPORT (9패널 v6.4)</h2>
+        <button onclick="refreshImg()" class="text-xs text-slate-500 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-700 transition">🔄 새로고침</button>
       </div>
-      <img id="report-img" src="risk_simulation_report.png" class="w-full h-auto rounded-xl border border-slate-700" onerror="this.style.opacity='0.2'">
+      <img id="report-img" src="risk_simulation_report.png" class="w-full h-auto rounded-xl border border-slate-200" onerror="this.style.opacity='0.2'">
     </div>
   </div>
 
@@ -531,19 +532,19 @@
        탭6: 민감도
   ══════════════════════════════════════ -->
   <div id="tab-sens" class="hidden">
-    <div class="bg-slate-800/30 border border-slate-700 rounded-2xl p-5">
+    <div class="bg-sky-50/60 border border-slate-200 rounded-2xl p-5">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest">⚙ WTI 민감도 & 크래커 파라미터</h2>
-        <div id="reg-meta" class="text-xs text-slate-600"></div>
+        <h2 class="text-slate-500 text-xs font-bold uppercase tracking-widest">⚙ WTI 민감도 & 크래커 파라미터</h2>
+        <div id="reg-meta" class="text-xs text-slate-500"></div>
       </div>
-      <div class="grid md:grid-cols-2 gap-4 mb-5 text-xs text-slate-400 leading-loose">
-        <div class="bg-slate-900/60 rounded-xl p-4 border border-orange-900/40">
+      <div class="grid md:grid-cols-2 gap-4 mb-5 text-xs text-slate-500 leading-loose">
+        <div class="bg-slate-50 rounded-xl p-4 border border-orange-200">
           <div class="text-orange-300 font-bold mb-2">★ v6.4 크래커마진→BD 공식</div>
           <div>크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
           <div class="text-orange-400">BD타이트 = min(max(0,-(마진-기준마진))×0.5, 150)</div>
           <div class="text-slate-500 mt-1">기준마진 = 구글시트 최신 실측 기준 동적 계산</div>
         </div>
-        <div class="bg-slate-900/60 rounded-xl p-4 border border-purple-900/40">
+        <div class="bg-slate-50 rounded-xl p-4 border border-purple-200">
           <div class="text-purple-300 font-bold mb-2">원가 공식</div>
           <div class="text-red-400">SM Cost 실측: BZ×0.67 + ET×0.25 + NAP×0.05 + 150</div>
           <div class="text-yellow-400">SM Cost 이론: BZ×0.80 + ET×0.30 + 150</div>
@@ -552,19 +553,19 @@
         </div>
       </div>
       <div class="grid grid-cols-3 md:grid-cols-6 gap-2 mb-2">
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-600 text-center"><div class="text-xs text-slate-300 font-bold mb-1">NAP</div><div id="sens-nap" class="text-lg font-black text-white">--</div><div id="r2-nap" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-purple-400 font-bold mb-1">BZ</div><div id="sens-bz" class="text-lg font-black text-white">--</div><div id="r2-bz" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-green-400 font-bold mb-1">ET</div><div id="sens-et" class="text-lg font-black text-white">--</div><div id="r2-et" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-blue-400 font-bold mb-1">SM</div><div id="sens-sm" class="text-lg font-black text-white">--</div><div id="r2-sm" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-orange-900/50 text-center"><div class="text-xs text-orange-400 font-bold mb-1">BD(WTI)</div><div id="sens-bd" class="text-lg font-black text-white">--</div><div id="r2-bd" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-yellow-400 font-bold mb-1">AN</div><div id="sens-an" class="text-lg font-black text-white">--</div><div id="r2-an" class="text-xs text-slate-600">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-300 text-center"><div class="text-xs text-slate-700 font-bold mb-1">NAP</div><div id="sens-nap" class="text-lg font-black text-slate-800">--</div><div id="r2-nap" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-purple-400 font-bold mb-1">BZ</div><div id="sens-bz" class="text-lg font-black text-slate-800">--</div><div id="r2-bz" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-green-400 font-bold mb-1">ET</div><div id="sens-et" class="text-lg font-black text-slate-800">--</div><div id="r2-et" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-blue-400 font-bold mb-1">SM</div><div id="sens-sm" class="text-lg font-black text-slate-800">--</div><div id="r2-sm" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-orange-300 text-center"><div class="text-xs text-orange-400 font-bold mb-1">BD(WTI)</div><div id="sens-bd" class="text-lg font-black text-slate-800">--</div><div id="r2-bd" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-yellow-400 font-bold mb-1">AN</div><div id="sens-an" class="text-lg font-black text-slate-800">--</div><div id="r2-an" class="text-xs text-slate-500">R²=--</div></div>
       </div>
       <div class="grid grid-cols-3 md:grid-cols-5 gap-2">
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-cyan-400 font-bold mb-1">PR</div><div id="sens-pr" class="text-lg font-black text-white">--</div><div id="r2-pr" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-red-900/50 text-center"><div class="text-xs text-red-400 font-bold mb-1">ABS Gap</div><div id="sens-abs_gap" class="text-lg font-black text-white">--</div><div id="r2-abs_gap" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-cyan-400 font-bold mb-1">ABS Mkt</div><div id="sens-abs_mkt" class="text-lg font-black text-white">--</div><div id="r2-abs_mkt" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-pink-400 font-bold mb-1">SM Cost</div><div id="sens-sm_cost" class="text-lg font-black text-white">--</div><div id="r2-sm_cost" class="text-xs text-slate-600">R²=--</div></div>
-        <div class="bg-slate-900 rounded-lg p-2 border border-slate-700 text-center"><div class="text-xs text-slate-400 font-bold mb-1">SM Margin</div><div class="text-lg font-black text-green-400">≈0</div><div class="text-xs text-slate-600">WTI무상관</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-cyan-400 font-bold mb-1">PR</div><div id="sens-pr" class="text-lg font-black text-slate-800">--</div><div id="r2-pr" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-red-200 text-center"><div class="text-xs text-red-400 font-bold mb-1">ABS Gap</div><div id="sens-abs_gap" class="text-lg font-black text-slate-800">--</div><div id="r2-abs_gap" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-cyan-400 font-bold mb-1">ABS Mkt</div><div id="sens-abs_mkt" class="text-lg font-black text-slate-800">--</div><div id="r2-abs_mkt" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-pink-400 font-bold mb-1">SM Cost</div><div id="sens-sm_cost" class="text-lg font-black text-slate-800">--</div><div id="r2-sm_cost" class="text-xs text-slate-500">R²=--</div></div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-slate-500 font-bold mb-1">SM Margin</div><div class="text-lg font-black text-green-400">≈0</div><div class="text-xs text-slate-500">WTI무상관</div></div>
       </div>
     </div>
   </div>
@@ -574,10 +575,10 @@
        탭7: 13주 가격 예측
   ══════════════════════════════════════════════ -->
   <div id="tab-forecast" class="hidden">
-    <div class="bg-slate-800/40 border border-indigo-800/40 rounded-2xl p-5 space-y-4">
+    <div class="bg-white/80 border border-indigo-200 rounded-2xl p-5 space-y-4">
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         <div>
-          <h2 class="text-indigo-400 text-sm font-black uppercase tracking-widest">📅 SM · AN · BD 13주 가격 예측</h2>
+          <h2 class="text-indigo-400 text-sm font-black uppercase tracking-widest">📅 SM · AN · BD 사전원가 예측 (3~5월 13주)</h2>
           <p class="text-slate-500 text-xs mt-1">
             예측 = 현재가 + WTI경로×민감도 + 계절성Δ &nbsp;|&nbsp;
             계절성: 2024~2026 실가격 WTI잔차 주차별 평균 &nbsp;|&nbsp;
@@ -587,26 +588,26 @@
         </div>
         <div class="flex gap-2 shrink-0 flex-wrap">
           <button onclick="setFcScenario('flat')"   id="fc-btn-flat"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-emerald-900/60 text-emerald-400 border-emerald-700">Flat $67</button>
-          <button onclick="setFcScenario('up')"     id="fc-btn-up"     class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-slate-800 text-slate-400 border-slate-600">Up +$1/w</button>
-          <button onclick="setFcScenario('down')"   id="fc-btn-down"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-slate-800 text-slate-400 border-slate-600">Down -$1/w</button>
-          <button onclick="setFcScenario('custom')" id="fc-btn-custom" class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-slate-800 text-slate-400 border-slate-600">Custom</button>
+          <button onclick="setFcScenario('up')"     id="fc-btn-up"     class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-white text-slate-500 border-slate-300">Up +$1/w</button>
+          <button onclick="setFcScenario('down')"   id="fc-btn-down"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-white text-slate-500 border-slate-300">Down -$1/w</button>
+          <button onclick="setFcScenario('custom')" id="fc-btn-custom" class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-white text-slate-500 border-slate-300">Custom</button>
         </div>
       </div>
 
       <!-- WTI 경로 슬라이더 (Custom 모드) -->
-      <div id="fc-custom-panel" class="hidden bg-slate-900/60 border border-slate-700 rounded-xl p-4">
-        <div class="text-xs text-slate-400 font-bold mb-3">Custom WTI 경로 (13주)</div>
+      <div id="fc-custom-panel" class="hidden bg-slate-50 border border-slate-200 rounded-xl p-4">
+        <div class="text-xs text-slate-500 font-bold mb-3">Custom WTI 경로 (13주)</div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">W+1~4 (3월)</span><span id="fc-wti-mar" class="text-yellow-400 font-bold">$67</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-slate-500">W+1~4 (3월)</span><span id="fc-wti-mar" class="text-yellow-400 font-bold">$67</span></div>
             <input type="range" id="fc-slider-mar" min="50" max="100" step="0.5" value="67" class="w-full" oninput="onFcCustom()">
           </div>
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">W+5~8 (4월)</span><span id="fc-wti-apr" class="text-yellow-400 font-bold">$67</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-slate-500">W+5~8 (4월)</span><span id="fc-wti-apr" class="text-yellow-400 font-bold">$67</span></div>
             <input type="range" id="fc-slider-apr" min="50" max="100" step="0.5" value="67" class="w-full" oninput="onFcCustom()">
           </div>
           <div>
-            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">W+9~13 (5월)</span><span id="fc-wti-may" class="text-yellow-400 font-bold">$67</span></div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-slate-500">W+9~13 (5월)</span><span id="fc-wti-may" class="text-yellow-400 font-bold">$67</span></div>
             <input type="range" id="fc-slider-may" min="50" max="100" step="0.5" value="67" class="w-full" oninput="onFcCustom()">
           </div>
           <div class="flex items-center">
@@ -627,15 +628,15 @@
       <div class="space-y-4">
 
         <!-- SM -->
-        <div class="bg-slate-900/60 border border-blue-900/40 rounded-xl overflow-hidden">
-          <div class="bg-blue-950/60 px-4 py-2 flex justify-between items-center">
+        <div class="bg-slate-50 border border-blue-200 rounded-xl overflow-hidden">
+          <div class="bg-blue-50 px-4 py-2 flex justify-between items-center">
             <span class="text-blue-400 font-black text-sm">SM (Styrene Monomer) FOB China</span>
             <span class="text-xs text-slate-500">현재 <span id="fc-cur-sm" class="text-blue-400 font-bold">$978</span> | σ=±$52.6/주</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead>
-                <tr class="border-b border-slate-700">
+                <tr class="border-b border-slate-200">
                   <th class="px-3 py-2 text-left text-slate-500 w-16">주차</th>
                   <th class="px-3 py-2 text-left text-slate-500">날짜</th>
                   <th class="px-3 py-2 text-right text-slate-500">WTI</th>
@@ -643,7 +644,7 @@
                   <th class="px-3 py-2 text-right text-blue-400 font-bold">예측</th>
                   <th class="px-3 py-2 text-right text-slate-500">하한(95%)</th>
                   <th class="px-3 py-2 text-right text-slate-500">상한(95%)</th>
-                  <th class="px-3 py-2 text-right text-slate-400">전주대비</th>
+                  <th class="px-3 py-2 text-right text-slate-500">전주대비</th>
                   <th class="px-3 py-2 text-left text-slate-500 w-24">시그널</th>
                 </tr>
               </thead>
@@ -653,15 +654,15 @@
         </div>
 
         <!-- AN -->
-        <div class="bg-slate-900/60 border border-yellow-900/40 rounded-xl overflow-hidden">
-          <div class="bg-yellow-950/60 px-4 py-2 flex justify-between items-center">
+        <div class="bg-slate-50 border border-yellow-200 rounded-xl overflow-hidden">
+          <div class="bg-yellow-50 px-4 py-2 flex justify-between items-center">
             <span class="text-yellow-400 font-black text-sm">AN (Acrylonitrile) CFR FE Asia</span>
             <span class="text-xs text-slate-500">현재 <span id="fc-cur-an" class="text-yellow-400 font-bold">$1060</span> | σ=±$52.6/주</span>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead>
-                <tr class="border-b border-slate-700">
+                <tr class="border-b border-slate-200">
                   <th class="px-3 py-2 text-left text-slate-500 w-16">주차</th>
                   <th class="px-3 py-2 text-left text-slate-500">날짜</th>
                   <th class="px-3 py-2 text-right text-slate-500">WTI</th>
@@ -669,7 +670,7 @@
                   <th class="px-3 py-2 text-right text-yellow-400 font-bold">예측</th>
                   <th class="px-3 py-2 text-right text-slate-500">하한(95%)</th>
                   <th class="px-3 py-2 text-right text-slate-500">상한(95%)</th>
-                  <th class="px-3 py-2 text-right text-slate-400">전주대비</th>
+                  <th class="px-3 py-2 text-right text-slate-500">전주대비</th>
                   <th class="px-3 py-2 text-left text-slate-500 w-24">시그널</th>
                 </tr>
               </thead>
@@ -679,7 +680,7 @@
         </div>
 
         <!-- BD -->
-        <div class="bg-slate-900/60 border border-orange-900/40 rounded-xl overflow-hidden">
+        <div class="bg-slate-50 border border-orange-200 rounded-xl overflow-hidden">
           <div class="bg-orange-950/60 px-4 py-2 flex justify-between items-center">
             <span class="text-orange-400 font-black text-sm">BD (Butadiene) CFR China</span>
             <span class="text-xs text-slate-500">현재 <span id="fc-cur-bd" class="text-orange-400 font-bold">$1270</span> | σ=±$149/주 <span class="text-orange-600">★크래커연동</span></span>
@@ -687,7 +688,7 @@
           <div class="overflow-x-auto">
             <table class="w-full text-xs">
               <thead>
-                <tr class="border-b border-slate-700">
+                <tr class="border-b border-slate-200">
                   <th class="px-3 py-2 text-left text-slate-500 w-16">주차</th>
                   <th class="px-3 py-2 text-left text-slate-500">날짜</th>
                   <th class="px-3 py-2 text-right text-slate-500">WTI</th>
@@ -702,19 +703,57 @@
               <tbody id="fc-table-bd"></tbody>
             </table>
           </div>
-          <div class="px-4 py-2 bg-orange-950/20 text-xs text-orange-700">
+          <div class="px-4 py-2 bg-orange-50/60 text-xs text-orange-700">
             ★ BD 신뢰구간 넓음(σ=±$149) — WTI보다 크래커 가동률·공급 이벤트 영향이 지배적. 계절성+크래커타이트 방향성 참고용.
           </div>
         </div>
       </div>
 
+
+      <!-- 품목별 예측 그래프 -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+          <h3 class="text-slate-700 font-black text-sm">📈 품목별 예측 추이 그래프</h3>
+          <div class="flex gap-2 flex-wrap items-center">
+            <!-- 표시 품목 토글 -->
+            <span class="text-xs text-slate-500 font-bold">품목:</span>
+            <button onclick="toggleFcLine('SM')"  id="fc-toggle-sm"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-blue-100 text-blue-700 border-blue-300">SM</button>
+            <button onclick="toggleFcLine('AN')"  id="fc-toggle-an"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-yellow-100 text-yellow-700 border-yellow-300">AN</button>
+            <button onclick="toggleFcLine('BD')"  id="fc-toggle-bd"  class="fc-toggle text-xs px-2 py-1 rounded border font-bold transition bg-orange-100 text-orange-700 border-orange-300">BD</button>
+            <span class="text-xs text-slate-400 mx-1">|</span>
+            <!-- 라인 스타일 -->
+            <span class="text-xs text-slate-500 font-bold">라인:</span>
+            <button onclick="setChartType('line')"   id="ct-line"   class="ct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600">선형</button>
+            <button onclick="setChartType('bar')"    id="ct-bar"    class="ct-btn text-xs px-2 py-1 rounded border font-bold transition bg-white text-slate-600 border-slate-300">막대</button>
+            <button onclick="setChartType('smooth')" id="ct-smooth" class="ct-btn text-xs px-2 py-1 rounded border font-bold transition bg-white text-slate-600 border-slate-300">곡선</button>
+            <span class="text-xs text-slate-400 mx-1">|</span>
+            <!-- CI 표시 -->
+            <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" id="fc-show-ci" onchange="renderFcChart()" checked class="accent-blue-600"> 신뢰구간
+            </label>
+            <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" id="fc-show-seasonal" onchange="renderFcChart()" checked class="accent-yellow-500"> 계절성
+            </label>
+          </div>
+        </div>
+        <div class="relative" style="height:320px">
+          <canvas id="fc-chart"></canvas>
+        </div>
+        <div class="flex flex-wrap gap-4 mt-3 text-xs text-slate-500 justify-center">
+          <span>● 실선: 예측 중심값</span>
+          <span>▓ 음영: 95% 신뢰구간</span>
+          <span>◇ 점선: 계절성 기여분 (현재가 기준)</span>
+          <span>│ 세로선: 월 구분</span>
+        </div>
+      </div>
+
       <!-- 인사이트 요약 -->
-      <div id="fc-insight-box" class="bg-indigo-950/30 border border-indigo-800/40 rounded-xl p-4 text-xs leading-relaxed space-y-1"></div>
+      <div id="fc-insight-box" class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-xs leading-relaxed space-y-1"></div>
 
     </div>
   </div>
 
-  <footer class="text-center text-slate-700 text-xs pb-4">
+  <footer class="text-center text-slate-500 text-xs pb-4">
     LAM Advanced Procurement  |  v6.4  |  크래커마진→BD타이트(×0.5, max150)  |  수급신호 4종  |  30초 자동갱신
   </footer>
 </div>
@@ -1042,12 +1081,12 @@ function renderScenarios() {
     return `<div class="scenario-row" style="border-left-color:${s.color}">
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs md:text-sm">
         <span class="font-black w-24" style="color:${s.color}">${s.label}</span>
-        <span class="text-slate-400 w-20">Risk <b class="text-orange-400">+$${s.risk}</b></span>
-        <span class="text-slate-400 w-28">BD <b class="text-orange-400">${fmt(r.bd)}</b></span>
-        <span class="text-slate-400 w-28">BD타이트 <b class="text-orange-400">+$${Math.round(r.bdTight)}</b></span>
+        <span class="text-slate-500 w-20">Risk <b class="text-orange-400">+$${s.risk}</b></span>
+        <span class="text-slate-500 w-28">BD <b class="text-orange-400">${fmt(r.bd)}</b></span>
+        <span class="text-slate-500 w-28">BD타이트 <b class="text-orange-400">+$${Math.round(r.bdTight)}</b></span>
         <span class="w-36">크래커 <b style="color:${cc}">${fmt(r.crackerSim,true)}</b></span>
-        <span class="text-slate-400 w-32">SM실측 <b class="${r.smMargin>=0?'text-emerald-400':'text-red-400'}">${fmt(r.smMargin,true)}</b></span>
-        <span class="text-slate-400 w-32">SM이론 <b class="${r.smMarginTh>=0?'text-blue-400':'text-purple-400'}">${fmt(r.smMarginTh,true)}</b></span>
+        <span class="text-slate-500 w-32">SM실측 <b class="${r.smMargin>=0?'text-emerald-400':'text-red-400'}">${fmt(r.smMargin,true)}</b></span>
+        <span class="text-slate-500 w-32">SM이론 <b class="${r.smMarginTh>=0?'text-blue-400':'text-purple-400'}">${fmt(r.smMarginTh,true)}</b></span>
         <span class="w-32">ABS실측 <b style="color:${gc}" class="font-black">${fmt(r.absGap,true)}</b></span>
         <span class="w-32">ABS이론 <b class="text-yellow-400">${fmt(r.absGapTh,true)}</b></span>
       </div>
@@ -1271,7 +1310,7 @@ function getFcWti(n) {
 function setFcScenario(mode) {
   fcMode = mode;
   document.querySelectorAll('.fc-btn').forEach(b => {
-    b.className = 'fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-slate-800 text-slate-400 border-slate-600';
+    b.className = 'fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-white text-slate-500 border-slate-300';
   });
   const activeMap = {flat:'bg-emerald-900/60 text-emerald-400 border-emerald-700', up:'bg-red-900/60 text-red-400 border-red-700', down:'bg-blue-900/60 text-blue-400 border-blue-700', custom:'bg-yellow-900/60 text-yellow-400 border-yellow-700'};
   const btn = document.getElementById(`fc-btn-${mode}`);
@@ -1322,11 +1361,11 @@ function renderForecast() {
     const sig    = pred > curSM + 30 ? '<span class="text-red-400 font-bold">↑강세</span>' :
                    pred < curSM - 30 ? '<span class="text-blue-400 font-bold">↓약세</span>' :
                    '<span class="text-slate-500">→보합</span>';
-    const rowBg  = w.n % 4 === 0 ? 'bg-slate-800/40' : '';
+    const rowBg  = w.n % 4 === 0 ? 'bg-white/80' : '';
     const mnLabel = w.n<=4?'<span class="text-indigo-600 text-xs">3월</span>':w.n<=8?'<span class="text-violet-600 text-xs">4월</span>':'<span class="text-pink-700 text-xs">5월</span>';
-    smRows += `<tr class="border-b border-slate-800 hover:bg-slate-800/30 ${rowBg}">
+    smRows += `<tr class="border-b border-slate-200 hover:bg-sky-50/60 ${rowBg}">
       <td class="px-3 py-1.5 font-black text-blue-400">W+${w.n} ${mnLabel}</td>
-      <td class="px-3 py-1.5 text-slate-400">${w.date}</td>
+      <td class="px-3 py-1.5 text-slate-500">${w.date}</td>
       <td class="px-3 py-1.5 text-right text-yellow-400">$${wti.toFixed(1)}</td>
       <td class="px-3 py-1.5 text-right ${seas>=0?'text-orange-400':'text-cyan-400'}">${seas>=0?'+':''}${Math.round(seas)}</td>
       <td class="px-3 py-1.5 text-right font-black text-blue-300">$${pred}</td>
@@ -1354,10 +1393,10 @@ function renderForecast() {
     const sig    = pred > G.an + 30 ? '<span class="text-red-400 font-bold">↑강세</span>' :
                    pred < G.an - 30 ? '<span class="text-blue-400 font-bold">↓약세</span>' :
                    '<span class="text-slate-500">→보합</span>';
-    const rowBg  = w.n % 4 === 0 ? 'bg-slate-800/40' : '';
-    anRows += `<tr class="border-b border-slate-800 hover:bg-slate-800/30 ${rowBg}">
+    const rowBg  = w.n % 4 === 0 ? 'bg-white/80' : '';
+    anRows += `<tr class="border-b border-slate-200 hover:bg-sky-50/60 ${rowBg}">
       <td class="px-3 py-1.5 font-black text-yellow-400">W+${w.n}</td>
-      <td class="px-3 py-1.5 text-slate-400">${w.date}</td>
+      <td class="px-3 py-1.5 text-slate-500">${w.date}</td>
       <td class="px-3 py-1.5 text-right text-yellow-400">$${wti.toFixed(1)}</td>
       <td class="px-3 py-1.5 text-right ${seas>=0?'text-orange-400':'text-cyan-400'}">${seas>=0?'+':''}${Math.round(seas)}</td>
       <td class="px-3 py-1.5 text-right font-black text-yellow-300">$${pred}</td>
@@ -1388,11 +1427,11 @@ function renderForecast() {
     const ci          = Math.round(FC_STD.BD * Math.sqrt(w.n) * 1.96);
     const lo          = predFinal - ci;
     const hi          = predFinal + ci;
-    const rowBg  = w.n % 4 === 0 ? 'bg-slate-800/40' : '';
-    const tightStr = bdTight > 0 ? `<span class="text-orange-400 font-bold">+$${Math.round(bdTight)}</span>` : '<span class="text-slate-600">—</span>';
-    bdRows += `<tr class="border-b border-slate-800 hover:bg-slate-800/30 ${rowBg}">
+    const rowBg  = w.n % 4 === 0 ? 'bg-white/80' : '';
+    const tightStr = bdTight > 0 ? `<span class="text-orange-400 font-bold">+$${Math.round(bdTight)}</span>` : '<span class="text-slate-500">—</span>';
+    bdRows += `<tr class="border-b border-slate-200 hover:bg-sky-50/60 ${rowBg}">
       <td class="px-3 py-1.5 font-black text-orange-400">W+${w.n}</td>
-      <td class="px-3 py-1.5 text-slate-400">${w.date}</td>
+      <td class="px-3 py-1.5 text-slate-500">${w.date}</td>
       <td class="px-3 py-1.5 text-right text-yellow-400">$${wti.toFixed(1)}</td>
       <td class="px-3 py-1.5 text-right ${seas>=0?'text-orange-400':'text-cyan-400'}">${seas>=0?'+':''}${Math.round(seas)}</td>
       <td class="px-3 py-1.5 text-right text-orange-300">$${predBase}</td>
@@ -1432,8 +1471,8 @@ function renderFcInsight(curSM, curWTI) {
   html += `<div class="grid grid-cols-2 md:grid-cols-4 gap-3">`;
   const labels = ['W+1 (3월1주)','W+4 (3월말)','W+8 (4월말)','W+13 (5월말)'];
   summary.forEach((s,i) => {
-    const smC = s.sm > curSM+30?'text-red-400':s.sm<curSM-30?'text-blue-400':'text-slate-300';
-    html += `<div class="bg-slate-900/60 rounded-lg p-3 border border-slate-700">
+    const smC = s.sm > curSM+30?'text-red-400':s.sm<curSM-30?'text-blue-400':'text-slate-700';
+    html += `<div class="bg-slate-50 rounded-lg p-3 border border-slate-200">
       <div class="text-slate-500 font-bold mb-1">${labels[i]}</div>
       <div class="text-xs">SM <span class="${smC} font-black">$${s.sm}</span></div>
       <div class="text-xs">AN <span class="text-yellow-400 font-black">$${s.an}</span></div>
@@ -1445,13 +1484,209 @@ function renderFcInsight(curSM, curWTI) {
   // 계절성 코멘트
   const an3 = Math.round((SEASONAL.AN[10]||0)+(SEASONAL.AN[11]||0)+(SEASONAL.AN[12]||0)+(SEASONAL.AN[13]||0))/4;
   const bd4 = Math.round((SEASONAL.BD[16]||0)+(SEASONAL.BD[17]||0))/2;
-  html += `<div class="mt-3 text-slate-400 space-y-1">`;
+  html += `<div class="mt-3 text-slate-500 space-y-1">`;
   html += `<div>🔵 <b class="text-blue-400">SM</b>: 3월초 계절적 약보합 후 5월말 반등. 계절성 범위 약 <b>-$46~+$42</b>.</div>`;
   html += `<div>🟡 <b class="text-yellow-400">AN</b>: 3~5월 전반적 강세(봄 아크릴 시즌 +${Math.round(an3)}평균). 7~10월 약세 전환 주의.</div>`;
   html += `<div>🟠 <b class="text-orange-400">BD</b>: 4월 계절 약세 후 5월 회복. 단 크래커 가동률 이슈가 계절성보다 지배적 — 방향성만 참고.</div>`;
   html += `</div>`;
 
   document.getElementById('fc-insight-box').innerHTML = html;
+  setTimeout(renderFcChart, 50);
+}
+
+
+// ══════════════════════════════════════════════
+// 예측 차트 (Chart.js)
+// ══════════════════════════════════════════════
+let fcChart = null;
+let fcChartType = 'line';
+let fcLineVis = {SM: true, AN: true, BD: true};
+
+function toggleFcLine(label) {
+  fcLineVis[label] = !fcLineVis[label];
+  const btn = document.getElementById(`fc-toggle-${label.toLowerCase()}`);
+  const colorMap = {
+    SM: {on:'bg-blue-100 text-blue-700 border-blue-300',   off:'bg-white text-slate-400 border-slate-200'},
+    AN: {on:'bg-yellow-100 text-yellow-700 border-yellow-300', off:'bg-white text-slate-400 border-slate-200'},
+    BD: {on:'bg-orange-100 text-orange-700 border-orange-300', off:'bg-white text-slate-400 border-slate-200'},
+  };
+  btn.className = `fc-toggle text-xs px-2 py-1 rounded border font-bold transition ${colorMap[label][fcLineVis[label]?'on':'off']}`;
+  renderFcChart();
+}
+
+function setChartType(type) {
+  fcChartType = type;
+  document.querySelectorAll('.ct-btn').forEach(b => {
+    b.className = 'ct-btn text-xs px-2 py-1 rounded border font-bold transition bg-white text-slate-600 border-slate-300';
+  });
+  const active = document.getElementById(`ct-${type}`);
+  if (active) active.className = 'ct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600';
+  renderFcChart();
+}
+
+function renderFcChart() {
+  const canvas = document.getElementById('fc-chart');
+  if (!canvas) return;
+  const showCI      = document.getElementById('fc-show-ci')?.checked ?? true;
+  const showSeasonal= document.getElementById('fc-show-seasonal')?.checked ?? true;
+
+  const curWTI = G.wti_rt;
+  const s0 = {
+    SM: SEASONAL.SM[FC_BASE_WEEK]||0,
+    AN: SEASONAL.AN[FC_BASE_WEEK]||0,
+    BD: SEASONAL.BD[FC_BASE_WEEK]||0,
+  };
+  const curPrices = {SM: G.sm_act, AN: G.an, BD: G.bd};
+  const colors = {
+    SM: {line:'#2563eb', ci:'rgba(37,99,235,0.12)', seas:'rgba(37,99,235,0.5)'},
+    AN: {line:'#d97706', ci:'rgba(217,119,6,0.12)',  seas:'rgba(217,119,6,0.5)'},
+    BD: {line:'#ea580c', ci:'rgba(234,88,12,0.12)',  seas:'rgba(234,88,12,0.5)'},
+  };
+
+  // 라벨: W(현재) + W+1~W+13
+  const labels = ['W(현재)', ...FC_WEEKS.map(w => `W+${w.n}\n${w.date.slice(5)}`)];
+
+  const datasets = [];
+
+  ['SM','AN','BD'].forEach(label => {
+    if (!fcLineVis[label]) return;
+    const c = colors[label];
+    const sens = FC_SENS[label];
+    const std  = FC_STD[label];
+
+    // 예측값 (현재 포함)
+    const preds = [curPrices[label]];
+    const lo    = [null];
+    const hi    = [null];
+    const seas  = [curPrices[label]];
+
+    FC_WEEKS.forEach(w => {
+      const wti   = getFcWti(w.n);
+      const dWti  = wti - curWTI;
+      let seasDelta = (SEASONAL[label][w.wn]||0) - s0[label];
+      let pred    = curPrices[label] + dWti * sens + seasDelta;
+
+      // BD: 크래커 타이트 추가
+      if (label === 'BD') {
+        const etSim  = G.et    + dWti * SENS.et;
+        const prSim  = G.pr_act + dWti * SENS.pr;
+        const bzSim  = G.bz    + dWti * SENS.bz;
+        const napSim = G.nap   + dWti * SENS.nap;
+        const crSim  = calcCrackerMargin(etSim, prSim, pred, bzSim, napSim);
+        pred += calcBdTight(crSim);
+      }
+
+      const ci = std * Math.sqrt(w.n) * 1.96;
+      preds.push(Math.round(pred));
+      lo.push(Math.round(pred - ci));
+      hi.push(Math.round(pred + ci));
+      seas.push(Math.round(curPrices[label] + (SEASONAL[label][w.wn]||0) - s0[label]));
+    });
+
+    const chartT = fcChartType === 'bar' ? 'bar' : 'line';
+    const tension = fcChartType === 'smooth' ? 0.4 : 0;
+
+    // 신뢰구간 상한
+    if (showCI && chartT !== 'bar') {
+      datasets.push({
+        label: `${label} 상한(95%)`,
+        data: hi, borderColor: 'transparent',
+        backgroundColor: c.ci, fill: '+1',
+        pointRadius: 0, tension, order: 3,
+        type: 'line',
+      });
+    }
+
+    // 예측 중심값
+    datasets.push({
+      label: `${label} 예측`,
+      data: preds,
+      borderColor: c.line,
+      backgroundColor: chartT === 'bar' ? c.line + 'cc' : c.ci,
+      fill: false,
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      borderWidth: 2.5,
+      tension,
+      order: 1,
+      type: chartT,
+      datalabels: {display: true},
+    });
+
+    // 신뢰구간 하한
+    if (showCI && chartT !== 'bar') {
+      datasets.push({
+        label: `${label} 하한(95%)`,
+        data: lo, borderColor: 'transparent',
+        backgroundColor: c.ci, fill: false,
+        pointRadius: 0, tension, order: 3,
+        type: 'line',
+      });
+    }
+
+    // 계절성 라인
+    if (showSeasonal && chartT !== 'bar') {
+      datasets.push({
+        label: `${label} 계절성`,
+        data: seas,
+        borderColor: c.seas,
+        backgroundColor: 'transparent',
+        borderDash: [5, 4],
+        borderWidth: 1.5,
+        pointRadius: 2,
+        tension, order: 2,
+        type: 'line',
+        fill: false,
+      });
+    }
+  });
+
+  // 월 구분선 (W+4=3월말, W+8=4월말)
+  const annotations = {
+    mar: { type:'line', xMin:4, xMax:4, borderColor:'rgba(99,102,241,0.4)', borderWidth:1.5, borderDash:[4,3], label:{content:'3월말', enabled:true, position:'start', font:{size:10}, color:'#6366f1'} },
+    apr: { type:'line', xMin:8, xMax:8, borderColor:'rgba(236,72,153,0.4)', borderWidth:1.5, borderDash:[4,3], label:{content:'4월말', enabled:true, position:'start', font:{size:10}, color:'#ec4899'} },
+  };
+
+  if (fcChart) { fcChart.destroy(); fcChart = null; }
+
+  fcChart = new Chart(canvas, {
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { font:{size:11}, color:'#475569', usePointStyle:true, pointStyleWidth:10,
+            filter: item => !item.label.includes('상한') && !item.label.includes('하한')
+          }
+        },
+        tooltip: {
+          backgroundColor:'#1e293b',
+          titleColor:'#e2e8f0',
+          bodyColor:'#cbd5e1',
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label.includes('하한')||ctx.dataset.label.includes('상한')) return null;
+              return ` ${ctx.dataset.label}: $${ctx.parsed.y?.toLocaleString() ?? '--'}`;
+            }
+          }
+        },
+      },
+      scales: {
+        x: {
+          ticks: { color:'#64748b', font:{size:10}, maxRotation:45 },
+          grid:  { color:'rgba(148,163,184,0.15)' },
+        },
+        y: {
+          ticks: { color:'#64748b', font:{size:10}, callback: v => `$${v.toLocaleString()}` },
+          grid:  { color:'rgba(148,163,184,0.2)' },
+        }
+      }
+    }
+  });
 }
 
 
