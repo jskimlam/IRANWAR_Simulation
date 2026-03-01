@@ -24,6 +24,9 @@
     .badge-warn  { background:#fef3c7; color:#92400e; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
     .badge-danger{ background:#fee2e2; color:#991b1b; border-radius:.4rem; padding:2px 8px; font-size:.75rem; font-weight:700; }
     .cracker-positive { background:linear-gradient(135deg,#ecfdf5,#d1fae5); border:1px solid #059669; }
+  .crv-btn { background:#f8fafc; color:#475569; border-color:#cbd5e1; }
+  .crv-btn:hover { background:#f1f5f9; }
+  .active-crv { background:#1e293b !important; color:#fff !important; border-color:#1e293b !important; }
     .cracker-negative { background:linear-gradient(135deg,#fff1f2,#fee2e2); border:1px solid #dc2626; }
     .cracker-warn     { background:linear-gradient(135deg,#fffbeb,#fef3c7); border:1px solid #d97706; }
     .tab-btn { padding:.5rem 1.2rem; border-radius:.5rem; font-size:.8rem; font-weight:700; cursor:pointer; transition:all .2s; border:1px solid #cbd5e1; color:#475569; }
@@ -600,22 +603,23 @@
 
     <!-- ══ 9주 크래커마진 누적 기여도 차트 ══ -->
     <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3">
         <div>
           <h3 class="text-slate-700 font-black text-sm">📊 크래커마진 주간 기여도 추이 (9주)</h3>
-          <p class="text-xs text-slate-600 mt-0.5">ET·PR·BD·BZ 수익 기여 vs NAP 비용 — 막대 높이가 마진 구조를 나타냄</p>
+          <p class="text-xs text-slate-600 mt-0.5">수익기여(ET·PR·BD·BZ) vs NAP비용 누적 영역 — 0선 아래가 역마진 구조</p>
         </div>
-        <div class="flex gap-3 text-xs flex-wrap">
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#10b981"></span>ET 기여</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#3b82f6"></span>PR 기여</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#f97316"></span>BD 기여</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#a855f7"></span>BZ 기여</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded" style="background:#ef4444;opacity:0.6"></span>NAP+OPEX 비용↓</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed" style="border-color:#ca8a04"></span>적정기여합</span>
-          <span class="flex items-center gap-1"><span class="inline-block w-4 border-t-2 border-dashed border-slate-800"></span>순마진</span>
+        <!-- 품목 토글 버튼 -->
+        <div class="flex gap-1.5 flex-wrap">
+          <button onclick="setCrackerView('all')"  id="crv-all" class="crv-btn active-crv text-xs px-3 py-1.5 rounded-lg border font-bold transition">📊 전체</button>
+          <button onclick="setCrackerView('et')"   id="crv-et"  class="crv-btn text-xs px-3 py-1.5 rounded-lg border font-bold transition" style="color:#10b981;border-color:#10b981">ET</button>
+          <button onclick="setCrackerView('pr')"   id="crv-pr"  class="crv-btn text-xs px-3 py-1.5 rounded-lg border font-bold transition" style="color:#3b82f6;border-color:#3b82f6">PR</button>
+          <button onclick="setCrackerView('bd')"   id="crv-bd"  class="crv-btn text-xs px-3 py-1.5 rounded-lg border font-bold transition" style="color:#f97316;border-color:#f97316">BD</button>
+          <button onclick="setCrackerView('bz')"   id="crv-bz"  class="crv-btn text-xs px-3 py-1.5 rounded-lg border font-bold transition" style="color:#a855f7;border-color:#a855f7">BZ</button>
         </div>
       </div>
-      <div class="relative" style="height:300px">
+      <!-- 품목별 마진 설명 패널 -->
+      <div id="cracker-item-explain" class="mb-3 hidden rounded-xl p-3 border text-xs leading-relaxed"></div>
+      <div class="relative" style="height:320px">
         <canvas id="cracker-history-chart"></canvas>
       </div>
       <div class="mt-3 grid grid-cols-3 md:grid-cols-9 gap-2 text-xs" id="cracker-history-summary"></div>
@@ -1039,7 +1043,7 @@ function showTab(id, btn) {
   btn.classList.add('active');
   if (id === 'tab-scenario') renderScenarios();
   if (id === 'tab-forecast') renderForecast();
-  if (id === 'tab-cracker') setTimeout(renderCrackerHistoryChart, 150);
+  if (id === 'tab-cracker') setTimeout(() => renderCrackerHistoryChart(crackerViewMode === 'all' ? null : crackerViewMode), 150);
   if (id === 'tab-wti') setTimeout(() => { setWtiChartMode('radar'); onWtiSlider(); }, 150);
   if (id === 'tab-sens') renderSensCharts();
   if (id === 'tab-sens') setTimeout(renderSensCharts, 150);
@@ -3178,121 +3182,101 @@ const CRACKER_HISTORY = [
 
 let crackerHistChart = null;
 
-function renderCrackerHistoryChart() {
+function renderCrackerHistoryChart(focusItem) {
   const canvas = document.getElementById('cracker-history-chart');
   if (!canvas) return;
-
-  // canvas 재생성
   const newCanvas = canvas.cloneNode(true);
   canvas.parentNode.replaceChild(newCanvas, canvas);
 
   const labels = CRACKER_HISTORY.map(d => d.week);
+  const nap4w  = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
 
-  // ── 적정 기여 합산 (4주평균 NAP 기준)
-  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
-  const targetTotal = (nap4w+CR_SPREAD.et)*CR_Y.et + (nap4w+CR_SPREAD.pr)*CR_Y.pr
-                    + (nap4w+CR_SPREAD.bd)*CR_Y.bd + (nap4w+CR_SPREAD.bz)*CR_Y.bz;
+  // ── 품목별 설정
+  const ITEMS = {
+    et: { key:'et', label:'ET 기여', color:'rgba(16,185,129', pKey:'etP', spread:CR_SPREAD.et, yield:CR_Y.et },
+    pr: { key:'pr', label:'PR 기여', color:'rgba(59,130,246', pKey:'prP', spread:CR_SPREAD.pr, yield:CR_Y.pr },
+    bd: { key:'bd', label:'BD 기여', color:'rgba(249,115,22', pKey:'bdP', spread:CR_SPREAD.bd, yield:CR_Y.bd },
+    bz: { key:'bz', label:'BZ 기여', color:'rgba(168,85,247', pKey:'bzP', spread:CR_SPREAD.bz, yield:CR_Y.bz },
+  };
 
-  // ── chart.js Bar+Line 혼합형
-  // 수익(ET/PR/BD/BZ) → 양수 스택바, NAP+OPEX → 음수 스택바
-  // 순마진 = 수익합 - NAP - 50 → 점선 라인
+  // focus 모드: 특정 품목만 진하게, 나머지 투명
+  const getAlpha = (key) => {
+    if (!focusItem || focusItem === 'all') return 0.55;
+    return key === focusItem ? 0.85 : 0.10;
+  };
+  const getBorderAlpha = (key) => {
+    if (!focusItem || focusItem === 'all') return 1;
+    return key === focusItem ? 1 : 0.15;
+  };
+
+  // ── 적정 기여합 기준선
+  const targetTotal = Math.round(
+    (nap4w+CR_SPREAD.et)*CR_Y.et + (nap4w+CR_SPREAD.pr)*CR_Y.pr +
+    (nap4w+CR_SPREAD.bd)*CR_Y.bd + (nap4w+CR_SPREAD.bz)*CR_Y.bz
+  );
+
+  // ── 누적 영역 데이터셋 (fill: '+1' 방식으로 스택)
   const datasets = [
-    // ── 양수 스택 (수익 기여)
-    {
-      type: 'bar',
-      label: 'ET 기여',
-      data: CRACKER_HISTORY.map(d => d.et),
-      backgroundColor: 'rgba(16,185,129,0.75)',
-      borderColor: 'rgba(16,185,129,1)',
-      borderWidth: 1,
+    // 수익 기여 4개 (양수 누적 영역)
+    ...['et','pr','bd','bz'].map((k,i) => ({
+      type: 'line',
+      label: ITEMS[k].label,
+      data: CRACKER_HISTORY.map(d => d[k]),
+      backgroundColor: `${ITEMS[k].color},${getAlpha(k)})`,
+      borderColor: `${ITEMS[k].color},${getBorderAlpha(k)})`,
+      borderWidth: (!focusItem||focusItem==='all') ? 1.5 : (k===focusItem ? 2.5 : 0.5),
+      fill: i === 0 ? 'origin' : '-1',  // 첫번째는 0기준, 나머지는 이전 데이터셋 위에 쌓임
       stack: 'revenue',
+      tension: 0.35,
+      pointRadius: (!focusItem||focusItem==='all') ? 2 : (k===focusItem ? 5 : 1),
+      pointBackgroundColor: `${ITEMS[k].color},1)`,
+      pointBorderColor: '#fff',
+      pointBorderWidth: 1,
       order: 3,
       datalabels: { display: false },
-    },
+    })),
+    // NAP+OPEX 비용 (음수 영역)
     {
-      type: 'bar',
-      label: 'PR 기여',
-      data: CRACKER_HISTORY.map(d => d.pr),
-      backgroundColor: 'rgba(59,130,246,0.75)',
-      borderColor: 'rgba(59,130,246,1)',
-      borderWidth: 1,
-      stack: 'revenue',
-      order: 3,
-      datalabels: { display: false },
-    },
-    {
-      type: 'bar',
-      label: 'BD 기여',
-      data: CRACKER_HISTORY.map(d => d.bd),
-      backgroundColor: 'rgba(249,115,22,0.75)',
-      borderColor: 'rgba(249,115,22,1)',
-      borderWidth: 1,
-      stack: 'revenue',
-      order: 3,
-      datalabels: { display: false },
-    },
-    {
-      type: 'bar',
-      label: 'BZ 기여',
-      data: CRACKER_HISTORY.map(d => d.bz),
-      backgroundColor: 'rgba(168,85,247,0.75)',
-      borderColor: 'rgba(168,85,247,1)',
-      borderWidth: 1,
-      stack: 'revenue',
-      order: 3,
-      datalabels: {
-        // 수익 합계를 맨 위 바에만 표시
-        display: true,
-        anchor: 'end',
-        align: 'top',
-        color: '#475569',
-        font: { size: 9, weight: 'bold' },
-        formatter: (v, ctx) => {
-          // BZ가 마지막 스택 → 합계 표시
-          const d = CRACKER_HISTORY[ctx.dataIndex];
-          return '$' + (d.et+d.pr+d.bd+d.bz);
-        }
-      },
-    },
-    // ── 음수 스택 (NAP 비용 + OPEX $50)
-    {
-      type: 'bar',
+      type: 'line',
       label: 'NAP+OPEX 비용',
-      data: CRACKER_HISTORY.map(d => -(d.nap + 50)),  // 음수로 내려감
-      backgroundColor: 'rgba(239,68,68,0.55)',
-      borderColor: 'rgba(239,68,68,0.9)',
-      borderWidth: 1,
-      stack: 'cost',
+      data: CRACKER_HISTORY.map(d => -(d.nap + 50)),
+      backgroundColor: `rgba(239,68,68,${(!focusItem||focusItem==='all') ? 0.35 : 0.15})`,
+      borderColor: `rgba(239,68,68,${(!focusItem||focusItem==='all') ? 0.9 : 0.3})`,
+      borderWidth: 1.5,
+      fill: 'origin',
+      tension: 0.35,
+      pointRadius: 2,
+      pointBackgroundColor: 'rgba(239,68,68,1)',
       order: 3,
       datalabels: {
         display: true,
-        anchor: 'end',
-        align: 'bottom',
-        color: '#dc2626',
+        anchor: 'end', align: 'bottom',
+        color: 'rgba(239,68,68,0.85)',
         font: { size: 9, weight: 'bold' },
         formatter: (v, ctx) => '-$' + CRACKER_HISTORY[ctx.dataIndex].nap,
       },
     },
-    // ── 적정 기여 합산 기준선 (수평 점선)
+    // 적정 기여합 기준선 (노란 점선)
     {
       type: 'line',
-      label: '적정 기여합 (4주NAP기준)',
-      data: CRACKER_HISTORY.map(() => Math.round(targetTotal)),
-      borderColor: 'rgba(234,179,8,0.9)',
+      label: '적정 기여합',
+      data: CRACKER_HISTORY.map(() => targetTotal),
+      borderColor: 'rgba(234,179,8,0.85)',
       backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderDash: [6, 4],
+      borderWidth: 1.8,
+      borderDash: [7, 4],
       pointRadius: 0,
       fill: false,
+      tension: 0,
       order: 1,
       datalabels: {
-        display: (ctx) => ctx.dataIndex === CRACKER_HISTORY.length - 1,
+        display: ctx => ctx.dataIndex === CRACKER_HISTORY.length - 1,
         anchor: 'end', align: 'right',
-        color: '#ca8a04', font: { size: 10, weight: 'bold' },
+        color: '#ca8a04', font: { size: 9, weight: 'bold' },
         formatter: v => '적정 $' + v,
       },
     },
-    // ── 순마진 점선
+    // 순마진 점선
     {
       type: 'line',
       label: '순마진',
@@ -3320,7 +3304,7 @@ function renderCrackerHistoryChart() {
   ];
 
   crackerHistChart = new Chart(newCanvas, {
-    type: 'bar',
+    type: 'line',
     data: { labels, datasets },
     options: {
       responsive: true,
@@ -3328,8 +3312,7 @@ function renderCrackerHistoryChart() {
       interaction: { mode:'index', intersect:false },
       plugins: {
         legend: {
-          display: true,
-          position: 'top',
+          display: true, position: 'top',
           labels: { font:{size:10}, color:'#1e293b', usePointStyle:true, pointStyleWidth:10 }
         },
         tooltip: {
@@ -3342,12 +3325,13 @@ function renderCrackerHistoryChart() {
               if (v == null) return '';
               return ` ${ctx.dataset.label}: ${v >= 0 ? '+' : ''}$${Math.round(v)}`;
             },
-            afterBody: (items) => {
+            afterBody: items => {
               const idx = items[0].dataIndex;
               const d = CRACKER_HISTORY[idx];
               const rev = d.et+d.pr+d.bd+d.bz;
-              const gap = rev - d.nap - 50;
-              return [`─────────────`, `수익합: $${rev}`, `NAP+OPEX: -$${d.nap+50}`, `순마진: ${gap>=0?'+':''}$${gap}`];
+              return ['─────────────',
+                `수익합: $${rev}  |  NAP: $${d.nap}`,
+                `순마진: ${d.margin >= 0 ? '+' : ''}$${d.margin}`];
             }
           }
         },
@@ -3355,38 +3339,176 @@ function renderCrackerHistoryChart() {
       },
       scales: {
         x: {
-          stacked: true,
           ticks: { color:'#334155', font:{size:11} },
           grid: { color:'rgba(148,163,184,0.15)' },
         },
         y: {
-          stacked: true,
-          ticks: { color:'#334155', font:{size:10}, callback: v => (v>=0?'$':'-$') + Math.abs(v) },
-          grid: { color:'rgba(148,163,184,0.2)', lineWidth: ctx => ctx.tick.value===0 ? 2 : 1 },
-          title: { display:true, text:'$/mt (양수=수익기여 / 음수=NAP비용)', color:'#64748b', font:{size:10} }
+          ticks: {
+            color:'#334155', font:{size:10},
+            callback: v => (v >= 0 ? '$' : '-$') + Math.abs(v)
+          },
+          grid: {
+            color: ctx => ctx.tick.value === 0
+              ? 'rgba(30,41,59,0.6)' : 'rgba(148,163,184,0.2)',
+            lineWidth: ctx => ctx.tick.value === 0 ? 2 : 1,
+          },
+          title: { display:true, text:'$/mt  (↑수익기여 / ↓NAP비용)', color:'#64748b', font:{size:10} }
         }
       }
     }
   });
 
-  // 주차별 요약 카드 렌더링 (ET 적자 여부 표시 추가)
+  // ── 주차별 요약 카드
   const summaryEl = document.getElementById('cracker-history-summary');
   if (summaryEl) {
     summaryEl.innerHTML = CRACKER_HISTORY.map(d => {
       const color = d.margin >= 0 ? 'text-emerald-700' : d.margin > -100 ? 'text-amber-700' : 'text-red-700';
       const bg    = d.margin >= 0 ? 'bg-emerald-50 border-emerald-200' : d.margin > -100 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200';
-      // ET 적정가 대비 부족액
-      const etTarget = d.nap + CR_SPREAD.et;
-      const etGap = d.etP - etTarget;
-      const etStatus = etGap >= 0 ? `<div class="text-emerald-600 text-xs">ET✅</div>` : `<div class="text-red-600 text-xs">ET -$${Math.abs(Math.round(etGap))}</div>`;
+      // 선택된 품목 스프레드 표시
+      let itemInfo = '';
+      if (focusItem && focusItem !== 'all' && ITEMS[focusItem]) {
+        const it = ITEMS[focusItem];
+        const curPrice = d[it.pKey] || 0;
+        const tgtPrice = d.nap + it.spread;
+        const spGap = curPrice - tgtPrice;
+        itemInfo = `<div class="text-xs mt-0.5" style="color:${spGap>=0?'#10b981':'#ef4444'}">${focusItem.toUpperCase()} ${spGap>=0?'+':''}$${Math.round(spGap)}</div>`;
+      } else {
+        const etGap = (d.etP||0) - (d.nap + CR_SPREAD.et);
+        itemInfo = `<div class="text-xs mt-0.5" style="color:${etGap>=0?'#10b981':'#ef4444'}">ET ${etGap>=0?'+':''}$${Math.round(etGap)}</div>`;
+      }
       return `<div class="rounded-lg border ${bg} p-2 text-center">
         <div class="text-slate-600 font-bold text-xs">${d.week}</div>
         <div class="font-black ${color} text-sm">${d.margin >= 0 ? '+' : ''}$${d.margin}</div>
         <div class="text-slate-500 text-xs">NAP $${d.nap}</div>
-        ${etStatus}
+        ${itemInfo}
       </div>`;
     }).join('');
   }
+}
+
+// ── 품목 토글 컨트롤러
+let crackerViewMode = 'all';
+function setCrackerView(item) {
+  crackerViewMode = item;
+
+  // 버튼 활성화 스타일
+  ['all','et','pr','bd','bz'].forEach(k => {
+    const btn = document.getElementById('crv-' + k);
+    if (!btn) return;
+    if (k === item) {
+      btn.classList.add('active-crv');
+    } else {
+      btn.classList.remove('active-crv');
+    }
+  });
+
+  // 차트 재렌더
+  renderCrackerHistoryChart(item === 'all' ? null : item);
+
+  // 품목별 설명 패널
+  const panel = document.getElementById('cracker-item-explain');
+  if (!panel) return;
+
+  if (!item || item === 'all') {
+    panel.classList.add('hidden');
+    panel.innerHTML = '';
+    return;
+  }
+
+  // 품목 데이터 계산
+  const ITEM_META = {
+    et: { label:'ET 에틸렌', color:'#10b981', bgColor:'#ecfdf5', borderColor:'#6ee7b7', pKey:'etP', cKey:'et', spread:CR_SPREAD.et, yld:CR_Y.et, unit:'CFR NEA', note:'크래커 수익의 핵심. ET가 약하면 전체 마진이 무너짐.' },
+    pr: { label:'PR 프로필렌', color:'#3b82f6', bgColor:'#eff6ff', borderColor:'#93c5fd', pKey:'prP', cKey:'pr', spread:CR_SPREAD.pr, yld:CR_Y.pr, unit:'CFR China', note:'ET의 부산물. 수율 16%로 2번째 기여.' },
+    bd: { label:'BD 부타디엔', color:'#f97316', bgColor:'#fff7ed', borderColor:'#fdba74', pKey:'bdP', cKey:'bd', spread:CR_SPREAD.bd, yld:CR_Y.bd, unit:'CFR China', note:'수율 5%로 작지만 타이트 시 가격 급등. ABS 구매원가 직결.' },
+    bz: { label:'BZ 벤젠',    color:'#a855f7', bgColor:'#faf5ff', borderColor:'#d8b4fe', pKey:'bzP', cKey:'bz', spread:CR_SPREAD.bz, yld:CR_Y.bz, unit:'FOB Korea', note:'정제사 공급으로 변동성 낮음. SM 원가에도 영향.' },
+  };
+
+  const m = ITEM_META[item];
+  if (!m) return;
+
+  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+  const tgtPrice = Math.round(nap4w + m.spread);
+
+  // 9주 스프레드 추이
+  const spreads = CRACKER_HISTORY.map(d => ({ week: d.week, price: d[m.pKey]||0, spread: (d[m.pKey]||0) - d.nap, tgt: d.nap + m.spread }));
+  const latest  = spreads[spreads.length - 1];
+  const gapVsTgt = latest.price - tgtPrice;
+  const contribNow  = Math.round(latest.price * m.yld);
+  const contribTgt  = Math.round(tgtPrice * m.yld);
+  const contribDiff = contribNow - contribTgt;
+
+  // 역마진 기여 비율 (ET 부족분이 전체 역마진에서 차지하는 비율)
+  const totalShortfall = CRACKER_HISTORY.slice(-1)[0].margin; // 음수
+  const itemShortfall  = contribDiff; // 음수면 부족
+  const shareStr = totalShortfall < 0 && itemShortfall < 0
+    ? Math.round((itemShortfall / totalShortfall) * 100) + '%'
+    : '-';
+
+  // 스프레드 미니 바
+  const maxSpread = Math.max(...spreads.map(s => Math.abs(s.spread)), m.spread);
+  const minSpread = Math.min(...spreads.map(s => s.spread));
+  const miniBar = spreads.map(s => {
+    const pct = Math.max(2, Math.min(100, ((s.spread - minSpread) / (maxSpread - minSpread + 1)) * 100));
+    const color = s.spread >= m.spread ? '#10b981' : s.spread >= 0 ? '#f59e0b' : '#ef4444';
+    return `<div class="flex flex-col items-center gap-0.5">
+      <div class="text-xs font-bold" style="color:${color}">${s.spread>=0?'+':''}$${Math.round(s.spread)}</div>
+      <div style="height:40px;width:22px;background:#e2e8f0;border-radius:4px;display:flex;align-items:flex-end;overflow:hidden">
+        <div style="width:100%;height:${pct}%;background:${color};border-radius:4px;transition:all 0.3s"></div>
+      </div>
+      <div class="text-xs text-slate-500">${s.week}</div>
+    </div>`;
+  }).join('');
+
+  panel.style.background = m.bgColor;
+  panel.style.borderColor = m.borderColor;
+  panel.classList.remove('hidden');
+  panel.innerHTML = `
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1">
+        <div class="font-black text-sm mb-2" style="color:${m.color}">🔍 ${m.label} (${m.unit}) — 수율 ${Math.round(m.yld*100)}%</div>
+        <div class="grid grid-cols-2 gap-2 mb-2">
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">현재가</div>
+            <div class="font-black text-base" style="color:${m.color}">$${Math.round(latest.price)}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">적정가 (4주NAP+$${m.spread})</div>
+            <div class="font-black text-base text-amber-600">$${tgtPrice}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">현재 스프레드</div>
+            <div class="font-black text-base" style="color:${latest.spread>=m.spread?'#10b981':latest.spread>=0?'#f59e0b':'#ef4444'}">${latest.spread>=0?'+':''}$${Math.round(latest.spread)}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">적정 스프레드</div>
+            <div class="font-black text-base text-amber-600">+$${m.spread}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">현재 기여 (×${m.yld})</div>
+            <div class="font-black text-base text-slate-800">$${contribNow}</div>
+          </div>
+          <div class="bg-white rounded-lg p-2 border">
+            <div class="text-slate-500 text-xs">적정 기여 부족</div>
+            <div class="font-black text-base" style="color:${contribDiff>=0?'#10b981':'#ef4444'}">${contribDiff>=0?'+':''}$${contribDiff}</div>
+          </div>
+        </div>
+        <div class="bg-white rounded-lg p-2 border text-xs text-slate-600">
+          ${gapVsTgt >= 0
+            ? `✅ <b>${m.label}</b>는 적정가 달성. 역마진 기여 없음.`
+            : `🔴 <b>${m.label}</b>가 적정가 대비 <b style="color:#ef4444">$${Math.abs(Math.round(gapVsTgt))} 부족</b>. 역마진의 <b>${shareStr}</b> 기인. 적정가 <b>$${tgtPrice}</b> 회복 필요.`
+          }<br><span class="text-slate-500">${m.note}</span>
+        </div>
+      </div>
+      <div>
+        <div class="text-xs text-slate-500 font-bold mb-2">9주 스프레드 추이 (대NAP)</div>
+        <div class="flex gap-1 items-end">${miniBar}</div>
+        <div class="text-xs text-slate-400 mt-1 flex gap-3">
+          <span style="color:#10b981">■ 적정 이상</span>
+          <span style="color:#f59e0b">■ 양수 미달</span>
+          <span style="color:#ef4444">■ 음수(역스프레드)</span>
+        </div>
+      </div>
+    </div>`;
 }
 
 // 초기화
