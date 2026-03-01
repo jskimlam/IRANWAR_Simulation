@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iran Risk × ABS/SM 원가 대응 대시보드</title>
+  <title>Iran Risk × ABS/SM 원가 대응 대시보드 v6.2</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
@@ -19,7 +19,8 @@
     .badge-ok    { background:#065f46; color:#6ee7b7; border-radius:0.4rem; padding:2px 8px; font-size:0.75rem; font-weight:700; }
     .badge-warn  { background:#78350f; color:#fcd34d; border-radius:0.4rem; padding:2px 8px; font-size:0.75rem; font-weight:700; }
     .badge-danger{ background:#7f1d1d; color:#fca5a5; border-radius:0.4rem; padding:2px 8px; font-size:0.75rem; font-weight:700; }
-    #toast { position:fixed; top:1.5rem; right:1.5rem; z-index:9999; display:none; background:#7f1d1d; border:1px solid #ef4444; border-radius:0.75rem; padding:1rem 1.5rem; max-width:320px; }
+    #toast { position:fixed; top:1.5rem; right:1.5rem; z-index:9999; display:none; background:#7f1d1d; border:1px solid #ef4444; border-radius:0.75rem; padding:1rem 1.5rem; max-width:340px; }
+    .sens-card { background:#0f172a; border-radius:0.5rem; padding:0.75rem; border:1px solid #334155; text-align:center; }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -37,10 +38,11 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
       <div>
         <h1 class="text-2xl md:text-3xl font-black text-yellow-400 tracking-tight">
-          🔴 IRAN CONFLICT · ABS/SM COST DASHBOARD
+          🔴 IRAN CONFLICT · ABS/SM COST DASHBOARD <span class="text-base text-red-400 ml-2">v6.2</span>
         </h1>
         <p class="text-slate-400 text-sm mt-1">
           LAM Advanced Procurement  |  WTI CL=F 실시간  |  구글시트 실측가 자동 반영
+          <span class="text-yellow-600 ml-2">★ 리스크→WTI등가 전 원료 반영 | 실측vs이론 수급신호</span>
         </p>
       </div>
       <div class="text-right text-xs text-slate-500 space-y-0.5">
@@ -55,7 +57,7 @@
         <div id="wti-price" class="text-yellow-400">$--.-</div>
         <div id="wti-delta" class="text-xs mt-1"></div>
       </div>
-      <div class="flex gap-5 pb-2">
+      <div class="flex gap-4 pb-2">
         <div>
           <div class="text-xs text-slate-500">ABS Gap</div>
           <div id="hdr-abs-gap" class="text-2xl font-black text-emerald-400">$---</div>
@@ -64,24 +66,43 @@
           <div class="text-xs text-slate-500">SM Margin</div>
           <div id="hdr-sm-margin" class="text-2xl font-black text-red-400">$---</div>
         </div>
+        <!-- ★ v6.2 수급 신호 헤더 -->
+        <div>
+          <div class="text-xs text-yellow-600">수급신호(실측-이론)</div>
+          <div id="hdr-supply-signal" class="text-2xl font-black text-yellow-400">---</div>
+        </div>
+        <div>
+          <div class="text-xs text-slate-500">BZ Korea-ARA</div>
+          <div id="hdr-bz-spread" class="text-2xl font-black text-purple-400">$---</div>
+        </div>
       </div>
       <div id="alert-badge" class="pb-2"><span class="badge-warn">로딩 중</span></div>
     </div>
   </header>
 
+  <!-- ★ v6.2 리스크 프리미엄 원리 설명 배너 -->
+  <div class="bg-yellow-950/40 border border-yellow-700/50 rounded-xl p-4 text-xs text-yellow-300 leading-relaxed">
+    <span class="font-black text-yellow-400">★ v6.2 이란 리스크 반영 원리:</span>
+    리스크 프리미엄 → NAP 민감도(÷<span id="nap-sens-basis">6.52</span>) → WTI 등가 환산 →
+    전 원료(BZ/ET/BD/AN/NAP/PR) 회귀 민감도로 원가 상승 반영.
+    <span class="text-orange-400 font-bold">리스크↑ = 원가도 함께 상승 = Gap 개선 착시 제거.</span>
+    수요 없는 지정학 리스크는 Gap을 악화시킴.
+    <span id="risk-equiv-display" class="text-white font-bold ml-2"></span>
+  </div>
+
   <!-- 실시간 산출값 -->
   <section>
     <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-3">
-      📡 실시간 산출값 (구글시트 실측 + WTI 델타 보정)
+      📡 실시간 산출값 (구글시트 실측 + WTI 델타 보정) — v6.2
     </h2>
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+    <div class="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-3">
       <div class="metric-card">
         <div class="text-xs text-slate-500 mb-1">WTI 실시간</div>
         <div id="c-wti" class="text-lg font-black text-yellow-400">--</div>
         <div class="text-xs text-slate-600">$/bbl</div>
       </div>
       <div class="metric-card">
-        <div class="text-xs text-slate-500 mb-1">Naphtha</div>
+        <div class="text-xs text-slate-500 mb-1">Naphtha(기준)</div>
         <div id="c-nap" class="text-lg font-black text-slate-300">--</div>
         <div class="text-xs text-slate-600">$/mt MOPJ</div>
       </div>
@@ -105,112 +126,198 @@
         <div id="c-an" class="text-lg font-black text-yellow-400">--</div>
         <div id="c-an-act" class="text-xs text-slate-600">실측 $---</div>
       </div>
-      <div class="metric-card">
-        <div class="text-xs text-slate-500 mb-1">ABS Market</div>
-        <div id="c-abs-mkt" class="text-lg font-black text-cyan-400">--</div>
-        <div id="c-abs-mkt-act" class="text-xs text-slate-600">실측 $---</div>
+      <div class="metric-card border border-cyan-900/50">
+        <div class="text-xs text-cyan-500 mb-1 font-bold">PR CFR China</div>
+        <div id="c-pr" class="text-lg font-black text-cyan-400">--</div>
+        <div id="c-pr-act" class="text-xs text-slate-600">실측 $---</div>
       </div>
       <div class="metric-card">
-        <div class="text-xs text-slate-500 mb-1">SM Market</div>
+        <div class="text-xs text-slate-500 mb-1">SM CFR China</div>
         <div id="c-sm-mkt" class="text-lg font-black text-blue-400">--</div>
         <div id="c-sm-act" class="text-xs text-slate-600">실측 $---</div>
       </div>
       <div class="metric-card">
         <div class="text-xs text-slate-500 mb-1">SM Margin</div>
-        <div id="c-sm-margin" class="text-lg font-black">--</div>
-        <div class="text-xs text-slate-600">시장가-원가</div>
+        <div id="c-sm-margin" class="text-lg font-black text-red-400">--</div>
+        <div class="text-xs text-slate-600">WTI 무상관</div>
       </div>
       <div class="metric-card">
-        <div class="text-xs text-slate-500 mb-1">ABS Gap</div>
-        <div id="c-abs-gap" class="text-lg font-black text-emerald-400">--</div>
-        <div class="text-xs text-slate-600">시장가-원가</div>
+        <div class="text-xs text-slate-500 mb-1">ABS Market</div>
+        <div id="c-abs-mkt" class="text-lg font-black text-blue-300">--</div>
+        <div id="c-abs-mkt-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+    </div>
+
+    <!-- 핵심 지표 행 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+      <div class="metric-card border border-red-900/50">
+        <div class="text-xs text-slate-500 mb-1">ABS Cost</div>
+        <div id="c-abs-cost" class="text-xl font-black text-red-400">--</div>
+        <div id="c-abs-cost-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+      <div class="metric-card border border-emerald-800/80">
+        <div class="text-xs text-slate-500 mb-1">ABS Gap ★</div>
+        <div id="c-abs-gap" class="text-xl font-black text-emerald-400">--</div>
+        <div class="text-xs text-slate-600">Market - Cost</div>
+      </div>
+      <!-- ★ v6.2 수급신호 카드 -->
+      <div class="metric-card border border-yellow-800/60">
+        <div class="text-xs text-yellow-600 mb-1 font-bold">SM 수급신호 ★ (실측-이론원가)</div>
+        <div id="c-supply-signal" class="text-xl font-black text-yellow-400">--</div>
+        <div id="c-supply-signal-sub" class="text-xs text-slate-600">양수=수급타이트</div>
+      </div>
+      <div class="metric-card border border-indigo-900/50">
+        <div class="text-xs text-indigo-400 mb-1 font-bold">BZ CIF ARA</div>
+        <div id="c-bz-ara" class="text-xl font-black text-indigo-400">--</div>
+        <div id="c-bz-ara-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+    </div>
+
+    <!-- ★ v6.2 SM 실측 vs 이론 마진 비교 카드 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+      <div class="bg-slate-800/40 border border-slate-700 rounded-xl p-4">
+        <div class="text-xs text-slate-400 mb-2 font-bold">SM Cost 실측 (BZ×0.67+ET×0.25+NAP×0.05+150)</div>
+        <div id="c-sm-cost" class="text-xl font-black text-red-400">--</div>
+        <div id="c-sm-cost-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+      <div class="bg-slate-800/40 border border-yellow-900/40 rounded-xl p-4">
+        <div class="text-xs text-yellow-600 mb-2 font-bold">SM Cost 이론 (BZ×0.80+ET×0.30+150)</div>
+        <div id="c-sm-cost-theory" class="text-xl font-black text-yellow-400">--</div>
+        <div id="c-sm-cost-theory-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+      <div class="bg-slate-800/40 border border-slate-700 rounded-xl p-4">
+        <div class="text-xs text-slate-400 mb-2 font-bold">SM Margin 실측</div>
+        <div id="c-sm-margin2" class="text-xl font-black">--</div>
+        <div class="text-xs text-slate-600">실측원가 기반</div>
+      </div>
+      <div class="bg-slate-800/40 border border-yellow-900/40 rounded-xl p-4">
+        <div class="text-xs text-yellow-600 mb-2 font-bold">SM Margin 이론</div>
+        <div id="c-sm-margin-theory" class="text-xl font-black">--</div>
+        <div class="text-xs text-slate-600">이론원가 기반</div>
       </div>
     </div>
   </section>
 
-  <!-- WTI 시나리오 슬라이더 -->
-  <section class="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
-    <h2 class="text-yellow-400 font-black text-sm tracking-widest uppercase mb-4">
-      🎛 이란 사태 시나리오 시뮬레이터
+  <!-- BZ 글로벌 스프레드 -->
+  <section class="bg-slate-800/40 border border-purple-800/40 rounded-2xl p-5">
+    <h2 class="text-purple-400 text-xs font-bold tracking-widest uppercase mb-4">
+      🌐 BZ 글로벌 스프레드 분석 (Korea / ARA / USG)
     </h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+      <div class="bg-slate-900/60 rounded-xl p-4 border border-purple-900/50">
+        <div class="text-purple-300 font-bold mb-3 text-xs uppercase">BZ Korea vs ARA</div>
+        <div class="flex justify-between mb-1"><span class="text-slate-400">BZ FOB Korea</span><span id="sp-bz-korea" class="text-purple-400 font-black">$---</span></div>
+        <div class="flex justify-between mb-1"><span class="text-slate-400">BZ CIF ARA</span><span id="sp-bz-ara" class="text-indigo-400 font-black">$---</span></div>
+        <div class="flex justify-between pt-2 border-t border-slate-700">
+          <span class="text-white font-bold">Spread (Korea-ARA)</span>
+          <span id="sp-bz-spread-ara" class="font-black text-fuchsia-400">$---</span>
+        </div>
+        <div class="mt-2 text-xs text-slate-600">양수=Korea 프리미엄 → 아시아 강세</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-4 border border-amber-900/50">
+        <div class="text-amber-300 font-bold mb-3 text-xs uppercase">BZ Korea vs USG</div>
+        <div class="flex justify-between mb-1"><span class="text-slate-400">BZ FOB Korea</span><span id="sp-bz-korea2" class="text-purple-400 font-black">$---</span></div>
+        <div class="flex justify-between mb-1"><span class="text-slate-400">BZ USG ($/mt 환산)</span><span id="sp-bz-usg" class="text-amber-400 font-black">$---</span></div>
+        <div class="flex justify-between pt-2 border-t border-slate-700">
+          <span class="text-white font-bold">Spread (Korea-USG)</span>
+          <span id="sp-bz-spread-usg" class="font-black text-amber-400">$---</span>
+        </div>
+        <div class="mt-2 text-xs text-slate-600">※ USG = cts/gal × 26.42 환산</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
+        <div class="text-slate-300 font-bold mb-3 text-xs uppercase">스프레드 해석</div>
+        <div id="bz-spread-insight" class="text-xs text-slate-400 leading-relaxed">CSV 로드 후 업데이트</div>
+        <div class="mt-3 text-xs text-slate-600 border-t border-slate-700 pt-2">
+          <div>• Korea-ARA &gt; $50: 아시아 수요 강세</div>
+          <div>• Korea-ARA &lt; $0: 유럽산 BZ 역전</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WTI 슬라이더 시뮬레이터 -->
+  <section class="bg-slate-800/40 border border-slate-700 rounded-2xl p-5">
+    <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-4">🎚 인터랙티브 WTI 시뮬레이터 v6.2</h2>
+
+    <!-- ★ v6.2 WTI 등가 실시간 표시 -->
+    <div id="risk-equiv-bar" class="mb-4 p-3 rounded-lg bg-yellow-950/40 border border-yellow-800/50 text-xs text-yellow-300 hidden">
+      <span class="font-black">리스크 WTI 등가:</span>
+      <span id="risk-equiv-val" class="text-white font-black mx-2">+$0/bbl</span>
+      → BZ +<span id="risk-bz-impact">$0</span> |
+      ET +<span id="risk-et-impact">$0</span> |
+      BD +<span id="risk-bd-impact">$0</span> |
+      AN +<span id="risk-an-impact">$0</span> |
+      NAP +<span id="risk-nap-impact">$0</span> |
+      SM +<span id="risk-sm-impact">$0</span>
+    </div>
+
     <div class="grid md:grid-cols-2 gap-6">
       <div class="space-y-5">
         <div>
-          <div class="flex justify-between text-sm mb-2">
-            <span class="text-slate-400 font-semibold">WTI 유가</span>
-            <span class="text-yellow-400 font-black text-lg" id="slider-wti-val">$67.00 /bbl</span>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm text-slate-400 font-bold">WTI 유가</label>
+            <span id="slider-wti-val" class="text-yellow-400 font-black text-lg">$67.00 /bbl</span>
           </div>
-          <input type="range" id="slider-wti" min="50" max="120" step="0.5" value="67" class="w-full" oninput="onSlider()">
+          <input type="range" id="slider-wti" min="40" max="120" step="0.5" value="67" class="w-full" oninput="onSlider()">
           <div class="flex justify-between text-xs text-slate-600 mt-1">
-            <span>$50</span><span>$85 호르무즈 위기</span><span>$120 봉쇄</span>
+            <span>$40</span><span>$60</span><span>$80</span><span>$100</span><span>$120</span>
           </div>
         </div>
         <div>
-          <div class="flex justify-between text-sm mb-2">
-            <span class="text-slate-400 font-semibold">이란 리스크 프리미엄</span>
-            <span class="text-orange-400 font-black text-lg" id="slider-risk-val">+$0 /t</span>
+          <div class="flex justify-between items-center mb-2">
+            <label class="text-sm text-slate-400 font-bold">이란 리스크 프리미엄</label>
+            <span id="slider-risk-val" class="text-red-400 font-black text-lg">+$0 /t</span>
           </div>
           <input type="range" id="slider-risk" min="0" max="300" step="10" value="0" class="w-full" oninput="onSlider()">
           <div class="flex justify-between text-xs text-slate-600 mt-1">
-            <span>$0 평시</span><span>$150 미사일 타격</span><span>$300 호르무즈 봉쇄</span>
+            <span>Base</span><span>+$75</span><span>+$150</span><span>+$225</span><span>+$300</span>
           </div>
         </div>
-        <div>
-          <div class="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wider">빠른 시나리오</div>
-          <div class="flex flex-wrap gap-2">
-            <button onclick="setScenario(59.44,0)"   class="bg-emerald-900 hover:bg-emerald-800 text-emerald-200 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-700 transition">Base $59</button>
-            <button onclick="setScenario(70,50)"     class="bg-amber-900   hover:bg-amber-800   text-amber-200   text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-700   transition">Mild $70</button>
-            <button onclick="setScenario(80,100)"    class="bg-orange-900  hover:bg-orange-800  text-orange-200  text-xs font-bold px-3 py-1.5 rounded-lg border border-orange-700  transition">Moderate $80</button>
-            <button onclick="setScenario(90,150)"    class="bg-red-900     hover:bg-red-800     text-red-200     text-xs font-bold px-3 py-1.5 rounded-lg border border-red-700     transition">Severe $90</button>
-            <button onclick="setScenario(100,200)"   class="bg-red-950     hover:bg-red-900     text-red-300     text-xs font-bold px-3 py-1.5 rounded-lg border border-red-800     transition">Crisis $100</button>
-          </div>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="setScenario(59.44,0)"   class="text-xs bg-emerald-900/60 text-emerald-400 border border-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-800 transition">Base $59</button>
+          <button onclick="setScenario(70,50)"     class="text-xs bg-amber-900/60   text-amber-400   border border-amber-700   rounded-lg px-3 py-1.5 hover:bg-amber-800   transition">Mild $70</button>
+          <button onclick="setScenario(80,100)"    class="text-xs bg-orange-900/60  text-orange-400  border border-orange-700  rounded-lg px-3 py-1.5 hover:bg-orange-800  transition">Moderate $80</button>
+          <button onclick="setScenario(90,150)"    class="text-xs bg-red-900/60     text-red-400     border border-red-700     rounded-lg px-3 py-1.5 hover:bg-red-800     transition">Severe $90</button>
+          <button onclick="setScenario(100,200)"   class="text-xs bg-red-950/80     text-red-300     border border-red-900     rounded-lg px-3 py-1.5 hover:bg-red-900     transition">Crisis $100</button>
         </div>
       </div>
 
-      <!-- 즉석 계산 결과 -->
-      <div class="bg-slate-900 rounded-xl p-5 border border-slate-700">
-        <div class="text-xs text-slate-500 font-bold uppercase tracking-wider mb-4">즉석 계산 결과</div>
-        <div class="space-y-2.5 text-sm">
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">BZ FOB Korea (보정)</span>
-            <span id="sim-bz" class="text-purple-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">ET CFR NEA (보정)</span>
-            <span id="sim-et" class="text-green-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">BD CFR China (보정)</span>
-            <span id="sim-bd" class="text-orange-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">AN CFR FEA (보정)</span>
-            <span id="sim-an" class="text-yellow-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">SM Market (보정)</span>
-            <span id="sim-sm-mkt" class="text-blue-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">SM Cost</span>
-            <span id="sim-sm-cost" class="text-red-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">SM Margin</span>
-            <span id="sim-sm-margin" class="font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">ABS Market (리스크 포함)</span>
-            <span id="sim-abs-mkt" class="text-orange-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-700 pb-2">
-            <span class="text-slate-400">ABS Cost</span>
-            <span id="sim-abs-cost" class="text-red-400 font-black">$---</span>
-          </div>
-          <div class="flex justify-between pt-1">
-            <span class="text-white font-black">ABS GAP (마진)</span>
-            <span id="sim-abs-gap" class="font-black text-2xl">$---</span>
-          </div>
+      <div class="space-y-2 text-sm">
+        <div class="grid grid-cols-2 gap-2">
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-slate-400">BZ</span><span id="sim-bz" class="text-purple-400 font-black">$---</span></div>
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-slate-400">ET</span><span id="sim-et" class="text-green-400 font-black">$---</span></div>
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-slate-400">BD</span><span id="sim-bd" class="text-orange-400 font-black">$---</span></div>
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-slate-400">AN</span><span id="sim-an" class="text-yellow-400 font-black">$---</span></div>
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-cyan-500 font-bold">PR</span><span id="sim-pr" class="text-cyan-400 font-black">$---</span></div>
+          <div class="flex justify-between border-b border-slate-700 pb-2"><span class="text-slate-400">SM Market</span><span id="sim-sm-mkt" class="text-blue-400 font-black">$---</span></div>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">SM Cost 실측 <span class="text-slate-600 text-xs">(BZ×0.67+ET×0.25+NAP×0.05+150)</span></span>
+          <span id="sim-sm-cost" class="text-red-400 font-black">$---</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-yellow-600">SM Cost 이론 <span class="text-slate-600 text-xs">(BZ×0.80+ET×0.30+150)</span></span>
+          <span id="sim-sm-cost-theory" class="text-yellow-400 font-black">$---</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">SM Margin 실측</span>
+          <span id="sim-sm-margin" class="font-black">$---</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-yellow-600">수급신호(실측-이론)</span>
+          <span id="sim-supply-signal" class="font-black">---</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">ABS Market (리스크 포함)</span>
+          <span id="sim-abs-mkt" class="text-orange-400 font-black">$---</span>
+        </div>
+        <div class="flex justify-between border-b border-slate-700 pb-2">
+          <span class="text-slate-400">ABS Cost <span class="text-slate-600 text-xs">(원료상승 반영)</span></span>
+          <span id="sim-abs-cost" class="text-red-400 font-black">$---</span>
+        </div>
+        <div class="flex justify-between pt-1">
+          <span class="text-white font-black">ABS GAP (마진)</span>
+          <span id="sim-abs-gap" class="font-black text-2xl">$---</span>
         </div>
         <div id="strategy-box" class="mt-4 p-3 rounded-lg bg-slate-800 border border-slate-600 text-xs leading-relaxed text-slate-400">
           슬라이더를 조작하여 구매 전략 인사이트를 확인하세요.
@@ -219,12 +326,13 @@
     </div>
   </section>
 
-  <!-- 시나리오 테이블 -->
+  <!-- 5단계 시나리오 -->
   <section class="bg-slate-800/40 border border-slate-700 rounded-2xl p-5">
-    <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-4">📊 5단계 이란 리스크 시나리오</h2>
+    <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase mb-4">📊 5단계 이란 리스크 시나리오 v6.2 (리스크→전 원료 WTI 등가 반영)</h2>
     <div class="space-y-2" id="scenario-table"></div>
     <div class="mt-3 text-xs text-slate-600">
-      * 구글시트 실측 원료가 기반 / WTI 변동분 민감도 적용 / ABS Market = SM + $250 스프레드 + 리스크 프리미엄
+      ★ v6.2: 리스크 프리미엄 → NAP 민감도로 WTI 등가 환산 → 전 원료 회귀 반영 → ABS Cost 상승 → Gap 현실 반영
+      <br>* ABS Market = 실측 + WTI 회귀 + 리스크 flat | ABS Cost = 실측 원료 + total WTI 델타(실시간+리스크등가) × 회귀
     </div>
   </section>
 
@@ -232,7 +340,7 @@
   <section class="bg-white/[0.03] border border-white/10 rounded-2xl p-6">
     <div class="flex justify-between items-center mb-4">
       <h2 class="text-slate-300 font-black text-sm uppercase tracking-widest border-l-4 border-red-600 pl-3">
-        📈 VISUALIZED REPORT
+        📈 VISUALIZED REPORT (9패널 v6.2)
       </h2>
       <button onclick="refreshImg()" class="text-xs text-slate-400 border border-slate-700 rounded-lg px-3 py-1.5 hover:bg-slate-700 transition">🔄 새로고침</button>
     </div>
@@ -244,153 +352,243 @@
   <!-- Calculation Logic -->
   <section class="bg-slate-800/30 border border-slate-700 rounded-2xl p-5">
     <div class="flex items-center justify-between mb-4">
-      <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase">⚙ Calculation Logic</h2>
+      <h2 class="text-slate-400 text-xs font-bold tracking-widest uppercase">⚙ Calculation Logic v6.2</h2>
       <div id="reg-meta" class="text-xs text-slate-600"></div>
     </div>
-
-    <!-- 원가 공식 -->
-    <div class="grid md:grid-cols-2 gap-4 text-xs text-slate-400 leading-loose mb-5">
-      <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
-        <div class="text-slate-300 font-bold mb-2">SM Cost 공식</div>
-        <div>BZ FOB Korea <span class="text-purple-400 font-bold">× 0.78</span></div>
-        <div>+ ET CFR NEA <span class="text-green-400 font-bold">× 0.28</span></div>
-        <div>+ Fixed Cost <span class="text-slate-300 font-bold">$150/t</span></div>
-        <div class="mt-2 text-slate-500">SM Margin = SM Market − SM Cost</div>
+    <div class="grid md:grid-cols-3 gap-4 text-xs text-slate-400 leading-loose mb-5">
+      <div class="bg-slate-900/60 rounded-xl p-4 border border-yellow-900/40">
+        <div class="text-yellow-300 font-bold mb-2">★ v6.2 리스크 WTI 등가 공식</div>
+        <div>wti_equiv = risk_premium ÷ NAP_sens(<span id="logic-nap-sens">6.52</span>)</div>
+        <div class="text-slate-500">NAP R²=0.880 최고 → WTI 환산 기준</div>
+        <div class="mt-2">total_delta = WTI_delta + wti_equiv</div>
+        <div>각 원료 = 실측 + total_delta × 회귀민감도</div>
+        <div class="mt-2 text-orange-400 font-bold">리스크$100 ≡ WTI +$<span id="logic-equiv-100">15.3</span>/bbl</div>
+        <div class="text-slate-500">→ BZ +${Math.round(100/6.52*16.81)}, ET +${Math.round(100/6.52*6.13)} 등 전파</div>
+      </div>
+      <div class="bg-slate-900/60 rounded-xl p-4 border border-purple-900/40">
+        <div class="text-purple-300 font-bold mb-2">SM Cost 실측 vs 이론</div>
+        <div class="text-red-400">실측: BZ×0.67 + ET×0.25 + NAP×0.05 + 150</div>
+        <div class="text-yellow-400">이론: BZ×0.80 + ET×0.30 + 150</div>
+        <div class="mt-2 text-slate-300">수급신호 = 실측원가 - 이론원가</div>
+        <div class="text-slate-500">양수: 수급 타이트 (실측원가 > 이론)</div>
+        <div class="text-slate-500">음수: 수급 여유 (실측원가 < 이론)</div>
+        <div class="mt-2 text-slate-600">SM Margin: WTI 무상관(R²≈0)</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
-        <div class="text-slate-300 font-bold mb-2">ABS Cost 공식 (실측 배합비)</div>
-        <div>SM CFR China <span class="text-blue-400 font-bold">× 0.60</span></div>
-        <div>+ AN CFR FEA <span class="text-yellow-400 font-bold">× 0.25</span></div>
-        <div>+ BD CFR China <span class="text-orange-400 font-bold">× 0.15</span></div>
-        <div class="mt-2 text-slate-500">ABS Market = 구글시트 실측가 + WTI 델타 보정</div>
-        <div class="text-slate-500">+ Risk Premium (이란 시나리오)</div>
+        <div class="text-slate-300 font-bold mb-2">ABS Gap v6.2</div>
+        <div>ABS Market = 실측 + WTI회귀 + 리스크(flat)</div>
+        <div>ABS Cost = 실측 + total_delta × 회귀</div>
+        <div class="mt-2 text-emerald-400">ABS Gap = Market - Cost</div>
+        <div class="mt-1 text-slate-500">리스크↑ → 원가도↑ → Gap 악화</div>
+        <div class="text-slate-500">(v6.1 착시 제거: 프리미엄만큼 개선 X)</div>
+        <div class="mt-2">ABS Cost = SM×0.60 + AN×0.25 + BD×0.15</div>
       </div>
     </div>
 
-    <!-- 자동 회귀계수 (CSV에서 실시간 반영) -->
+    <!-- 민감도 카드 -->
     <div>
       <div class="text-slate-300 text-xs font-bold mb-3 flex items-center gap-2">
-        📈 WTI 민감도 (자동 회귀계수)
-        <span class="text-slate-600 font-normal">— WTI $1/bbl 변동 시 원료가 변화량 ($/mt)</span>
+        📈 WTI 민감도 전 품목
+        <span class="text-slate-600 font-normal">— WTI $1/bbl 변동 시 변화량 ($/mt)</span>
         <span id="reg-n-badge" class="bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-xs"></span>
       </div>
-      <div class="grid grid-cols-3 md:grid-cols-6 gap-3" id="sens-cards">
-        <!-- JS 렌더링 -->
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+      <div class="grid grid-cols-3 md:grid-cols-7 gap-2 mb-2">
+        <div class="sens-card border border-slate-600">
+          <div class="text-xs text-slate-300 font-bold mb-1">NAP(기준)</div>
+          <div id="sens-nap"  class="text-lg font-black text-white">---</div>
+          <div id="r2-nap"    class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+        <div class="sens-card">
           <div class="text-xs text-purple-400 font-bold mb-1">BZ</div>
-          <div id="sens-bz" class="text-lg font-black text-white">---</div>
-          <div id="r2-bz"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-bz"   class="text-lg font-black text-white">---</div>
+          <div id="r2-bz"     class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+        <div class="sens-card">
           <div class="text-xs text-green-400 font-bold mb-1">ET</div>
-          <div id="sens-et" class="text-lg font-black text-white">---</div>
-          <div id="r2-et"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-et"   class="text-lg font-black text-white">---</div>
+          <div id="r2-et"     class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+        <div class="sens-card">
           <div class="text-xs text-blue-400 font-bold mb-1">SM</div>
-          <div id="sens-sm" class="text-lg font-black text-white">---</div>
-          <div id="r2-sm"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-sm"   class="text-lg font-black text-white">---</div>
+          <div id="r2-sm"     class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+        <div class="sens-card">
           <div class="text-xs text-orange-400 font-bold mb-1">BD</div>
-          <div id="sens-bd" class="text-lg font-black text-white">---</div>
-          <div id="r2-bd"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-bd"   class="text-lg font-black text-white">---</div>
+          <div id="r2-bd"     class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+        <div class="sens-card">
           <div class="text-xs text-yellow-400 font-bold mb-1">AN</div>
-          <div id="sens-an" class="text-lg font-black text-white">---</div>
-          <div id="r2-an"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-an"   class="text-lg font-black text-white">---</div>
+          <div id="r2-an"     class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
+        <div class="sens-card border border-cyan-900/60">
+          <div class="text-xs text-cyan-400 font-bold mb-1">PR</div>
+          <div id="sens-pr"   class="text-lg font-black text-white">---</div>
+          <div id="r2-pr"     class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+        <div class="sens-card border border-red-900/50">
+          <div class="text-xs text-red-400 font-bold mb-1">ABS Gap ★★</div>
+          <div id="sens-abs_gap"  class="text-lg font-black text-white">---</div>
+          <div id="r2-abs_gap"    class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+        <div class="sens-card">
           <div class="text-xs text-cyan-400 font-bold mb-1">ABS Mkt</div>
-          <div id="sens-abs_mkt" class="text-lg font-black text-white">---</div>
-          <div id="r2-abs_mkt"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div id="sens-abs_mkt"  class="text-lg font-black text-white">---</div>
+          <div id="r2-abs_mkt"    class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
-        <div class="bg-slate-900 rounded-lg p-3 border border-red-900 text-center">
-          <div class="text-xs text-red-400 font-bold mb-1">ABS Gap ★</div>
-          <div id="sens-abs_gap" class="text-lg font-black text-white">---</div>
-          <div id="r2-abs_gap"   class="text-xs text-slate-600 mt-1">R²=---</div>
+        <div class="sens-card">
+          <div class="text-xs text-pink-400 font-bold mb-1">ABS Cost</div>
+          <div id="sens-abs_cost" class="text-lg font-black text-white">---</div>
+          <div id="r2-abs_cost"   class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+        <div class="sens-card border border-indigo-900/50">
+          <div class="text-xs text-indigo-400 font-bold mb-1">BZ ARA</div>
+          <div id="sens-bz_ara"   class="text-lg font-black text-white">---</div>
+          <div id="r2-bz_ara"     class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+        <div class="sens-card">
+          <div class="text-xs text-slate-400 font-bold mb-1">SM Cost</div>
+          <div id="sens-sm_cost"  class="text-lg font-black text-white">---</div>
+          <div id="r2-sm_cost"    class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
+        <div class="sens-card">
+          <div class="text-xs text-slate-500 font-bold mb-1">SM Margin</div>
+          <div id="sens-sm_margin" class="text-lg font-black text-green-400">≈0</div>
+          <div class="text-xs text-slate-600 mt-1">WTI 무상관</div>
         </div>
       </div>
       <div class="mt-3 text-xs text-slate-600">
-        * 구글시트 누적 데이터로 매주 자동 재계산 | R²&lt;0.3 은 기본값(default) 사용 | 데이터 4주 미만 시 기본값 사용
-        <br>★ ABS Gap: WTI $1↑ → Gap -$5.76↓ (557일 실측) | SM Margin: WTI 무상관(R²≈0)
+        ★ NAP R²=0.880 최고 → 리스크 WTI 등가 환산 기준 | ABS Gap: WTI $1↑ → -$5.76↓ | SM Margin: WTI 무상관(R²≈0)
+        <br>★ v6.2: 리스크 프리미엄 → wti_equiv = 리스크 ÷ NAP_sens → 전 원료 회귀 반영 → Gap 현실 악화 구조
       </div>
     </div>
   </section>
 
   <footer class="text-center text-slate-700 text-xs pb-4">
-    LAM Advanced Procurement Team 1  |  구글시트 실측가 + Yahoo Finance CL=F  |  30초 자동갱신
+    LAM Advanced Procurement Team 1  |  v6.2  |  리스크→WTI등가 전 원료 반영  |  실측vs이론 수급신호  |  30초 자동갱신
   </footer>
-
 </div>
 
 <script>
-// ── 상태 저장 (구글시트 실측 기반)
+// ── 상태
 let G = {
-  wti_gs: 67.02, wti_rt: 67.02,
-  bz: 772.67, et: 710.0, bd: 1270.0, an: 1315.0,
-  nap: 637.0, sm_act: 966.5, abs_mkt_act: 1060.0,
-  // 파생 실측값 (2/27 기준 | CSV 로드 후 자동 갱신)
-  sm_cost_act: 968.0, sm_margin_act: -1.0,
-  abs_cost_act: 1099.0, abs_gap_act: -39.0,
+  wti_gs:67.02, wti_rt:67.02,
+  bz:772.67, et:710.0, bd:1270.0, an:1315.0, nap:637.0,
+  sm_act:966.5, abs_mkt_act:1060.0,
+  pr_act:870.0, bz_ara_act:720.0, bz_usg_mt_act:680.0,
+  sm_cost_act:968.0, sm_margin_act:-1.0,
+  sm_cost_theory_act:950.0, sm_margin_theory_act:16.0,
+  sm_cost_gap_signal_act:18.0,
+  abs_cost_act:1099.0, abs_gap_act:-39.0,
 };
 
-// ── 민감도 (557일 일간 데이터 확정값 | CSV 로드 시 자동 갱신)
 let SENS = {
-  bz:16.81, et:6.13, bd:20.48, an:7.87, sm:14.75, nap:6.52, pr:4.18,
-  sm_cost:14.83, sm_margin:-0.08,      // SM Margin: WTI 무상관(R²≈0)
-  abs_cost:13.89, abs_mkt:8.12,
-  abs_gap:-5.76,                       // ★ WTI $1↑ → Gap -$5.76/t
+  bz:16.81, et:6.13, bd:20.48, an:7.87, sm:14.75,
+  nap:6.52,     // ★ WTI 등가 환산 기준
+  pr:4.18,
+  bz_ara:15.20, bz_usg:0.85,
+  sm_cost:14.50, sm_margin:-0.08,
+  abs_cost:13.89, abs_mkt:8.12, abs_gap:-5.76,
 };
 
-// ── ABS 배합비 (실측)
-const ABS_RATIO = { sm: 0.60, an: 0.25, bd: 0.15 };
+// ★ v6.2 핵심: 리스크 프리미엄 → WTI 등가 환산 기준
+let NAP_SENS_EQUIV = SENS.nap;
+const BZ_USG_TO_MT = 26.42;
+const SM_THEORY = { bz: 0.80, et: 0.30, fixed: 150 };
 
-// ── 숫자 포맷
 function fmt(v, sign=false) {
   if (v===null||v===undefined||isNaN(v)) return '--';
   return (sign&&v>=0?'+':'') + '$' + Math.round(v).toLocaleString();
 }
 
-// ── WTI 델타 기반 원가 계산 (557일 확정 민감도 v6.0)
-// ABS Gap = 실측 Gap + Δ × -5.76  → WTI↑=Gap↓ 현실 반영
-// SM Margin = 실측값 유지 (WTI 무상관 R²≈0)
-// Risk Premium = ABS Market + Gap에 직접 가산
+// ── ★ v6.2 핵심 계산 함수
+// 리스크 프리미엄 → WTI 등가 → 전 원료 회귀 반영
 function calcFromG(wti, risk=0) {
-  const d   = wti - G.wti_gs;
-  const bz  = G.bz          + d * SENS.bz;
-  const et  = G.et          + d * SENS.et;
-  const bd  = G.bd          + d * SENS.bd;
-  const an  = G.an          + d * SENS.an;
-  const sm  = G.sm_act      + d * SENS.sm;
-  // SM Cost / Margin
-  const smC = G.sm_cost_act   + d * SENS.sm_cost;
-  const smM = G.sm_margin_act + d * SENS.sm_margin;  // R²≈0 → 거의 고정
-  // ABS - Gap 직접 회귀 ★
-  const absC = G.abs_cost_act + d * SENS.abs_cost;
-  const absM = G.abs_mkt_act  + d * SENS.abs_mkt + risk;
-  const absG = G.abs_gap_act  + d * SENS.abs_gap + risk;  // WTI↑=Gap↓
-  return { wti, bz, et, bd, an, sm, smC, smM, absC, absM, absG, risk };
+  const d_wti = wti - G.wti_gs;
+
+  // ★ 리스크 → WTI 등가
+  const wti_risk_equiv = risk / NAP_SENS_EQUIV;
+
+  // ★ 전 원료에 적용되는 총 WTI 델타
+  const d_total = d_wti + wti_risk_equiv;
+
+  // 전 원료 보정
+  const bz   = G.bz    + d_total * SENS.bz;
+  const et   = G.et    + d_total * SENS.et;
+  const bd   = G.bd    + d_total * SENS.bd;
+  const an   = G.an    + d_total * SENS.an;
+  const nap  = G.nap   + d_total * SENS.nap;
+  const sm   = G.sm_act + d_total * SENS.sm;
+  const pr   = G.pr_act + d_total * SENS.pr;
+
+  // BZ 글로벌
+  const bzAra    = G.bz_ara_act   + d_total * SENS.bz_ara;
+  const bzUsgMt  = G.bz_usg_mt_act + d_total * SENS.bz_usg * BZ_USG_TO_MT;
+  const bzSpreadAra = bz - bzAra;
+  const bzSpreadUsg = bz - bzUsgMt;
+
+  // SM Cost 실측 회귀 기반
+  const smC  = G.sm_cost_act + d_total * SENS.sm_cost;
+  // SM Margin: WTI 무상관 → 실시간 WTI 델타만 적용 (리스크 등가 제외)
+  const smM  = G.sm_margin_act + d_wti * SENS.sm_margin;
+
+  // SM Cost 이론 기준선 (보정된 BZ/ET 사용)
+  const smCTheory = bz * SM_THEORY.bz + et * SM_THEORY.et + SM_THEORY.fixed;
+  const smMTheory = sm - smCTheory;
+  // 수급신호: 실측원가 - 이론원가
+  const supplySignal = smC - smCTheory;
+
+  // ABS Cost (원료 상승 반영)
+  const absC = G.abs_cost_act + d_total * SENS.abs_cost;
+  // ABS Market: 실시간 WTI 회귀 + 리스크 flat
+  const absM = G.abs_mkt_act + d_wti * SENS.abs_mkt + risk;
+  // ABS Gap = Market - Cost (착시 제거)
+  const absG = absM - absC;
+
+  return {
+    wti, d_wti, wti_risk_equiv, d_total, risk,
+    bz, et, bd, an, nap, sm, pr, bzAra, bzUsgMt,
+    bzSpreadAra, bzSpreadUsg,
+    smC, smM, smCTheory, smMTheory, supplySignal,
+    absC, absM, absG
+  };
 }
 
-// ── 경보 뱃지
 function alertBadge(absG, smM) {
   if (absG < 0 || smM < -100) return `<span class="badge-danger alert-blink">🔴 CRITICAL</span>`;
   if (absG < 150)              return `<span class="badge-warn">🟡 WARNING - Gap ${Math.round(absG)}/t</span>`;
   return `<span class="badge-ok">🟢 NORMAL</span>`;
 }
 
-// ── 구매 전략
 function strategy(r) {
-  if (r.absG < 0)   return `<span class="text-red-400 font-bold">🔴 역마진 전환 — 즉시 협상 재조정. 계약 연장 금지. 대체 공급사 긴급 발굴.</span>`;
-  if (r.absG < 100) return `<span class="text-orange-400 font-bold">🟠 GAP 위험 — 단가 인하 요청 or 판매가 인상. 재고 축소 검토.</span>`;
-  if (r.absG < 200) return `<span class="text-yellow-400">🟡 GAP 축소 — 적정 재고 유지. WTI $80 돌파 시 즉시 재평가.</span>`;
-  if (r.smM < 0)    return `<span class="text-blue-400">🔵 SM 역마진 — 메이커 감산 → 수급 타이트 예상. 선제 재고 확보 검토.</span>`;
+  if (r.absG < 0)          return `<span class="text-red-400 font-bold">🔴 역마진 전환 — 즉시 협상 재조정. 계약 연장 금지.</span>`;
+  if (r.absG < 100)        return `<span class="text-orange-400 font-bold">🟠 GAP 위험 — 단가 인하 요청 or 판매가 인상.</span>`;
+  if (r.absG < 200)        return `<span class="text-yellow-400">🟡 GAP 축소 — 적정 재고 유지. WTI $80 돌파 시 즉시 재평가.</span>`;
+  if (r.supplySignal > 50) return `<span class="text-orange-400">🟠 수급 타이트 신호(+${Math.round(r.supplySignal)}) — SM 메이커 공급 제한 가능. 선제 재고 검토.</span>`;
+  if (r.smM < 0)           return `<span class="text-blue-400">🔵 SM 역마진 — 메이커 감산 → 수급 타이트 예상.</span>`;
   return `<span class="text-emerald-400">🟢 정상 범위 — 현행 구매 전략 유지.</span>`;
 }
 
-// ── 시나리오 테이블
+function bzSpreadInsight(sAra, sUsg) {
+  let msg = '';
+  if (isNaN(sAra)) {
+    msg += '<div class="text-slate-500">BZ ARA 데이터 없음</div>';
+  } else if (sAra > 50) {
+    msg += `<div class="text-emerald-400 font-bold">✅ Korea-ARA: ${fmt(sAra,true)} — 아시아 강세. 수출 유리.</div>`;
+  } else if (sAra > 0) {
+    msg += `<div class="text-yellow-400">⚠ Korea-ARA: ${fmt(sAra,true)} — 소폭 프리미엄.</div>`;
+  } else {
+    msg += `<div class="text-red-400 font-bold">🔴 Korea-ARA: ${fmt(sAra,true)} — ARA 역전. 유럽산 경쟁력 우위.</div>`;
+  }
+  if (!isNaN(sUsg)) msg += `<div class="mt-2 text-slate-400">Korea-USG: ${fmt(sUsg,true)}/mt</div>`;
+  return msg;
+}
+
+// 시나리오
 const SCENARIOS = [
   {label:'Base',     wti:59.44, risk:0,   color:'#10b981'},
   {label:'Mild',     wti:70,    risk:50,  color:'#f59e0b'},
@@ -401,26 +599,29 @@ const SCENARIOS = [
 
 function renderScenarios() {
   document.getElementById('scenario-table').innerHTML = SCENARIOS.map(s => {
-    const r = calcFromG(s.wti, s.risk);
+    const r  = calcFromG(s.wti, s.risk);
     const gc = r.absG < 0 ? '#ef4444' : r.absG < 150 ? '#f59e0b' : '#10b981';
-    const sc = r.smM  < 0 ? '#ef4444' : '#10b981';
+    const sc = r.supplySignal > 30 ? '#f97316' : r.supplySignal > 0 ? '#f59e0b' : '#10b981';
+    const we = r.wti_risk_equiv;
     return `<div class="scenario-row" style="border-left-color:${s.color}">
-      <div class="flex flex-wrap items-center gap-3 text-sm">
+      <div class="flex flex-wrap items-center gap-2 text-xs md:text-sm">
         <span class="font-black w-20" style="color:${s.color}">${s.label}</span>
         <span class="text-slate-400 w-16">WTI <b class="text-white">$${s.wti}</b></span>
         <span class="text-slate-400 w-20">Risk <b class="text-orange-400">+$${s.risk}</b></span>
+        <span class="text-yellow-600 w-24">≡WTI <b class="text-yellow-400">+$${we.toFixed(1)}</b></span>
         <span class="text-slate-400 w-28">BZ <b class="text-purple-300">${fmt(r.bz)}</b></span>
-        <span class="text-slate-400 w-28">SM <b class="text-blue-300">${fmt(r.sm)}</b></span>
+        <span class="text-slate-400 w-24">SM <b class="text-blue-300">${fmt(r.sm)}</b></span>
+        <span class="text-cyan-500 w-24">PR <b class="text-cyan-400">${fmt(r.pr)}</b></span>
         <span class="text-slate-400 w-32">ABS Mkt <b class="text-blue-200">${fmt(r.absM)}</b></span>
         <span class="text-slate-400 w-32">ABS Cost <b class="text-red-300">${fmt(r.absC)}</b></span>
         <span class="w-32">ABS Gap <b style="color:${gc}" class="font-black">${fmt(r.absG,true)}</b></span>
-        <span class="w-28">SM Margin <b style="color:${sc}">${fmt(r.smM,true)}</b></span>
+        <span class="w-32">수급신호 <b style="color:${sc}">${r.supplySignal >= 0 ? '+' : ''}${Math.round(r.supplySignal)}/t</b></span>
       </div>
     </div>`;
   }).join('');
 }
 
-// ── 슬라이더
+// 슬라이더
 function onSlider() {
   const wti  = parseFloat(document.getElementById('slider-wti').value);
   const risk = parseFloat(document.getElementById('slider-risk').value);
@@ -428,17 +629,38 @@ function onSlider() {
   document.getElementById('slider-risk-val').textContent = `+$${risk} /t`;
 
   const r = calcFromG(wti, risk);
-  document.getElementById('sim-bz').textContent      = fmt(r.bz);
-  document.getElementById('sim-et').textContent      = fmt(r.et);
-  document.getElementById('sim-bd').textContent      = fmt(r.bd);
-  document.getElementById('sim-an').textContent      = fmt(r.an);
-  document.getElementById('sim-abs-mkt').textContent = fmt(r.absM);
-  document.getElementById('sim-sm-mkt').textContent  = fmt(r.sm);
-  document.getElementById('sim-sm-cost').textContent = fmt(r.smC);
+
+  // ★ v6.2 리스크 WTI 등가 표시 바
+  const riskBar = document.getElementById('risk-equiv-bar');
+  if (risk > 0) {
+    riskBar.classList.remove('hidden');
+    document.getElementById('risk-equiv-val').textContent = `+$${r.wti_risk_equiv.toFixed(1)}/bbl`;
+    document.getElementById('risk-bz-impact').textContent  = `$${Math.round(r.wti_risk_equiv * SENS.bz)}`;
+    document.getElementById('risk-et-impact').textContent  = `$${Math.round(r.wti_risk_equiv * SENS.et)}`;
+    document.getElementById('risk-bd-impact').textContent  = `$${Math.round(r.wti_risk_equiv * SENS.bd)}`;
+    document.getElementById('risk-an-impact').textContent  = `$${Math.round(r.wti_risk_equiv * SENS.an)}`;
+    document.getElementById('risk-nap-impact').textContent = `$${Math.round(r.wti_risk_equiv * SENS.nap)}`;
+    document.getElementById('risk-sm-impact').textContent  = `$${Math.round(r.wti_risk_equiv * SENS.sm)}`;
+  } else {
+    riskBar.classList.add('hidden');
+  }
+
+  document.getElementById('sim-bz').textContent       = fmt(r.bz);
+  document.getElementById('sim-et').textContent       = fmt(r.et);
+  document.getElementById('sim-bd').textContent       = fmt(r.bd);
+  document.getElementById('sim-an').textContent       = fmt(r.an);
+  document.getElementById('sim-pr').textContent       = fmt(r.pr);
+  document.getElementById('sim-sm-mkt').textContent   = fmt(r.sm);
+  document.getElementById('sim-sm-cost').textContent  = fmt(r.smC);
+  document.getElementById('sim-sm-cost-theory').textContent = fmt(r.smCTheory);
 
   const smEl = document.getElementById('sim-sm-margin');
   smEl.textContent = fmt(r.smM, true);
   smEl.className   = 'font-black ' + (r.smM < 0 ? 'text-red-400' : 'text-emerald-400');
+
+  const sigEl = document.getElementById('sim-supply-signal');
+  sigEl.textContent = (r.supplySignal >= 0 ? '+' : '') + Math.round(r.supplySignal) + '/t';
+  sigEl.className   = 'font-black ' + (r.supplySignal > 30 ? 'text-orange-400' : r.supplySignal > 0 ? 'text-yellow-400' : 'text-emerald-400');
 
   document.getElementById('sim-abs-mkt').textContent  = fmt(r.absM);
   document.getElementById('sim-abs-cost').textContent = fmt(r.absC);
@@ -456,29 +678,64 @@ function setScenario(wti, risk) {
   onSlider();
 }
 
-// ── CSV 로드
+function setSensCard(id, sensVal, r2Val) {
+  const el   = document.getElementById('sens-' + id);
+  const r2el = document.getElementById('r2-'   + id);
+  if (!el) return;
+  const v = parseFloat(sensVal);
+  if (!isNaN(v)) {
+    el.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
+    el.className   = 'text-lg font-black ' + (v < 0 ? 'text-green-400' : 'text-yellow-300');
+  }
+  if (r2el) {
+    const r2 = parseFloat(r2Val);
+    if (!isNaN(r2)) {
+      r2el.textContent = 'R²=' + r2.toFixed(2);
+      r2el.className   = 'text-xs mt-1 ' + (r2 >= 0.5 ? 'text-emerald-500' : r2 >= 0.3 ? 'text-yellow-600' : 'text-red-700');
+    } else {
+      r2el.textContent = 'default';
+      r2el.className   = 'text-xs mt-1 text-slate-600';
+    }
+  }
+}
+
 function loadCSV() {
   Papa.parse('simulation_result.csv?t=' + Date.now(), {
-    download: true, header: true, skipEmptyLines: true,
+    download:true, header:true, skipEmptyLines:true,
     complete: function(res) {
       if (!res.data || !res.data.length) return;
       const d = res.data[0];
 
-      // G 상태 업데이트
-      G.wti_rt        = parseFloat(d.WTI)             || G.wti_rt;
-      G.wti_gs        = parseFloat(d.WTI_GSheet)      || G.wti_gs;
-      G.bz            = parseFloat(d.BZ_Actual)       || G.bz;
-      G.et            = parseFloat(d.ET_Actual)       || G.et;
-      G.bd            = parseFloat(d.BD_Actual)       || G.bd;
-      G.an            = parseFloat(d.AN_Actual)       || G.an;
-      G.nap           = parseFloat(d.NAP)             || G.nap;
-      G.sm_act        = parseFloat(d.SM_Actual)       || G.sm_act;
-      G.abs_mkt_act   = parseFloat(d.ABS_Mkt_Actual)  || G.abs_mkt_act;
-      // 파생 실측값 갱신
-      G.sm_cost_act   = parseFloat(d.SM_Cost_Actual)  || G.sm_cost_act;
-      G.sm_margin_act = parseFloat(d.SM_Margin_Actual)|| G.sm_margin_act;
-      G.abs_cost_act  = parseFloat(d.ABS_Cost_Actual) || G.abs_cost_act;
-      G.abs_gap_act   = parseFloat(d.ABS_Gap_Actual)  || G.abs_gap_act;
+      G.wti_rt        = parseFloat(d.WTI)              || G.wti_rt;
+      G.wti_gs        = parseFloat(d.WTI_GSheet)       || G.wti_gs;
+      G.bz            = parseFloat(d.BZ_Actual)        || G.bz;
+      G.et            = parseFloat(d.ET_Actual)        || G.et;
+      G.bd            = parseFloat(d.BD_Actual)        || G.bd;
+      G.an            = parseFloat(d.AN_Actual)        || G.an;
+      G.nap           = parseFloat(d.NAP)              || G.nap;
+      G.sm_act        = parseFloat(d.SM_Actual)        || G.sm_act;
+      G.abs_mkt_act   = parseFloat(d.ABS_Mkt_Actual)   || G.abs_mkt_act;
+      G.pr_act        = parseFloat(d.PR_Actual)        || G.pr_act;
+      G.bz_ara_act    = parseFloat(d.BZ_ARA_Actual)    || G.bz_ara_act;
+      G.bz_usg_mt_act = parseFloat(d.BZ_USG_Actual)   || G.bz_usg_mt_act;
+      G.sm_cost_act   = parseFloat(d.SM_Cost_Actual)   || G.sm_cost_act;
+      G.sm_margin_act = parseFloat(d.SM_Margin_Actual) || G.sm_margin_act;
+      G.sm_cost_theory_act   = parseFloat(d.SM_Cost_Theory_Actual)   || G.sm_cost_theory_act;
+      G.sm_margin_theory_act = parseFloat(d.SM_Margin_Theory_Actual) || G.sm_margin_theory_act;
+      G.sm_cost_gap_signal_act = parseFloat(d.SM_Cost_Gap_Signal_Actual) || G.sm_cost_gap_signal_act;
+      G.abs_cost_act  = parseFloat(d.ABS_Cost_Actual)  || G.abs_cost_act;
+      G.abs_gap_act   = parseFloat(d.ABS_Gap_Actual)   || G.abs_gap_act;
+
+      // ★ NAP 민감도 기준 갱신
+      if (d.NAP_Sens_Equiv_Basis) {
+        NAP_SENS_EQUIV = parseFloat(d.NAP_Sens_Equiv_Basis) || NAP_SENS_EQUIV;
+        document.getElementById('nap-sens-basis').textContent = NAP_SENS_EQUIV.toFixed(2);
+        document.getElementById('logic-nap-sens').textContent = NAP_SENS_EQUIV.toFixed(2);
+        document.getElementById('logic-equiv-100').textContent = (100/NAP_SENS_EQUIV).toFixed(1);
+        const we100 = (100/NAP_SENS_EQUIV).toFixed(1);
+        document.getElementById('risk-equiv-display').textContent =
+          `현재기준: 리스크$100 ≡ WTI+$${we100}/bbl`;
+      }
 
       // 헤더
       document.getElementById('wti-price').textContent = `$${G.wti_rt.toFixed(2)}`;
@@ -486,94 +743,113 @@ function loadCSV() {
       document.getElementById('wti-delta').innerHTML =
         `<span class="${delta>=0?'text-red-400':'text-green-400'}">구글시트 대비 ${delta>=0?'+':''}${delta.toFixed(2)}</span>`;
 
-      // 카드
-      document.getElementById('c-wti').textContent  = `$${G.wti_rt.toFixed(2)}`;
-      document.getElementById('c-nap').textContent  = `$${Math.round(G.nap)}`;
-
       const rt = calcFromG(G.wti_rt, 0);
-      document.getElementById('c-bz').textContent     = fmt(rt.bz);
-      document.getElementById('c-bz-act').textContent = `실측 $${Math.round(G.bz)}`;
-      document.getElementById('c-et').textContent     = fmt(rt.et);
-      document.getElementById('c-et-act').textContent = `실측 $${Math.round(G.et)}`;
-      document.getElementById('c-bd').textContent         = fmt(rt.bd);
-      document.getElementById('c-bd-act').textContent     = `실측 $${Math.round(G.bd)}`;
-      document.getElementById('c-an').textContent         = fmt(rt.an);
-      document.getElementById('c-an-act').textContent     = `실측 $${Math.round(G.an)}`;
-      document.getElementById('c-abs-mkt').textContent    = fmt(rt.absM);
-      document.getElementById('c-abs-mkt-act').textContent= `실측 $${Math.round(G.abs_mkt_act)}`;
-      document.getElementById('c-sm-mkt').textContent     = fmt(rt.sm);
-      document.getElementById('c-sm-act').textContent     = `실측 $${Math.round(G.sm_act)}`;
 
+      // 카드 업데이트
+      document.getElementById('c-wti').textContent      = `$${G.wti_rt.toFixed(2)}`;
+      document.getElementById('c-nap').textContent      = `$${Math.round(G.nap)}`;
+      document.getElementById('c-bz').textContent       = fmt(rt.bz);
+      document.getElementById('c-bz-act').textContent   = `실측 $${Math.round(G.bz)}`;
+      document.getElementById('c-et').textContent       = fmt(rt.et);
+      document.getElementById('c-et-act').textContent   = `실측 $${Math.round(G.et)}`;
+      document.getElementById('c-bd').textContent       = fmt(rt.bd);
+      document.getElementById('c-bd-act').textContent   = `실측 $${Math.round(G.bd)}`;
+      document.getElementById('c-an').textContent       = fmt(rt.an);
+      document.getElementById('c-an-act').textContent   = `실측 $${Math.round(G.an)}`;
+      document.getElementById('c-pr').textContent       = fmt(rt.pr);
+      document.getElementById('c-pr-act').textContent   = `실측 $${Math.round(G.pr_act)}`;
+      document.getElementById('c-sm-mkt').textContent   = fmt(rt.sm);
+      document.getElementById('c-sm-act').textContent   = `실측 $${Math.round(G.sm_act)}`;
+      document.getElementById('c-abs-mkt').textContent      = fmt(rt.absM);
+      document.getElementById('c-abs-mkt-act').textContent  = `실측 $${Math.round(G.abs_mkt_act)}`;
+      document.getElementById('c-abs-cost').textContent     = fmt(rt.absC);
+      document.getElementById('c-abs-cost-act').textContent = `실측 $${Math.round(G.abs_cost_act)}`;
+
+      // SM Margin
       const smEl = document.getElementById('c-sm-margin');
       smEl.textContent = fmt(rt.smM, true);
-      smEl.className   = 'text-lg font-black ' + (rt.smM < 0 ? 'text-red-400' : 'text-emerald-400');
+      smEl.className = 'text-lg font-black ' + (rt.smM < 0 ? 'text-red-400' : 'text-emerald-400');
 
+      // ABS Gap
       const gEl = document.getElementById('c-abs-gap');
       gEl.textContent = fmt(rt.absG, true);
-      gEl.className   = 'text-lg font-black ' + (rt.absG < 0 ? 'text-red-500 alert-blink' : rt.absG < 150 ? 'text-yellow-400' : 'text-emerald-400');
+      gEl.className = 'text-lg font-black ' + (rt.absG < 0 ? 'text-red-500 alert-blink' : rt.absG < 150 ? 'text-yellow-400' : 'text-emerald-400');
 
+      // ★ v6.2 수급신호
+      const sigEl = document.getElementById('c-supply-signal');
+      sigEl.textContent = (rt.supplySignal >= 0 ? '+' : '') + Math.round(rt.supplySignal) + '/t';
+      sigEl.className = 'text-xl font-black ' + (rt.supplySignal > 30 ? 'text-orange-400' : rt.supplySignal > 0 ? 'text-yellow-400' : 'text-emerald-400');
+      document.getElementById('c-supply-signal-sub').textContent = rt.supplySignal > 0 ? '▲ 수급 타이트' : '▼ 수급 여유';
+
+      // SM Cost/Margin 실측 vs 이론
+      document.getElementById('c-sm-cost').textContent = fmt(rt.smC);
+      document.getElementById('c-sm-cost-act').textContent = `실측 $${Math.round(G.sm_cost_act)}`;
+      document.getElementById('c-sm-cost-theory').textContent = fmt(rt.smCTheory);
+      document.getElementById('c-sm-cost-theory-act').textContent = `실측 $${Math.round(G.sm_cost_theory_act)}`;
+      const sm2El = document.getElementById('c-sm-margin2');
+      sm2El.textContent = fmt(rt.smM, true);
+      sm2El.className = 'text-xl font-black ' + (rt.smM < 0 ? 'text-red-400' : 'text-emerald-400');
+      const smThEl = document.getElementById('c-sm-margin-theory');
+      smThEl.textContent = fmt(rt.smMTheory, true);
+      smThEl.className = 'text-xl font-black ' + (rt.smMTheory < 0 ? 'text-red-400' : 'text-yellow-400');
+
+      // BZ ARA
+      document.getElementById('c-bz-ara').textContent     = fmt(rt.bzAra);
+      document.getElementById('c-bz-ara-act').textContent = `실측 $${Math.round(G.bz_ara_act)}`;
+
+      // BZ 스프레드 섹션
+      document.getElementById('sp-bz-korea').textContent    = fmt(rt.bz);
+      document.getElementById('sp-bz-ara').textContent      = fmt(rt.bzAra);
+      document.getElementById('sp-bz-spread-ara').textContent = fmt(rt.bzSpreadAra, true);
+      document.getElementById('sp-bz-korea2').textContent   = fmt(rt.bz);
+      document.getElementById('sp-bz-usg').textContent      = fmt(rt.bzUsgMt);
+      document.getElementById('sp-bz-spread-usg').textContent = fmt(rt.bzSpreadUsg, true);
+      document.getElementById('bz-spread-insight').innerHTML = bzSpreadInsight(rt.bzSpreadAra, rt.bzSpreadUsg);
+
+      // 헤더 지표
       document.getElementById('hdr-abs-gap').textContent   = fmt(rt.absG, true);
       document.getElementById('hdr-sm-margin').textContent = fmt(rt.smM, true);
+      document.getElementById('hdr-supply-signal').textContent = (rt.supplySignal >= 0 ? '+' : '') + Math.round(rt.supplySignal) + '/t';
+      document.getElementById('hdr-bz-spread').textContent = fmt(rt.bzSpreadAra, true);
       document.getElementById('alert-badge').innerHTML     = alertBadge(rt.absG, rt.smM);
 
+      // 메타
       document.getElementById('update-time').textContent = '갱신: ' + (d.UpdateTime || '');
       document.getElementById('gs-date').textContent     = '구글시트: ' + (d.GSheet_Date || '');
       document.getElementById('wti-source').textContent  = d.WTI_Source || '';
 
-      // ── 자동 회귀계수 카드 업데이트
-      function setSensCard(id, sensVal, r2Val) {
-        const el   = document.getElementById('sens-' + id);
-        const r2el = document.getElementById('r2-'   + id);
-        if (!el) return;
-        const v = parseFloat(sensVal);
-        if (!isNaN(v)) {
-          el.textContent = (v >= 0 ? '+' : '') + v.toFixed(2);
-          el.className   = 'text-lg font-black ' + (v < 0 ? 'text-green-400' : 'text-yellow-300');
-        }
-        if (r2el) {
-          const r2 = parseFloat(r2Val);
-          if (!isNaN(r2)) {
-            r2el.textContent = 'R²=' + r2.toFixed(2);
-            r2el.className   = 'text-xs mt-1 ' + (r2 >= 0.5 ? 'text-emerald-500' : r2 >= 0.3 ? 'text-yellow-600' : 'text-red-700');
-          } else {
-            r2el.textContent = 'default';
-            r2el.className   = 'text-xs mt-1 text-slate-600';
-          }
-        }
-      }
-      // 민감도 SENS 객체도 CSV값으로 갱신 (슬라이더 계산에 반영)
-      if (d.Sens_BZ)       { SENS.bz         = parseFloat(d.Sens_BZ);       setSensCard('bz',      d.Sens_BZ,      d.R2_BZ);      }
-      if (d.Sens_ET)       { SENS.et         = parseFloat(d.Sens_ET);       setSensCard('et',      d.Sens_ET,      d.R2_ET);      }
-      if (d.Sens_SM)       { SENS.sm         = parseFloat(d.Sens_SM);       setSensCard('sm',      d.Sens_SM,      d.R2_SM);      }
-      if (d.Sens_BD)       { SENS.bd         = parseFloat(d.Sens_BD);       setSensCard('bd',      d.Sens_BD,      d.R2_BD);      }
-      if (d.Sens_AN)       { SENS.an         = parseFloat(d.Sens_AN);       setSensCard('an',      d.Sens_AN,      d.R2_AN);      }
-      if (d.Sens_NAP)      { SENS.nap        = parseFloat(d.Sens_NAP);      setSensCard('nap',     d.Sens_NAP,     d.R2_NAP);     }
-      if (d.Sens_ABS_MKT)  { SENS.abs_mkt    = parseFloat(d.Sens_ABS_MKT);  setSensCard('abs_mkt', d.Sens_ABS_MKT, d.R2_ABS_MKT); }
-      if (d.Sens_ABS_GAP)  { SENS.abs_gap    = parseFloat(d.Sens_ABS_GAP);  setSensCard('abs_gap', d.Sens_ABS_GAP, d.R2_ABS_GAP); }
-      if (d.Sens_ABS_COST) { SENS.abs_cost   = parseFloat(d.Sens_ABS_COST); }
-      if (d.Sens_SM_MARGIN){ SENS.sm_margin  = parseFloat(d.Sens_SM_MARGIN);}
-      if (d.Sens_SM_COST)  { SENS.sm_cost    = parseFloat(d.Sens_SM_COST);  }
+      // 민감도 카드
+      if (d.Sens_BZ)       { SENS.bz        = parseFloat(d.Sens_BZ);       setSensCard('bz',      d.Sens_BZ,      d.R2_BZ);        }
+      if (d.Sens_ET)       { SENS.et        = parseFloat(d.Sens_ET);       setSensCard('et',      d.Sens_ET,      d.R2_ET);        }
+      if (d.Sens_SM)       { SENS.sm        = parseFloat(d.Sens_SM);       setSensCard('sm',      d.Sens_SM,      d.R2_SM);        }
+      if (d.Sens_BD)       { SENS.bd        = parseFloat(d.Sens_BD);       setSensCard('bd',      d.Sens_BD,      d.R2_BD);        }
+      if (d.Sens_AN)       { SENS.an        = parseFloat(d.Sens_AN);       setSensCard('an',      d.Sens_AN,      d.R2_AN);        }
+      if (d.Sens_NAP)      { SENS.nap       = parseFloat(d.Sens_NAP);      setSensCard('nap',     d.Sens_NAP,     d.R2_NAP);       }
+      if (d.Sens_PR)       { SENS.pr        = parseFloat(d.Sens_PR);       setSensCard('pr',      d.Sens_PR,      d.R2_PR);        }
+      if (d.Sens_BZ_ARA)   { SENS.bz_ara    = parseFloat(d.Sens_BZ_ARA);   setSensCard('bz_ara',  d.Sens_BZ_ARA,  d.R2_BZ_ARA);   }
+      if (d.Sens_ABS_MKT)  { SENS.abs_mkt   = parseFloat(d.Sens_ABS_MKT);  setSensCard('abs_mkt', d.Sens_ABS_MKT, d.R2_ABS_MKT);  }
+      if (d.Sens_ABS_GAP)  { SENS.abs_gap   = parseFloat(d.Sens_ABS_GAP);  setSensCard('abs_gap', d.Sens_ABS_GAP, d.R2_ABS_GAP);  }
+      if (d.Sens_ABS_COST) { SENS.abs_cost  = parseFloat(d.Sens_ABS_COST); setSensCard('abs_cost',d.Sens_ABS_COST,d.R2_ABS_COST); }
+      if (d.Sens_SM_COST)  { SENS.sm_cost   = parseFloat(d.Sens_SM_COST);  setSensCard('sm_cost', d.Sens_SM_COST, d.R2_SM_COST);  }
+      if (d.Sens_SM_MARGIN){ SENS.sm_margin = parseFloat(d.Sens_SM_MARGIN);}
 
-      // 회귀 메타 표시
       if (d.Reg_N) {
         document.getElementById('reg-n-badge').textContent = d.Reg_N + '주 데이터';
         document.getElementById('reg-meta').textContent    = '최종 갱신: ' + (d.UpdateTime || '');
       }
 
-      // 슬라이더 동기화
       document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
       onSlider();
       renderScenarios();
 
-      // 토스트
       if (rt.absG < 150) {
         document.getElementById('toast-msg').textContent =
-          `ABS Gap ${fmt(rt.absG, true)} — 목표($150) ${Math.round(150-rt.absG)} 부족`;
+          `ABS Gap ${fmt(rt.absG,true)} — 목표($150) ${Math.round(150-rt.absG)} 부족`;
         document.getElementById('toast').style.display = 'block';
       }
     },
     error: function() {
-      document.getElementById('update-time').textContent = 'CSV 로드 실패 - Actions 실행 대기';
+      document.getElementById('update-time').textContent = 'CSV 로드 실패';
     }
   });
 }
@@ -582,11 +858,10 @@ function refreshImg() {
   document.getElementById('report-img').src = 'risk_simulation_report.png?t=' + Date.now();
 }
 
-// ── 초기화
 renderScenarios();
 onSlider();
 loadCSV();
-setInterval(loadCSV,   30000);
+setInterval(loadCSV, 30000);
 setInterval(refreshImg, 300000);
 </script>
 </body>
