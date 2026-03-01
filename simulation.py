@@ -209,7 +209,7 @@ def calc_costs(latest, wti_rt, sens):
     abs_mkt_rt = abs_mkt_act + delta * sens['abs_mkt']
 
     # SM 제조원가: BZ×0.78 + ET×0.28 + 고정비$45
-    sm_cost   = bz_rt * 0.78 + et_rt * 0.28 + 45.0
+    sm_cost   = bz_rt * 0.78 + et_rt * 0.28 + 150.0
     sm_margin = sm_rt - sm_cost
 
     # ABS 제조원가: SM×0.60 + AN×0.25 + BD×0.15 (실측 배합비)
@@ -283,7 +283,7 @@ def generate_report(current, hist8, latest, sens, r2, n_reg, wti_source):
 
     # SM Cost/Margin 히스토리
     sm_cost_h = [
-        bz_h[i]*0.78 + et_h[i]*0.28 + 45
+        bz_h[i]*0.78 + et_h[i]*0.28 + 150
         if bz_h[i] and et_h[i] else float('nan')
         for i in range(len(bz_h))
     ]
