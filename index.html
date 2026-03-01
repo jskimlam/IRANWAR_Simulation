@@ -254,7 +254,7 @@
         <div class="text-slate-300 font-bold mb-2">SM Cost 공식</div>
         <div>BZ FOB Korea <span class="text-purple-400 font-bold">× 0.78</span></div>
         <div>+ ET CFR NEA <span class="text-green-400 font-bold">× 0.28</span></div>
-        <div>+ Fixed Cost <span class="text-slate-300 font-bold">$45/t</span></div>
+        <div>+ Fixed Cost <span class="text-slate-300 font-bold">$150/t</span></div>
         <div class="mt-2 text-slate-500">SM Margin = SM Market − SM Cost</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
@@ -349,7 +349,7 @@ function calcFromG(wti, risk=0) {
   const sm  = G.sm_act    + d * SENS.sm;
   const absM= G.abs_mkt_act + d * SENS.abs_mkt + risk;
   // SM Cost
-  const smC = bz * 0.78 + et * 0.28 + 45;
+  const smC = bz * 0.78 + et * 0.28 + 150;
   const smM = sm - smC;
   // ABS Cost = SM×0.60 + AN×0.25 + BD×0.15 (실측 배합비)
   const absC = sm * ABS_RATIO.sm + an * ABS_RATIO.an + bd * ABS_RATIO.bd;
