@@ -101,6 +101,16 @@
         <div id="c-bd-act" class="text-xs text-slate-600">실측 $---</div>
       </div>
       <div class="metric-card">
+        <div class="text-xs text-slate-500 mb-1">AN CFR FEA</div>
+        <div id="c-an" class="text-lg font-black text-yellow-400">--</div>
+        <div id="c-an-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+      <div class="metric-card">
+        <div class="text-xs text-slate-500 mb-1">ABS Market</div>
+        <div id="c-abs-mkt" class="text-lg font-black text-cyan-400">--</div>
+        <div id="c-abs-mkt-act" class="text-xs text-slate-600">실측 $---</div>
+      </div>
+      <div class="metric-card">
         <div class="text-xs text-slate-500 mb-1">SM Market</div>
         <div id="c-sm-mkt" class="text-lg font-black text-blue-400">--</div>
         <div id="c-sm-act" class="text-xs text-slate-600">실측 $---</div>
@@ -174,6 +184,10 @@
             <span id="sim-bd" class="text-orange-400 font-black">$---</span>
           </div>
           <div class="flex justify-between border-b border-slate-700 pb-2">
+            <span class="text-slate-400">AN CFR FEA (보정)</span>
+            <span id="sim-an" class="text-yellow-400 font-black">$---</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-700 pb-2">
             <span class="text-slate-400">SM Market (보정)</span>
             <span id="sim-sm-mkt" class="text-blue-400 font-black">$---</span>
           </div>
@@ -244,12 +258,12 @@
         <div class="mt-2 text-slate-500">SM Margin = SM Market − SM Cost</div>
       </div>
       <div class="bg-slate-900/60 rounded-xl p-4 border border-slate-700">
-        <div class="text-slate-300 font-bold mb-2">ABS Cost 공식</div>
-        <div>SM CFR China <span class="text-blue-400 font-bold">× 0.30</span></div>
-        <div>+ BD CFR China <span class="text-orange-400 font-bold">× 0.12</span></div>
-        <div>+ AN(≈PR×1.15) <span class="text-pink-400 font-bold">× 0.08</span></div>
-        <div>+ Fixed Cost <span class="text-slate-300 font-bold">$680/t</span></div>
-        <div class="mt-2 text-slate-500">ABS Market = SM + $250 스프레드 + Risk Premium</div>
+        <div class="text-slate-300 font-bold mb-2">ABS Cost 공식 (실측 배합비)</div>
+        <div>SM CFR China <span class="text-blue-400 font-bold">× 0.60</span></div>
+        <div>+ AN CFR FEA <span class="text-yellow-400 font-bold">× 0.25</span></div>
+        <div>+ BD CFR China <span class="text-orange-400 font-bold">× 0.15</span></div>
+        <div class="mt-2 text-slate-500">ABS Market = 구글시트 실측가 + WTI 델타 보정</div>
+        <div class="text-slate-500">+ Risk Premium (이란 시나리오)</div>
       </div>
     </div>
 
@@ -283,14 +297,14 @@
           <div id="r2-bd"   class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
         <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
-          <div class="text-xs text-pink-400 font-bold mb-1">PR</div>
-          <div id="sens-pr" class="text-lg font-black text-white">---</div>
-          <div id="r2-pr"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div class="text-xs text-yellow-400 font-bold mb-1">AN</div>
+          <div id="sens-an" class="text-lg font-black text-white">---</div>
+          <div id="r2-an"   class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
         <div class="bg-slate-900 rounded-lg p-3 border border-slate-700 text-center">
-          <div class="text-xs text-slate-400 font-bold mb-1">NAP</div>
-          <div id="sens-nap" class="text-lg font-black text-white">---</div>
-          <div id="r2-nap"   class="text-xs text-slate-600 mt-1">R²=---</div>
+          <div class="text-xs text-cyan-400 font-bold mb-1">ABS Mkt</div>
+          <div id="sens-abs_mkt" class="text-lg font-black text-white">---</div>
+          <div id="r2-abs_mkt"   class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
       </div>
       <div class="mt-3 text-xs text-slate-600">
@@ -309,12 +323,15 @@
 // ── 상태 저장 (구글시트 실측 기반)
 let G = {
   wti_gs: 67.02, wti_rt: 67.02,
-  bz: 772.67, et: 710.0, bd: 1270.0, pr: 835.0,
-  nap: 637.0, sm_act: 966.5,
+  bz: 772.67, et: 710.0, bd: 1270.0, an: 1060.0,
+  nap: 637.0, sm_act: 966.5, abs_mkt_act: 1315.0,
 };
 
 // ── 민감도 (초기값 = 기본값, CSV 로드 후 자동 갱신)
-let SENS = { bz:9.65, et:-5.41, bd:15.0, pr:5.0, sm:20.07, nap:8.5 };
+let SENS = { bz:9.65, et:-5.41, bd:15.0, an:3.5, sm:20.07, nap:8.5, abs_mkt:7.58 };
+
+// ── ABS 배합비 (실측)
+const ABS_RATIO = { sm: 0.60, an: 0.25, bd: 0.15 };
 
 // ── 숫자 포맷
 function fmt(v, sign=false) {
@@ -322,20 +339,21 @@ function fmt(v, sign=false) {
   return (sign&&v>=0?'+':'') + '$' + Math.round(v).toLocaleString();
 }
 
-// ── WTI 델타 기반 원가 계산
+// ── WTI 델타 기반 원가 계산 (실측 배합비)
 function calcFromG(wti, risk=0) {
-  const d = wti - G.wti_gs;
-  const bz  = G.bz  + d * SENS.bz;
-  const et  = G.et  + d * SENS.et;
-  const bd  = G.bd  + d * SENS.bd;
-  const pr  = G.pr  + d * SENS.pr;
-  const sm  = G.sm_act + d * SENS.sm;
-  const smC = bz*0.78 + et*0.28 + 45;
+  const d   = wti - G.wti_gs;
+  const bz  = G.bz        + d * SENS.bz;
+  const et  = G.et        + d * SENS.et;
+  const bd  = G.bd        + d * SENS.bd;
+  const an  = G.an        + d * SENS.an;
+  const sm  = G.sm_act    + d * SENS.sm;
+  const absM= G.abs_mkt_act + d * SENS.abs_mkt + risk;
+  // SM Cost
+  const smC = bz * 0.78 + et * 0.28 + 45;
   const smM = sm - smC;
-  const an  = pr * 1.15;
-  const absC= sm*0.30 + bd*0.12 + an*0.08 + 680;
-  const absM= sm + 250 + risk;
-  return { wti, bz, et, bd, pr, sm, smC, smM, absC, absM, absG: absM-absC, risk };
+  // ABS Cost = SM×0.60 + AN×0.25 + BD×0.15 (실측 배합비)
+  const absC = sm * ABS_RATIO.sm + an * ABS_RATIO.an + bd * ABS_RATIO.bd;
+  return { wti, bz, et, bd, an, sm, smC, smM, absC, absM, absG: absM-absC, risk };
 }
 
 // ── 경보 뱃지
@@ -395,6 +413,8 @@ function onSlider() {
   document.getElementById('sim-bz').textContent      = fmt(r.bz);
   document.getElementById('sim-et').textContent      = fmt(r.et);
   document.getElementById('sim-bd').textContent      = fmt(r.bd);
+  document.getElementById('sim-an').textContent      = fmt(r.an);
+  document.getElementById('sim-abs-mkt').textContent = fmt(r.absM);
   document.getElementById('sim-sm-mkt').textContent  = fmt(r.sm);
   document.getElementById('sim-sm-cost').textContent = fmt(r.smC);
 
@@ -427,13 +447,15 @@ function loadCSV() {
       const d = res.data[0];
 
       // G 상태 업데이트
-      G.wti_rt  = parseFloat(d.WTI)        || G.wti_rt;
-      G.wti_gs  = parseFloat(d.WTI_GSheet) || G.wti_gs;
-      G.bz      = parseFloat(d.BZ_Actual)  || G.bz;
-      G.et      = parseFloat(d.ET_Actual)  || G.et;
-      G.bd      = parseFloat(d.BD_Actual)  || G.bd;
-      G.nap     = parseFloat(d.NAP)        || G.nap;
-      G.sm_act  = parseFloat(d.SM_Actual)  || G.sm_act;
+      G.wti_rt      = parseFloat(d.WTI)          || G.wti_rt;
+      G.wti_gs      = parseFloat(d.WTI_GSheet)   || G.wti_gs;
+      G.bz          = parseFloat(d.BZ_Actual)    || G.bz;
+      G.et          = parseFloat(d.ET_Actual)    || G.et;
+      G.bd          = parseFloat(d.BD_Actual)    || G.bd;
+      G.an          = parseFloat(d.AN_Actual)    || G.an;
+      G.nap         = parseFloat(d.NAP)          || G.nap;
+      G.sm_act      = parseFloat(d.SM_Actual)    || G.sm_act;
+      G.abs_mkt_act = parseFloat(d.ABS_Mkt_Actual) || G.abs_mkt_act;
 
       // 헤더
       document.getElementById('wti-price').textContent = `$${G.wti_rt.toFixed(2)}`;
@@ -450,10 +472,14 @@ function loadCSV() {
       document.getElementById('c-bz-act').textContent = `실측 $${Math.round(G.bz)}`;
       document.getElementById('c-et').textContent     = fmt(rt.et);
       document.getElementById('c-et-act').textContent = `실측 $${Math.round(G.et)}`;
-      document.getElementById('c-bd').textContent     = fmt(rt.bd);
-      document.getElementById('c-bd-act').textContent = `실측 $${Math.round(G.bd)}`;
-      document.getElementById('c-sm-mkt').textContent = fmt(rt.sm);
-      document.getElementById('c-sm-act').textContent = `실측 $${Math.round(G.sm_act)}`;
+      document.getElementById('c-bd').textContent         = fmt(rt.bd);
+      document.getElementById('c-bd-act').textContent     = `실측 $${Math.round(G.bd)}`;
+      document.getElementById('c-an').textContent         = fmt(rt.an);
+      document.getElementById('c-an-act').textContent     = `실측 $${Math.round(G.an)}`;
+      document.getElementById('c-abs-mkt').textContent    = fmt(rt.absM);
+      document.getElementById('c-abs-mkt-act').textContent= `실측 $${Math.round(G.abs_mkt_act)}`;
+      document.getElementById('c-sm-mkt').textContent     = fmt(rt.sm);
+      document.getElementById('c-sm-act').textContent     = `실측 $${Math.round(G.sm_act)}`;
 
       const smEl = document.getElementById('c-sm-margin');
       smEl.textContent = fmt(rt.smM, true);
@@ -493,12 +519,13 @@ function loadCSV() {
         }
       }
       // 민감도 SENS 객체도 CSV값으로 갱신 (슬라이더 계산에 반영)
-      if (d.Sens_BZ)  { SENS.bz  = parseFloat(d.Sens_BZ);  setSensCard('bz',  d.Sens_BZ,  d.R2_BZ);  }
-      if (d.Sens_ET)  { SENS.et  = parseFloat(d.Sens_ET);  setSensCard('et',  d.Sens_ET,  d.R2_ET);  }
-      if (d.Sens_SM)  { SENS.sm  = parseFloat(d.Sens_SM);  setSensCard('sm',  d.Sens_SM,  d.R2_SM);  }
-      if (d.Sens_BD)  { SENS.bd  = parseFloat(d.Sens_BD);  setSensCard('bd',  d.Sens_BD,  d.R2_BD);  }
-      if (d.Sens_PR)  { SENS.pr  = parseFloat(d.Sens_PR);  setSensCard('pr',  d.Sens_PR,  d.R2_PR);  }
-      if (d.Sens_NAP) { SENS.nap = parseFloat(d.Sens_NAP); setSensCard('nap', d.Sens_NAP, d.R2_NAP); }
+      if (d.Sens_BZ)      { SENS.bz      = parseFloat(d.Sens_BZ);      setSensCard('bz',      d.Sens_BZ,      d.R2_BZ);      }
+      if (d.Sens_ET)      { SENS.et      = parseFloat(d.Sens_ET);      setSensCard('et',      d.Sens_ET,      d.R2_ET);      }
+      if (d.Sens_SM)      { SENS.sm      = parseFloat(d.Sens_SM);      setSensCard('sm',      d.Sens_SM,      d.R2_SM);      }
+      if (d.Sens_BD)      { SENS.bd      = parseFloat(d.Sens_BD);      setSensCard('bd',      d.Sens_BD,      d.R2_BD);      }
+      if (d.Sens_AN)      { SENS.an      = parseFloat(d.Sens_AN);      setSensCard('an',      d.Sens_AN,      d.R2_AN);      }
+      if (d.Sens_NAP)     { SENS.nap     = parseFloat(d.Sens_NAP);     setSensCard('nap',     d.Sens_NAP,     d.R2_NAP);     }
+      if (d.Sens_ABS_MKT) { SENS.abs_mkt = parseFloat(d.Sens_ABS_MKT); setSensCard('abs_mkt', d.Sens_ABS_MKT, d.R2_ABS_MKT); }
 
       // 회귀 메타 표시
       if (d.Reg_N) {
