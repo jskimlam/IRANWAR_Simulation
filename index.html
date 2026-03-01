@@ -7,6 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <style>
     body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background:#ddeef9; color:#1e293b; }
     @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -734,6 +735,9 @@
             <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
               <input type="checkbox" id="fc-show-seasonal" onchange="renderFcChart()" checked class="accent-yellow-500"> 계절성
             </label>
+            <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" id="fc-show-price" onchange="renderFcChart()" checked class="accent-emerald-600"> 가격표시
+            </label>
           </div>
         </div>
         <div class="relative" style="height:320px">
@@ -762,6 +766,8 @@
 // ══════════════════════════════════════════════
 // 탭 함수 — 맨 앞 선언 (HTML onclick 인라인 참조)
 // ══════════════════════════════════════════════
+// datalabels 플러그인 전역 등록
+if (window.ChartDataLabels) Chart.register(ChartDataLabels);
 function showTab(id, btn) {
   ['tab-main','tab-wti','tab-cracker','tab-scenario','tab-chart','tab-sens','tab-forecast']
     .forEach(t => document.getElementById(t).classList.add('hidden'));
@@ -1529,6 +1535,7 @@ function renderFcChart() {
   if (!canvas) return;
   const showCI      = document.getElementById('fc-show-ci')?.checked ?? true;
   const showSeasonal= document.getElementById('fc-show-seasonal')?.checked ?? true;
+  const showPrice   = document.getElementById('fc-show-price')?.checked ?? true;
 
   const curWTI = G.wti_rt;
   const s0 = {
@@ -1594,6 +1601,7 @@ function renderFcChart() {
         backgroundColor: c.ci, fill: '+1',
         pointRadius: 0, tension, order: 3,
         type: 'line',
+        datalabels: { display: false },
       });
     }
 
@@ -1610,7 +1618,15 @@ function renderFcChart() {
       tension,
       order: 1,
       type: chartT,
-      datalabels: {display: true},
+      datalabels: {
+        display: showPrice,
+        anchor: 'end',
+        align: 'top',
+        offset: 2,
+        color: c.line,
+        font: { size: 9, weight: 'bold' },
+        formatter: v => v != null ? '$' + v.toLocaleString() : '',
+      },
     });
 
     // 신뢰구간 하한
@@ -1621,6 +1637,7 @@ function renderFcChart() {
         backgroundColor: c.ci, fill: false,
         pointRadius: 0, tension, order: 3,
         type: 'line',
+        datalabels: { display: false },
       });
     }
 
@@ -1637,13 +1654,21 @@ function renderFcChart() {
         tension, order: 2,
         type: 'line',
         fill: false,
+        datalabels: { display: false },
       });
     }
   });
 
-  if (fcChart) { fcChart.destroy(); fcChart = null; }
+  if (fcChart) {
+    fcChart.destroy();
+    fcChart = null;
+  }
+  // canvas 완전 초기화 (Chart.js 내부 캐시 제거)
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+  const ctx = newCanvas.getContext('2d');
 
-  fcChart = new Chart(canvas, {
+  fcChart = new Chart(newCanvas, {
     type: 'line',
     data: { labels, datasets },
     options: {
@@ -1655,7 +1680,7 @@ function renderFcChart() {
           display: true,
           position: 'top',
           labels: { font:{size:11}, color:'#1e293b', usePointStyle:true, pointStyleWidth:10,
-            filter: item => !item.label.includes('상한') && !item.label.includes('하한')
+            filter: item => item.label && !item.label.includes('상한') && !item.label.includes('하한')
           }
         },
         tooltip: {
