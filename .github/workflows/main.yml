@@ -29,7 +29,7 @@ jobs:
     - name: Install Python Dependencies
       run: |
         pip install --upgrade pip
-        pip install pandas matplotlib numpy yfinance
+        pip install pandas matplotlib numpy yfinance scikit-learn requests
 
     - name: Run Simulation
       timeout-minutes: 5
