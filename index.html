@@ -701,11 +701,106 @@
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-200 text-center"><div class="text-xs text-slate-700 font-bold mb-1">SM Margin</div><div class="text-lg font-black text-green-700">≈0</div><div class="text-xs text-slate-700">WTI무상관</div></div>
       </div>
     </div>
+
+    <!-- ══ 1. WTI 구간별 민감도 히트맵 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <h3 class="text-slate-700 font-black text-sm mb-1">🌡 WTI 구간별 원료 민감도 히트맵</h3>
+      <p class="text-xs text-slate-600 mb-3">WTI $1 상승 시 원료별 가격 변화량 — 색상 농도가 짙을수록 민감도 높음</p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs border-collapse" id="sens-heatmap-table"></table>
+      </div>
+    </div>
+
+    <!-- ══ 2. ABS 원가 WTI 리스크 기여 분해 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <h3 class="text-slate-700 font-black text-sm mb-1">💥 WTI $1 상승 시 ABS 원가 기여 분해</h3>
+      <p class="text-xs text-slate-600 mb-3">SM·AN·BD가 ABS 원가에 얼마나 전가되는지 — 리스크 주범 파악</p>
+      <div class="relative" style="height:240px"><canvas id="sens-contrib-chart"></canvas></div>
+    </div>
+
+    <!-- ══ 3. R² 모델 신뢰도 게이지 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <h3 class="text-slate-700 font-black text-sm mb-1">🎯 회귀모델 R² 신뢰도 게이지</h3>
+      <p class="text-xs text-slate-600 mb-3">R²가 높을수록 WTI로 원료가격 예측 신뢰성 높음 — 낮은 품목은 별도 요인 존재</p>
+      <div id="sens-r2-gauges" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+    </div>
+
+    <!-- ══ 4. 민감도 Before/After 원가 시뮬 ══ -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <h3 class="text-slate-700 font-black text-sm mb-1">⚖ 민감도 변경 Before / After 원가 비교</h3>
+      <p class="text-xs text-slate-600 mb-3">슬라이더 조작 시 기본값 대비 현재 설정으로 ABS 원가가 얼마나 달라지는지 실시간 비교</p>
+      <div class="grid md:grid-cols-3 gap-4 mb-4">
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-1">기본값 ABS 원가</div>
+          <div id="ba-before" class="text-2xl font-black text-slate-700">$---</div>
+          <div class="text-xs text-slate-600 mt-1">원래 SENS 기준</div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-1">현재 설정 ABS 원가</div>
+          <div id="ba-after" class="text-2xl font-black text-blue-700">$---</div>
+          <div class="text-xs text-slate-600 mt-1">변경된 SENS 기준</div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+          <div class="text-xs text-slate-700 font-bold mb-1">원가 차이 (After − Before)</div>
+          <div id="ba-diff" class="text-2xl font-black">$---</div>
+          <div id="ba-diff-pct" class="text-xs text-slate-600 mt-1">---</div>
+        </div>
+      </div>
+      <div class="relative" style="height:220px"><canvas id="sens-ba-chart"></canvas></div>
+    </div>
+
+    <!-- ① WTI 구간별 원료 민감도 히트맵 -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">🌡 WTI 구간별 원료 민감도 히트맵</h3>
+          <p class="text-xs text-slate-600 mt-0.5">WTI $1 상승 시 각 원료 가격 변화량 — 색상 농도 = 민감도 강도</p>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs border-collapse" id="sens-heatmap"></table>
+      </div>
+    </div>
+
+    <!-- ② ABS 원가 WTI 리스크 기여 분해 -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">💰 WTI $1 상승 시 ABS 원가 기여 분해</h3>
+          <p class="text-xs text-slate-600 mt-0.5">SM·AN·BD 각각이 ABS 원가 상승에 얼마나 기여하는가</p>
+        </div>
+      </div>
+      <div class="relative" style="height:240px">
+        <canvas id="sens-contrib-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- ③ R² 모델 신뢰도 게이지 -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="mb-3">
+        <h3 class="text-slate-700 font-black text-sm">📐 회귀모델 신뢰도 (R²)</h3>
+        <p class="text-xs text-slate-600 mt-0.5">R²=1.0에 가까울수록 WTI로 해당 원료가격 설명력이 높음 — 낮을수록 예측 불확실성 큼</p>
+      </div>
+      <div id="sens-r2-gauges" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+    </div>
+
+    <!-- ④ 민감도 Before/After 원가 시뮬 -->
+    <div class="bg-sky-50 border border-blue-200 rounded-2xl p-5 mt-4 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+        <div>
+          <h3 class="text-slate-700 font-black text-sm">⚡ 민감도 변경 Before/After 원가 비교</h3>
+          <p class="text-xs text-slate-600 mt-0.5">현재 민감도 설정 vs 기본값(OLS) 기준 — WTI 구간별 ABS 원가 차이</p>
+        </div>
+        <div class="text-xs text-slate-700 bg-white border border-slate-200 rounded-lg px-3 py-2">
+          WTI 기준: <span id="sens-ba-wti" class="font-black text-amber-700">$67</span>
+          <input type="range" id="sens-ba-slider" min="50" max="100" step="1" value="67" class="w-32 ml-2" oninput="renderSensBeforeAfter()">
+        </div>
+      </div>
+      <div class="relative" style="height:260px">
+        <canvas id="sens-ba-chart"></canvas>
+      </div>
+    </div>
   </div>
-
-
-  <!-- ══════════════════════════════════════════════
-       탭7: 13주 가격 예측
   ══════════════════════════════════════════════ -->
   <div id="tab-forecast" class="hidden">
     <div class="bg-sky-50/90 border border-indigo-200 rounded-2xl p-5 space-y-4">
@@ -910,6 +1005,8 @@ function showTab(id, btn) {
   if (id === 'tab-forecast') renderForecast();
   if (id === 'tab-cracker') setTimeout(renderCrackerHistoryChart, 150);
   if (id === 'tab-wti') setTimeout(() => { setWtiChartMode('radar'); onWtiSlider(); }, 150);
+  if (id === 'tab-sens') renderSensCharts();
+  if (id === 'tab-sens') setTimeout(renderSensCharts, 150);
 }
 
 // ══════════════════════════════════════════════
@@ -1441,8 +1538,259 @@ const SCENARIOS = [
 ];
 
 // ══════════════════════════════════════════════
-// 시나리오 히트맵 + 차트
+// 민감도 탭 4개 차트
 // ══════════════════════════════════════════════
+
+// 기본 SENS 값 (Before 비교 기준)
+const SENS_DEFAULT = { bz:16.81, et:6.13, bd:20.48, an:7.87, sm:14.75, nap:6.52, pr:4.18 };
+
+// ① WTI 구간별 민감도 히트맵
+function renderSensHeatmap() {
+  const el = document.getElementById('sens-heatmap-table');
+  if (!el) return;
+  const items = [
+    { key:'nap', label:'NAP', color:'#64748b' },
+    { key:'bz',  label:'BZ',  color:'#a855f7' },
+    { key:'et',  label:'ET',  color:'#10b981' },
+    { key:'bd',  label:'BD',  color:'#f97316' },
+    { key:'an',  label:'AN',  color:'#d97706' },
+    { key:'sm',  label:'SM',  color:'#3b82f6' },
+    { key:'pr',  label:'PR',  color:'#06b6d4' },
+  ];
+  // WTI $1 상승 기준이라 구간별 값은 SENS 자체가 선형 — 구간별 WTI 절대가격에서 원료가 계산
+  const wtiRange = [50, 60, 67, 70, 80, 90, 100];
+  const maxSens = Math.max(...items.map(i => SENS[i.key] || 0));
+
+  const header = `<thead><tr>
+    <th class="px-3 py-2 bg-slate-700 text-white border border-slate-600 text-center">원료</th>
+    ${wtiRange.map(w => `<th class="px-3 py-2 bg-slate-700 text-white border border-slate-600 text-center">WTI $${w}</th>`).join('')}
+    <th class="px-3 py-2 bg-slate-700 text-white border border-slate-600 text-center">민감도(SENS)</th>
+  </tr></thead>`;
+
+  const body = `<tbody>${items.map(item => {
+    const s = SENS[item.key] || 0;
+    const intensity = s / maxSens;  // 0~1
+    const r = Math.round(255 - intensity * 180);
+    const g = Math.round(255 - intensity * 100);
+    const b = 255;
+    return `<tr>
+      <td class="px-3 py-2 font-black text-center border border-slate-200" style="color:${item.color};background:#f8fafc">${item.label}</td>
+      ${wtiRange.map(w => {
+        const baseWti = G.wti_rt;
+        const basePrice = (G[item.key] || G[item.key+'_act'] || 700) + (w - baseWti) * s;
+        const alpha = 0.15 + intensity * 0.65;
+        return `<td class="px-3 py-2 text-center font-bold border border-slate-200" style="background:rgba(${Math.round(239*intensity)},${Math.round(68*intensity+180*(1-intensity))},${Math.round(68*intensity+246*(1-intensity))},${alpha});color:#1e293b">$${Math.round(basePrice)}</td>`;
+      }).join('')}
+      <td class="px-3 py-2 text-center font-black border border-slate-200" style="background:rgba(239,68,68,${0.1+intensity*0.5});color:${intensity>0.5?'#7f1d1d':'#1e293b'}">+$${s.toFixed(2)}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+
+  el.innerHTML = header + body;
+}
+
+// ② ABS 원가 기여 분해 차트
+let sensContribChart = null;
+function renderSensContribChart() {
+  const canvas = document.getElementById('sens-contrib-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  // WTI $1 상승 → SM원가 기여: SENS.sm * ABS_R.sm
+  // AN: SENS.an * ABS_R.an,  BD: SENS.bd * ABS_R.bd
+  const smContrib = parseFloat((SENS.sm * ABS_R.sm).toFixed(2));
+  const anContrib = parseFloat((SENS.an * ABS_R.an).toFixed(2));
+  const bdContrib = parseFloat((SENS.bd * ABS_R.bd).toFixed(2));
+  const total     = smContrib + anContrib + bdContrib;
+
+  sensContribChart = new Chart(newCanvas, {
+    type: 'bar',
+    data: {
+      labels: ['SM 기여\n(SENS×0.60)', 'AN 기여\n(SENS×0.25)', 'BD 기여\n(SENS×0.15)', '합계 ABS원가 변화'],
+      datasets: [{
+        label: 'WTI $1 상승 → ABS 원가 전가 ($/mt)',
+        data: [smContrib, anContrib, bdContrib, total],
+        backgroundColor: ['rgba(59,130,246,0.8)','rgba(217,119,6,0.8)','rgba(249,115,22,0.8)','rgba(16,185,129,0.8)'],
+        borderColor: ['#2563eb','#d97706','#ea580c','#059669'],
+        borderWidth: 2, borderRadius: 6,
+        datalabels: {
+          display: true, anchor:'end', align:'top',
+          color: '#1e293b', font:{ size:11, weight:'bold' },
+          formatter: v => '+$'+v.toFixed(2),
+        }
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ display:false },
+        datalabels:{ display:true },
+        tooltip:{ callbacks:{ label: ctx => ` WTI +$1 → ABS원가 +$${ctx.parsed.y.toFixed(2)}` } }
+      },
+      scales: {
+        x:{ ticks:{ color:'#334155', font:{size:10} }, grid:{ color:'rgba(148,163,184,0.15)' } },
+        y:{ ticks:{ color:'#334155', callback: v => '+$'+v }, grid:{ color:'rgba(148,163,184,0.2)' },
+            title:{ display:true, text:'ABS 원가 변화 ($/mt per $1 WTI)', color:'#64748b', font:{size:10} } }
+      }
+    }
+  });
+}
+
+// ③ R² 게이지 렌더링
+function renderR2Gauges() {
+  const el = document.getElementById('sens-r2-gauges');
+  if (!el) return;
+  const items = [
+    { label:'BZ',  key:'bz',      color:'#a855f7' },
+    { label:'ET',  key:'et',      color:'#10b981' },
+    { label:'BD',  key:'bd',      color:'#f97316' },
+    { label:'AN',  key:'an',      color:'#d97706' },
+    { label:'SM',  key:'sm',      color:'#3b82f6' },
+    { label:'NAP', key:'nap',     color:'#64748b' },
+    { label:'ABS Mkt', key:'abs_mkt', color:'#06b6d4' },
+    { label:'SM Cost', key:'sm_cost', color:'#ec4899' },
+  ];
+
+  el.innerHTML = items.map(item => {
+    const r2El = document.getElementById('r2-'+item.key);
+    const r2Text = r2El ? r2El.textContent : 'R²=--';
+    const r2Val  = parseFloat(r2Text.replace('R²=','')) || 0;
+    const pct    = Math.round(r2Val * 100);
+    const barColor = r2Val >= 0.7 ? '#10b981' : r2Val >= 0.4 ? '#f59e0b' : '#ef4444';
+    const grade    = r2Val >= 0.7 ? '높음 ✅' : r2Val >= 0.4 ? '보통 ⚠' : '낮음 🔴';
+    const gradeColor = r2Val >= 0.7 ? '#065f46' : r2Val >= 0.4 ? '#713f12' : '#7f1d1d';
+    return `<div class="bg-white rounded-xl border border-slate-200 p-3">
+      <div class="flex justify-between items-center mb-2">
+        <span class="font-black text-sm" style="color:${item.color}">${item.label}</span>
+        <span class="text-xs font-bold" style="color:${gradeColor}">${grade}</span>
+      </div>
+      <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden mb-1">
+        <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${barColor}"></div>
+      </div>
+      <div class="flex justify-between text-xs text-slate-600">
+        <span>R²</span>
+        <span class="font-black" style="color:${barColor}">${r2Val > 0 ? r2Val.toFixed(2) : '--'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ④ Before/After 원가 시뮬 차트
+let sensBaChart = null;
+function renderSensBeforeAfter() {
+  const wti = G.wti_rt;
+
+  // Before: 기본 SENS 기준 원료가
+  const calcPrice = (sensObj, key) => {
+    const base = G[key] || G[key+'_act'] || 700;
+    return base; // 현재 WTI 기준이라 dWti=0
+  };
+  const smBefore = G.sm_act;
+  const anBefore = G.an;
+  const bdBefore = G.bd;
+  const absBefore= smBefore*ABS_R.sm + anBefore*ABS_R.an + bdBefore*ABS_R.bd;
+
+  // After: 현재 SENS (변경된 경우) 기준 — WTI $10 상승 시나리오로 비교
+  const dWti = 10;
+  const smAfterB = smBefore + dWti * SENS_DEFAULT.sm;
+  const anAfterB = anBefore + dWti * SENS_DEFAULT.an;
+  const bdAfterB = bdBefore + dWti * SENS_DEFAULT.bd;
+  const absAfterDefault = smAfterB*ABS_R.sm + anAfterB*ABS_R.an + bdAfterB*ABS_R.bd;
+
+  const smAfterC = smBefore + dWti * SENS.sm;
+  const anAfterC = anBefore + dWti * SENS.an;
+  const bdAfterC = bdBefore + dWti * SENS.bd;
+  const absAfterCurrent = smAfterC*ABS_R.sm + anAfterC*ABS_R.an + bdAfterC*ABS_R.bd;
+
+  const diff = absAfterCurrent - absAfterDefault;
+  const pct  = ((diff / absAfterDefault) * 100).toFixed(1);
+
+  // 카드 업데이트
+  document.getElementById('ba-before').textContent = '$' + Math.round(absAfterDefault);
+  document.getElementById('ba-after').textContent  = '$' + Math.round(absAfterCurrent);
+  const diffEl = document.getElementById('ba-diff');
+  diffEl.textContent = (diff >= 0 ? '+' : '') + '$' + Math.round(diff);
+  diffEl.className   = 'text-2xl font-black ' + (diff >= 0 ? 'text-red-600' : 'text-emerald-600');
+  document.getElementById('ba-diff-pct').textContent = (diff >= 0 ? '+' : '') + pct + '%  (WTI +$10 시나리오 기준)';
+
+  // 차트
+  const canvas = document.getElementById('sens-ba-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  const labels   = ['현재가\n(기준)', 'WTI +$10\n기본 SENS', 'WTI +$10\n현재 SENS'];
+  const absVals  = [Math.round(absBefore), Math.round(absAfterDefault), Math.round(absAfterCurrent)];
+
+  sensBaChart = new Chart(newCanvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'SM 원가',
+          data: [
+            Math.round(smBefore * ABS_R.sm),
+            Math.round(smAfterB * ABS_R.sm),
+            Math.round(smAfterC * ABS_R.sm),
+          ],
+          backgroundColor: 'rgba(59,130,246,0.8)', borderColor:'#2563eb', borderWidth:2, borderRadius:4,
+          datalabels:{ display:false }
+        },
+        {
+          label: 'AN 원가',
+          data: [
+            Math.round(anBefore * ABS_R.an),
+            Math.round(anAfterB * ABS_R.an),
+            Math.round(anAfterC * ABS_R.an),
+          ],
+          backgroundColor: 'rgba(217,119,6,0.8)', borderColor:'#d97706', borderWidth:2, borderRadius:4,
+          datalabels:{ display:false }
+        },
+        {
+          label: 'BD 원가',
+          data: [
+            Math.round(bdBefore * ABS_R.bd),
+            Math.round(bdAfterB * ABS_R.bd),
+            Math.round(bdAfterC * ABS_R.bd),
+          ],
+          backgroundColor: 'rgba(249,115,22,0.8)', borderColor:'#ea580c', borderWidth:2, borderRadius:4,
+          datalabels:{
+            display: true, anchor:'end', align:'top',
+            color: '#1e293b', font:{ size:10, weight:'bold' },
+            formatter: (v, ctx) => {
+              const total = ctx.chart.data.datasets.reduce((s,ds) => s + (ds.data[ctx.dataIndex]||0), 0);
+              return '$'+total;
+            }
+          }
+        },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ display:true, position:'top', labels:{ font:{size:11}, color:'#334155' } },
+        datalabels:{ display:false },
+        tooltip:{ mode:'index', intersect:false, callbacks:{ label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y}` } }
+      },
+      scales: {
+        x:{ stacked:true, ticks:{color:'#334155',font:{size:10}}, grid:{color:'rgba(148,163,184,0.15)'} },
+        y:{ stacked:true, ticks:{color:'#334155',callback:v=>'$'+v}, grid:{color:'rgba(148,163,184,0.2)'} }
+      }
+    }
+  });
+}
+
+function renderSensCharts() {
+  setTimeout(() => {
+    renderSensHeatmap();
+    renderSensContribChart();
+    renderR2Gauges();
+    renderSensBeforeAfter();
+  }, 150);
+}
+
+
 let scChart = null;
 let scChartMode = 'gap';
 
@@ -1885,6 +2233,8 @@ function loadCSV() {
       if (d.Sens_ABS_MKT)  { SENS.abs_mkt  = parseFloat(d.Sens_ABS_MKT);  setSensCard('abs_mkt',  d.Sens_ABS_MKT,  d.R2_ABS_MKT);  }
       if (d.Sens_ABS_GAP)  { SENS.abs_gap  = parseFloat(d.Sens_ABS_GAP);  setSensCard('abs_gap',  d.Sens_ABS_GAP,  d.R2_ABS_GAP);  }
       if (d.Sens_SM_COST)  { SENS.sm_cost  = parseFloat(d.Sens_SM_COST);  setSensCard('sm_cost',  d.Sens_SM_COST);                 }
+      // 민감도 탭이 활성화 상태면 차트 갱신
+      if (!document.getElementById('tab-sens').classList.contains('hidden')) renderSensCharts();
       if (d.Sens_SM_MARGIN){ SENS.sm_margin= parseFloat(d.Sens_SM_MARGIN);}
 
       document.getElementById('update-time').textContent = '갱신: '+(d.UpdateTime||'');
@@ -2354,6 +2704,246 @@ function renderFcChart() {
   });
 }
 
+
+// ══════════════════════════════════════════════
+// 민감도 탭 4개 차트
+// ══════════════════════════════════════════════
+
+// OLS 기본 SENS 값 (비교 기준)
+const DEFAULT_SENS = { bz:16.81, et:6.13, bd:20.48, an:7.87, sm:14.75, nap:6.52, pr:4.18 };
+
+// 품목별 R² (회귀모델 적합도)
+const SENS_R2 = { NAP:0.89, BZ:0.74, ET:0.62, SM:0.71, BD:0.58, AN:0.53, PR:0.61, ABS_Mkt:0.67, ABS_Gap:0.21, SM_Cost:0.78 };
+
+// 품목 색상
+const SENS_COLORS = { NAP:'#64748b', BZ:'#a855f7', ET:'#10b981', SM:'#3b82f6', BD:'#f97316', AN:'#d97706', PR:'#06b6d4' };
+
+let sensContribChart = null;
+let sensBaChart      = null;
+
+function renderSensCharts() {
+  renderSensHeatmap();
+  renderSensContrib();
+  renderSensR2Gauges();
+  renderSensBeforeAfter();
+}
+
+// ① 히트맵
+function renderSensHeatmap() {
+  const el = document.getElementById('sens-heatmap');
+  if (!el) return;
+
+  const items = [
+    { key:'nap', label:'NAP', color:SENS_COLORS.NAP },
+    { key:'bz',  label:'BZ',  color:SENS_COLORS.BZ  },
+    { key:'et',  label:'ET',  color:SENS_COLORS.ET  },
+    { key:'sm',  label:'SM',  color:SENS_COLORS.SM  },
+    { key:'bd',  label:'BD',  color:SENS_COLORS.BD  },
+    { key:'an',  label:'AN',  color:SENS_COLORS.AN  },
+    { key:'pr',  label:'PR',  color:SENS_COLORS.PR  },
+  ];
+  // WTI 구간 $50~$100 $5 단위
+  const wtiRange = [50,55,60,65,70,75,80,85,90,95,100];
+
+  // 헤더
+  const header = `<tr><th class="px-3 py-2 bg-slate-700 text-white border border-slate-600 text-center font-bold">원료</th><th class="px-3 py-2 bg-slate-700 text-white border border-slate-600 text-center font-bold">민감도<br>($/mt per $1)</th>${wtiRange.map(w=>`<th class="px-2 py-2 bg-slate-700 text-white border border-slate-600 text-center font-bold">$${w}</th>`).join('')}</tr>`;
+
+  const maxSens = Math.max(...items.map(i => SENS[i.key]||0));
+
+  const bodyRows = items.map(item => {
+    const s   = SENS[item.key] || 0;
+    const pct = (s / maxSens * 100).toFixed(0);
+    const sensCell = `<td class="px-3 py-2 text-center font-black border border-slate-200" style="color:${item.color}">${s >= 0 ? '+' : ''}$${s.toFixed(2)}</td>`;
+    // 현재 WTI 기준 각 구간 가격
+    const priceCells = wtiRange.map(w => {
+      const dWti = w - G.wti_rt;
+      const price = Math.round((G[item.key] || 0) + dWti * s);
+      // 색상 강도: 민감도 높을수록 진하게
+      const intensity = Math.min(1, s / maxSens);
+      const r = Math.round(255 - intensity * 120);
+      const g = Math.round(255 - intensity * 60);
+      const b = Math.round(255 - intensity * 20);
+      const bg = `rgb(${r},${g},${b})`;
+      const tx = intensity > 0.6 ? '#7f1d1d' : '#334155';
+      return `<td class="px-2 py-2 text-center font-bold border border-slate-200 whitespace-nowrap" style="background:${bg};color:${tx}">$${price}</td>`;
+    }).join('');
+    return `<tr><td class="px-3 py-2 font-black border border-slate-200 text-center" style="color:${item.color}">${item.label}</td>${sensCell}${priceCells}</tr>`;
+  }).join('');
+
+  el.innerHTML = `<thead>${header}</thead><tbody>${bodyRows}</tbody>`;
+}
+
+// ② ABS 원가 기여 분해
+function renderSensContrib() {
+  const canvas = document.getElementById('sens-contrib-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  // WTI $1 상승 시 ABS 원가 기여: SM×ABS_R.sm×(SM_COST.bz×SENS.bz + SM_COST.et×SENS.et) 등
+  const smContrib = (SM_COST.bz * SENS.bz + SM_COST.et * SENS.et + SM_COST.nap * SENS.nap) * ABS_R.sm;
+  const anContrib = SENS.an * ABS_R.an;
+  const bdContrib = SENS.bd * ABS_R.bd;
+  const total     = smContrib + anContrib + bdContrib;
+
+  sensContribChart = new Chart(newCanvas, {
+    type: 'bar',
+    data: {
+      labels: ['SM 기여', 'AN 기여', 'BD 기여', '합계 (ABS 원가 상승)'],
+      datasets: [{
+        data: [
+          parseFloat(smContrib.toFixed(2)),
+          parseFloat(anContrib.toFixed(2)),
+          parseFloat(bdContrib.toFixed(2)),
+          parseFloat(total.toFixed(2)),
+        ],
+        backgroundColor: ['rgba(59,130,246,0.8)','rgba(217,119,6,0.8)','rgba(249,115,22,0.8)','rgba(16,185,129,0.85)'],
+        borderColor:     ['#2563eb','#d97706','#ea580c','#059669'],
+        borderWidth: 2,
+        borderRadius: 8,
+        datalabels: {
+          display: true,
+          anchor: 'end', align: 'top',
+          color: '#1e293b',
+          font: { size: 12, weight: 'bold' },
+          formatter: v => '+$' + v,
+        }
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        datalabels: { display: true },
+        tooltip: { callbacks: { label: ctx => ` WTI +$1 → ABS 원가 +$${ctx.parsed.y}` } }
+      },
+      scales: {
+        x: { ticks:{ color:'#334155', font:{size:11} }, grid:{ color:'rgba(148,163,184,0.15)' } },
+        y: { beginAtZero:true, ticks:{ color:'#334155', callback: v => '+$'+v }, grid:{ color:'rgba(148,163,184,0.2)' },
+             title:{ display:true, text:'ABS 원가 변화 ($/mt)', color:'#64748b', font:{size:11} } }
+      }
+    }
+  });
+}
+
+// ③ R² 게이지
+function renderSensR2Gauges() {
+  const el = document.getElementById('sens-r2-gauges');
+  if (!el) return;
+
+  const items = [
+    { label:'NAP', r2:SENS_R2.NAP, color:SENS_COLORS.NAP },
+    { label:'BZ',  r2:SENS_R2.BZ,  color:SENS_COLORS.BZ  },
+    { label:'ET',  r2:SENS_R2.ET,  color:SENS_COLORS.ET  },
+    { label:'SM',  r2:SENS_R2.SM,  color:SENS_COLORS.SM  },
+    { label:'BD',  r2:SENS_R2.BD,  color:SENS_COLORS.BD  },
+    { label:'AN',  r2:SENS_R2.AN,  color:SENS_COLORS.AN  },
+    { label:'ABS Mkt', r2:SENS_R2.ABS_Mkt, color:'#10b981' },
+    { label:'ABS Gap', r2:SENS_R2.ABS_Gap, color:'#ef4444' },
+  ];
+
+  el.innerHTML = items.map(item => {
+    const pct  = (item.r2 * 100).toFixed(0);
+    const tier = item.r2 >= 0.7 ? { label:'높음', bg:'#bbf7d0', tx:'#065f46' }
+               : item.r2 >= 0.5 ? { label:'보통', bg:'#fef9c3', tx:'#713f12' }
+               :                  { label:'낮음', bg:'#fecaca', tx:'#7f1d1d' };
+    return `<div class="bg-white rounded-xl border border-slate-200 p-3 text-center">
+      <div class="font-black text-sm mb-1" style="color:${item.color}">${item.label}</div>
+      <div class="text-2xl font-black mb-1" style="color:${item.color}">R²=${item.r2}</div>
+      <div class="w-full h-3 rounded-full bg-slate-200 overflow-hidden mb-2">
+        <div class="h-full rounded-full transition-all duration-700" style="width:${pct}%;background:${item.color}"></div>
+      </div>
+      <div class="text-xs font-bold rounded px-2 py-0.5 inline-block" style="background:${tier.bg};color:${tier.tx}">${tier.label} — WTI 설명력 ${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+// ④ Before/After 시뮬
+function renderSensBeforeAfter() {
+  const wti    = parseFloat(document.getElementById('sens-ba-slider')?.value || 67);
+  const wtiEl  = document.getElementById('sens-ba-wti');
+  if (wtiEl) wtiEl.textContent = '$' + wti;
+
+  const canvas = document.getElementById('sens-ba-chart');
+  if (!canvas) return;
+  const newCanvas = canvas.cloneNode(true);
+  canvas.parentNode.replaceChild(newCanvas, canvas);
+
+  // WTI 구간 $50~$100 $5 단위
+  const wtiRange = [50,55,60,65,70,75,80,85,90,95,100];
+
+  // 현재 SENS로 ABS 원가 계산
+  const calcAbsCost = (sens, w) => {
+    const dWti   = w - G.wti_rt;
+    const smC    = (G.sm_act + dWti * sens.sm) * ABS_R.sm;
+    const anC    = (G.an     + dWti * sens.an) * ABS_R.an;
+    const bdC    = (G.bd     + dWti * sens.bd) * ABS_R.bd;
+    return Math.round(smC + anC + bdC);
+  };
+
+  const currentCosts = wtiRange.map(w => calcAbsCost(SENS, w));
+  const defaultCosts = wtiRange.map(w => calcAbsCost(DEFAULT_SENS, w));
+  const currentWtiIdx = wtiRange.findIndex(w => w >= wti);
+
+  sensBaChart = new Chart(newCanvas, {
+    type: 'line',
+    data: {
+      labels: wtiRange.map(w => '$'+w),
+      datasets: [
+        {
+          label: '현재 민감도 설정',
+          data: currentCosts,
+          borderColor: 'rgba(239,68,68,0.9)',
+          backgroundColor: 'rgba(239,68,68,0.1)',
+          fill: false,
+          tension: 0.4,
+          borderWidth: 2.5,
+          pointRadius: wtiRange.map((w,i) => Math.abs(w-wti)<3 ? 8 : 4),
+          pointBackgroundColor: wtiRange.map(w => Math.abs(w-wti)<3 ? '#ef4444' : 'rgba(239,68,68,0.6)'),
+          pointBorderColor: '#fff', pointBorderWidth: 2,
+          datalabels: {
+            display: (ctx) => Math.abs(wtiRange[ctx.dataIndex]-wti)<3,
+            anchor:'end', align:'top',
+            color:'#ef4444', font:{size:11,weight:'bold'},
+            formatter: v => '현재 $'+v,
+          }
+        },
+        {
+          label: 'OLS 기본값',
+          data: defaultCosts,
+          borderColor: 'rgba(59,130,246,0.9)',
+          backgroundColor: 'rgba(59,130,246,0.1)',
+          fill: false,
+          tension: 0.4,
+          borderWidth: 2.5,
+          borderDash: [5,4],
+          pointRadius: wtiRange.map(w => Math.abs(w-wti)<3 ? 8 : 4),
+          pointBackgroundColor: wtiRange.map(w => Math.abs(w-wti)<3 ? '#3b82f6' : 'rgba(59,130,246,0.6)'),
+          pointBorderColor: '#fff', pointBorderWidth: 2,
+          datalabels: {
+            display: (ctx) => Math.abs(wtiRange[ctx.dataIndex]-wti)<3,
+            anchor:'end', align:'bottom',
+            color:'#3b82f6', font:{size:11,weight:'bold'},
+            formatter: v => 'OLS $'+v,
+          }
+        },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend:{ display:true, position:'top', labels:{font:{size:11},color:'#334155'} },
+        datalabels:{ display:false },
+        tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: $${ctx.parsed.y}` } }
+      },
+      scales: {
+        x:{ ticks:{color:'#334155',font:{size:11}}, grid:{color:'rgba(148,163,184,0.15)'} },
+        y:{ ticks:{color:'#334155',callback:v=>'$'+v}, grid:{color:'rgba(148,163,184,0.2)'},
+            title:{display:true,text:'ABS 원가 ($/mt)',color:'#64748b',font:{size:11}} }
+      }
+    }
+  });
+}
 
 // ══════════════════════════════════════════════
 // 크래커마진 9주 히스토리 차트
