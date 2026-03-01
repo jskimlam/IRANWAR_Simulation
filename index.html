@@ -2861,6 +2861,24 @@ function renderSensBeforeAfter() {
   const wtiEl  = document.getElementById('sens-ba-wti');
   if (wtiEl) wtiEl.textContent = '$' + wti;
 
+  // KPI 카드 업데이트
+  const beforeCost = calcAbsCost(DEFAULT_SENS, wti);
+  const afterCost  = calcAbsCost(SENS, wti);
+  const diff       = afterCost - beforeCost;
+  const diffPct    = ((diff / beforeCost) * 100).toFixed(1);
+
+  const baBeforeEl = document.getElementById('ba-before');
+  const baAfterEl  = document.getElementById('ba-after');
+  const baDiffEl   = document.getElementById('ba-diff');
+  const baDiffPctEl= document.getElementById('ba-diff-pct');
+  if (baBeforeEl) baBeforeEl.textContent = '$' + beforeCost;
+  if (baAfterEl)  baAfterEl.textContent  = '$' + afterCost;
+  if (baDiffEl) {
+    baDiffEl.textContent = (diff >= 0 ? '+' : '') + '$' + diff;
+    baDiffEl.className   = 'text-2xl font-black ' + (diff > 0 ? 'text-red-600' : diff < 0 ? 'text-emerald-600' : 'text-slate-700');
+  }
+  if (baDiffPctEl) baDiffPctEl.textContent = (diff >= 0 ? '+' : '') + diffPct + '%';
+
   const canvas = document.getElementById('sens-ba-chart');
   if (!canvas) return;
   const newCanvas = canvas.cloneNode(true);
