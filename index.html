@@ -427,7 +427,7 @@
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$600</span><span>$800</span><span>$1000</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-slate-700">현재 실측: <span id="cr-nap-actual" class="text-slate-700 font-bold">$637</span></span>
-              <span class="text-blue-700 text-xs">4주평균: <span id="cr-nap-4w" class="font-bold">$--</span></span>
+              <span class="text-blue-700 text-xs">4주평균: <span id="cr-nap-4w" class="font-bold">$--</span> <span class="text-amber-600" id="cr-nap-base-label"></span></span>
             </div>
           </div>
 
@@ -1482,12 +1482,19 @@ function onCrackerSlider() {
   const el4w = document.getElementById('cr-nap-4w');
   if (el4w) el4w.textContent = `$${Math.round(nap4w)}`;
 
-  // ── 적정가격 계산 (4주평균 NAP + 적정스프레드)
+  // ── 적정가격 기준: 슬라이더 NAP vs 4주평균 NAP 중 큰 값 사용
+  // 슬라이더 NAP이 4주평균보다 높으면 그 NAP 기준으로 적정가 재계산 (일관성 유지)
+  const napBase = Math.max(nap, nap4w);
+  // 슬라이더 NAP이 4주평균 초과 시 "적정가 기준 상향됨" 표시
+  const napBaseLbl = document.getElementById('cr-nap-base-label');
+  if (napBaseLbl) {
+    napBaseLbl.textContent = nap > nap4w ? `→ 기준 $${Math.round(napBase)} ↑` : '';
+  }
   const targets = {
-    et: nap4w + CR_SPREAD.et,   // NAP + $300
-    pr: nap4w + CR_SPREAD.pr,   // NAP + $200
-    bd: nap4w + CR_SPREAD.bd,   // NAP + $450
-    bz: nap4w + CR_SPREAD.bz,   // NAP + $150
+    et: napBase + CR_SPREAD.et,   // napBase + $300
+    pr: napBase + CR_SPREAD.pr,   // napBase + $200
+    bd: napBase + CR_SPREAD.bd,   // napBase + $450
+    bz: napBase + CR_SPREAD.bz,   // napBase + $150
   };
 
   // ── 적정가격 & 갭 표시 헬퍼
@@ -1609,8 +1616,9 @@ function onCrackerSlider() {
   if (explainEl) {
     // targets 재계산 (이미 위에서 계산했지만 스코프 문제로 재계산)
     const nap4wEx = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
-    const targetsEx = { et: nap4wEx+CR_SPREAD.et, pr: nap4wEx+CR_SPREAD.pr, bd: nap4wEx+CR_SPREAD.bd, bz: nap4wEx+CR_SPREAD.bz };
-    explainEl.innerHTML = buildMarginExplain(margin, et, pr, bd, bz, nap, targetsEx, etC, prC, bdC, bzC);
+    const napBaseEx = Math.max(nap, nap4wEx); // 슬라이더 NAP vs 4주평균 중 큰 값
+    const targetsEx = { et: napBaseEx+CR_SPREAD.et, pr: napBaseEx+CR_SPREAD.pr, bd: napBaseEx+CR_SPREAD.bd, bz: napBaseEx+CR_SPREAD.bz };
+    explainEl.innerHTML = buildMarginExplain(margin, et, pr, bd, bz, nap, targetsEx, etC, prC, bdC, bzC, napBaseEx);
   }
 }
 
@@ -1645,8 +1653,9 @@ function buildCrackerStrategy(margin, bdTight, absGap, etRoom) {
 }
 
 // ── 역마진 해설 빌더 (신공식 기반)
-function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC, bzC) {
+function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC, bzC, napBase) {
   const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+  if (!napBase) napBase = Math.max(nap, nap4w); // 미전달 시 자동 계산
   const etGap  = et  - targets.et;
   const prGap  = pr  - targets.pr;
   const bdGap  = bd  - targets.bd;
@@ -1679,7 +1688,7 @@ function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC,
     html += `② NAP 단독: $${Math.round(nap)} → <b class="text-yellow-300">$${Math.round(nap-napNeeded)}</b> (-$${Math.round(napNeeded)} 필요)<br>`;
     html += `③ 복합: ET +$${Math.round(etNeeded*0.5)} + NAP -$${Math.round(shortfall*0.5)} 동시 달성 시 해소 가능`;
     html += `</div>`;
-    if (etImprove > 0) html += `<div class="mt-1 text-xs text-slate-300">※ 역마진의 <b class="text-yellow-200">${etShare}%</b>가 ET 가격 부진에서 기인 (4주평균 NAP $${Math.round(nap4w)} 기준)</div>`;
+    if (etImprove > 0) html += `<div class="mt-1 text-xs text-slate-300">※ 역마진의 <b class="text-yellow-200">${etShare}%</b>가 ET 가격 부진에서 기인 (기준 NAP $${Math.round(napBase)} / 4주평균 $${Math.round(nap4w)})</div>`;
   } else {
     html += `<div class="text-green-300 font-bold mt-1">✅ 크래커 흑자 — 정상 가동 유인 존재. BD 공급 안정적.</div>`;
   }
