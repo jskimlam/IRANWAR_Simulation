@@ -244,7 +244,7 @@
               <label class="text-sm text-slate-700 font-bold">WTI 유가</label>
               <span id="wti-slider-val" class="text-amber-700 font-black text-lg">$67.00/bbl</span>
             </div>
-            <input type="range" id="slider-wti" min="40" max="120" step="0.5" value="67" class="w-full" oninput="onWtiSlider()">
+            <input type="range" id="slider-wti" min="40" max="120" step="0.5" value="67" class="w-full" oninput="wtiUserEdited=true; onWtiSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$40</span><span>$60</span><span>$80</span><span>$100</span><span>$120</span></div>
           </div>
           <div>
@@ -252,15 +252,16 @@
               <label class="text-sm text-slate-700 font-bold">이란 리스크 프리미엄</label>
               <span id="risk-slider-val" class="text-red-700 font-black text-lg">+$0/t</span>
             </div>
-            <input type="range" id="slider-risk" min="0" max="300" step="10" value="0" class="w-full red-thumb" oninput="onWtiSlider()">
+            <input type="range" id="slider-risk" min="0" max="300" step="10" value="0" class="w-full red-thumb" oninput="wtiUserEdited=true; onWtiSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>Base</span><span>+$75</span><span>+$150</span><span>+$225</span><span>+$300</span></div>
           </div>
           <div class="flex flex-wrap gap-2">
-            <button onclick="setWtiScenario(59.44,0)"  class="text-xs bg-emerald-900/60 text-emerald-700 border border-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-800 transition">Base $59</button>
+            <button onclick="setWtiScenario(G.wti_rt,0)" id="btn-base-wti" class="text-xs bg-emerald-900/60 text-emerald-700 border border-emerald-700 rounded-lg px-3 py-1.5 hover:bg-emerald-800 transition">Base $--</button>
             <button onclick="setWtiScenario(70,50)"    class="text-xs bg-amber-900/60   text-amber-400   border border-amber-700   rounded-lg px-3 py-1.5 hover:bg-amber-800   transition">Mild $70</button>
             <button onclick="setWtiScenario(80,100)"   class="text-xs bg-orange-900/60  text-orange-700  border border-orange-700  rounded-lg px-3 py-1.5 hover:bg-orange-800  transition">Moderate $80</button>
             <button onclick="setWtiScenario(90,150)"   class="text-xs bg-red-900/60     text-red-700     border border-red-700     rounded-lg px-3 py-1.5 hover:bg-red-800     transition">Severe $90</button>
             <button onclick="setWtiScenario(100,200)"  class="text-xs bg-red-950/80     text-red-700     border border-red-900     rounded-lg px-3 py-1.5 hover:bg-red-900     transition">Crisis $100</button>
+            <button onclick="resetWtiSlider()" class="text-xs bg-slate-700 text-slate-300 border border-slate-500 rounded-lg px-3 py-1.5 hover:bg-slate-600 transition ml-auto">↺ 실시간 동기화</button>
           </div>
         </div>
 
@@ -1028,7 +1029,7 @@ function showTab(id, btn) {
 let G = {
   wti_gs:67.02, wti_rt:67.02,
   bz:772, et:710, bd:1270, an:1315, nap:637,
-  sm_act:966, abs_mkt_act:1060, pr_act:870,
+  sm_act:966, abs_mkt_act:1060, abs_gap_act:250, pr_act:870,
   bz_ara_act:720, bz_usg_mt_act:680,
   sm_margin_act:-1,  // v6.8: calcAll에서 sm-smCost로 직접계산, 이 값은 구글시트 fallback용
   cracker_act: 0,  // 실측 크래커마진 (CSV 로드 후 갱신)
@@ -1123,9 +1124,12 @@ function calcAll(wti, risk=0, etOverride=null) {
   // WTI↑: Cost(+13.89) > Mkt(+8.12) → Gap 축소 ✅
   // WTI↓: Cost(-13.89) > Mkt(-8.12) 낙폭 → Gap 개선 ✅
   // 이란리스크: Cost만 상승, Mkt 불변 → Gap 추가 압박 ✅
-  const absMkt    = G.abs_mkt_act + dWti * SENS.abs_mkt;
-  const absGap    = absMkt - absCost;
-  const absGapTh  = absMkt - absCostTh;
+  // ABS Gap: 직접 회귀값 사용 (실데이터 R²=0.541, -5.76/bbl)
+  // 간접계산(absMkt-absCost)은 SM/AN/BD SENS 오차가 고WTI에서 폭발적으로 누적됨
+  // → WTI +$41($67→$108)시 간접계산 Gap +$443 vs 직접회귀 Gap -$236 (현실적)
+  const absGap    = G.abs_gap_act + dWti * SENS.abs_gap;
+  const absMkt    = absCost + absGap;   // Mkt = Cost + Gap (역산, 표시 일관성)
+  const absGapTh  = absMkt - absCostTh;  // 이론 Gap은 이론원가 기준 유지
 
   return {
     wti, dWti, riskEquiv, dTotal, risk,
@@ -1208,8 +1212,17 @@ function onWtiSlider() {
 }
 
 function setWtiScenario(wti, risk) {
+  wtiUserEdited = true;  // 시나리오 버튼도 명시적 조작으로 간주 → 30초 자동갱신 차단
   document.getElementById('slider-wti').value  = wti;
   document.getElementById('slider-risk').value = risk;
+  onWtiSlider();
+}
+
+// WTI 슬라이더를 실시간 야후 WTI로 초기화 + 자동갱신 재개
+function resetWtiSlider() {
+  wtiUserEdited = false;  // 플래그 해제 → 30초 자동갱신 재개
+  document.getElementById('slider-wti').value  = G.wti_rt.toFixed(2);
+  document.getElementById('slider-risk').value = 0;
   onWtiSlider();
 }
 
@@ -1732,13 +1745,17 @@ function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC,
 // ══════════════════════════════════════════════
 // 시나리오 테이블
 // ══════════════════════════════════════════════
-const SCENARIOS = [
-  {label:'Base $59',     wti:59.44, risk:0,   color:'#10b981'},
-  {label:'Mild $70',     wti:70,    risk:50,  color:'#f59e0b'},
-  {label:'Moderate $80', wti:80,    risk:100, color:'#f97316'},
-  {label:'Severe $90',   wti:90,    risk:150, color:'#ef4444'},
-  {label:'Crisis $100',  wti:100,   risk:200, color:'#b91c1c'},
-];
+// v6.8: Base WTI를 G.wti_rt(야후 실시간)로 동적 참조
+// SCENARIOS는 함수로 래핑해서 호출 시점에 G.wti_rt 반영
+function getScenarios() {
+  return [
+    {label:`Base $${Math.round(G.wti_rt)}`, wti:G.wti_rt, risk:0,   color:'#10b981'},
+    {label:'Mild $70',                       wti:70,        risk:50,  color:'#f59e0b'},
+    {label:'Moderate $80',                   wti:80,        risk:100, color:'#f97316'},
+    {label:'Severe $90',                     wti:90,        risk:150, color:'#ef4444'},
+    {label:'Crisis $100',                    wti:100,       risk:200, color:'#b91c1c'},
+  ];
+}
 
 // ══════════════════════════════════════════════
 // 민감도 탭 4개 차트
@@ -2057,6 +2074,7 @@ function renderScenarioHeatmap() {
     `<th class="px-3 py-2 text-center font-bold text-slate-700 bg-slate-700 text-white border border-slate-600 whitespace-nowrap">${c.label}</th>`
   ).join('')}</tr>`;
 
+  const SCENARIOS = getScenarios();
   const bodyRows = SCENARIOS.map(s => {
     const r = calcAll(s.wti, s.risk);
     const signal = r.absGap >= 150 ? '✅ 매수' : r.absGap >= 0 ? '⚠ 관망' : '🔴 위험';
@@ -2086,6 +2104,7 @@ function renderScenarioChart() {
   const newCanvas = canvas.cloneNode(true);
   canvas.parentNode.replaceChild(newCanvas, canvas);
 
+  const SCENARIOS = getScenarios();
   const labels  = SCENARIOS.map(s => s.label);
   const wtiVals = SCENARIOS.map(s => s.wti);
   const data    = SCENARIOS.map(s => calcAll(s.wti, s.risk));
@@ -2254,6 +2273,7 @@ function renderScenarioChart() {
 
 function renderScenarios() {
   // 기존 텍스트 테이블
+  const SCENARIOS = getScenarios();
   document.getElementById('scenario-table').innerHTML = SCENARIOS.map(s => {
     const r  = calcAll(s.wti, s.risk);
     const gc = r.absGap < 0 ? '#ef4444' : r.absGap < 150 ? '#f59e0b' : '#10b981';
@@ -2374,6 +2394,9 @@ function updateDashboard() {
 
   // 슬라이더 동기화
   document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
+  // Base 버튼 레이블 초기 세팅 (야후 실시간 WTI 연동)
+  const btnBase = document.getElementById('btn-base-wti');
+  if (btnBase) btnBase.textContent = `Base $${Math.round(G.wti_rt)}`;
   onWtiSlider();
   // 크래커 슬라이더: 사용자가 직접 조작 중이면 갱신 안 함 (조작값 보존)
   if (!crackerUserEdited) {
@@ -2411,6 +2434,13 @@ function loadCSV() {
       G.nap           = parseFloat(d.NAP)              || G.nap;
       G.sm_act        = parseFloat(d.SM_Actual)        || G.sm_act;
       G.abs_mkt_act   = parseFloat(d.ABS_Mkt_Actual)   || G.abs_mkt_act;
+      // abs_gap_act: 구글시트에 ABS_Gap_Actual 컬럼 있으면 사용, 없으면 실측 역산
+      if (d.ABS_Gap_Actual && parseFloat(d.ABS_Gap_Actual)) {
+        G.abs_gap_act = parseFloat(d.ABS_Gap_Actual);
+      } else if (G.abs_mkt_act && G.sm_act && G.an && G.bd) {
+        // ABS Gap = Mkt - (SM×0.60 + AN×0.25 + BD×0.15)
+        G.abs_gap_act = G.abs_mkt_act - (G.sm_act*0.60 + G.an*0.25 + G.bd*0.15);
+      }
       G.pr_act        = parseFloat(d.PR_Actual)        || G.pr_act;
       G.bz_ara_act    = parseFloat(d.BZ_ARA_Actual)    || G.bz_ara_act;
       G.bz_usg_mt_act = parseFloat(d.BZ_USG_Actual)   || G.bz_usg_mt_act;
@@ -2473,6 +2503,12 @@ function manualRefreshData() {
       G.nap           = parseFloat(d.NAP)               || G.nap;
       G.sm_act        = parseFloat(d.SM_Actual)         || G.sm_act;
       G.abs_mkt_act   = parseFloat(d.ABS_Mkt_Actual)    || G.abs_mkt_act;
+      // abs_gap_act: 구글시트에 ABS_Gap_Actual 컬럼 있으면 사용, 없으면 실측 역산
+      if (d.ABS_Gap_Actual && parseFloat(d.ABS_Gap_Actual)) {
+        G.abs_gap_act = parseFloat(d.ABS_Gap_Actual);
+      } else if (G.abs_mkt_act && G.sm_act && G.an && G.bd) {
+        G.abs_gap_act = G.abs_mkt_act - (G.sm_act*0.60 + G.an*0.25 + G.bd*0.15);
+      }
       G.pr_act        = parseFloat(d.PR_Actual)         || G.pr_act;
       G.bz_ara_act    = parseFloat(d.BZ_ARA_Actual)     || G.bz_ara_act;
       G.bz_usg_mt_act = parseFloat(d.BZ_USG_Actual)    || G.bz_usg_mt_act;
@@ -2508,9 +2544,15 @@ function loadWTIOnly() {
       const newWti = parseFloat(d.WTI) || G.wti_rt;
       if (Math.abs(newWti - G.wti_rt) < 0.001) return; // 변화 없으면 스킵
       G.wti_rt = newWti;
-      // WTI 슬라이더 및 헤더 KPI만 업데이트
-      document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
+      // Base 버튼 레이블 실시간 갱신 (야후 WTI 연동)
+      const btnBase = document.getElementById('btn-base-wti');
+      if (btnBase) btnBase.textContent = `Base $${Math.round(G.wti_rt)}`;
       document.getElementById('update-time').textContent = '갱신: '+(d.UpdateTime||'');
+      // ── 사용자가 슬라이더를 직접 조작 중이면 시뮬레이터는 건드리지 않음
+      // 페이지 새로고침 시에만 슬라이더가 실시간 WTI로 초기화됨
+      if (wtiUserEdited) return;
+      // 사용자 미조작 상태에서만 슬라이더 동기화
+      document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
       onWtiSlider();
     }
   });
@@ -3464,6 +3506,7 @@ function renderCrackerHistoryChart(focusItem) {
 // ── 품목 토글 컨트롤러
 let crackerViewMode = 'all';
 let crackerUserEdited = false; // 사용자가 크래커 슬라이더를 직접 조작했는지 여부
+let wtiUserEdited     = false; // 사용자가 WTI/리스크 슬라이더를 직접 조작했는지 여부
 function setCrackerView(item) {
   crackerViewMode = item;
 
