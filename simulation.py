@@ -324,8 +324,10 @@ def calc_costs(latest, wti_rt, sens, risk_premium=0):
     # 수급 이상 신호: 실측 원가 - 이론 원가 (양수=수급 타이트)
     sm_sig_adj     = round(sm_cost_adj - sm_cost_th_adj, 1)
 
-    # ── ABS Cost (원료 상승 반영)
-    abs_cost_adj = round(abs_cost_act + d_total * sens['abs_cost'], 1)
+    # ── ABS Cost: SM/AN/BD 보정값으로 직접 재계산 ★ v6.2 수정
+    # (구버전: abs_cost_act + d_total × sens['abs_cost'] → 앵커 오차 누적 문제)
+    # SM×0.60 + AN×0.25 + BD×0.15 로 직접 계산 → 원료 상승분 정확 반영
+    abs_cost_adj = round(sm_adj * ABS_RATIO['sm'] + an_adj * ABS_RATIO['an'] + bd_adj * ABS_RATIO['bd'], 1)
 
     # ── ABS Market: 실시간 WTI 델타(회귀) + 리스크 프리미엄(flat 가산)
     # 리스크는 원료에 wti_equiv로 이미 전파, Market에는 그대로 가산
