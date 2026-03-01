@@ -306,10 +306,15 @@
           <div id="sens-abs_mkt" class="text-lg font-black text-white">---</div>
           <div id="r2-abs_mkt"   class="text-xs text-slate-600 mt-1">R²=---</div>
         </div>
+        <div class="bg-slate-900 rounded-lg p-3 border border-red-900 text-center">
+          <div class="text-xs text-red-400 font-bold mb-1">ABS Gap ★</div>
+          <div id="sens-abs_gap" class="text-lg font-black text-white">---</div>
+          <div id="r2-abs_gap"   class="text-xs text-slate-600 mt-1">R²=---</div>
+        </div>
       </div>
       <div class="mt-3 text-xs text-slate-600">
         * 구글시트 누적 데이터로 매주 자동 재계산 | R²&lt;0.3 은 기본값(default) 사용 | 데이터 4주 미만 시 기본값 사용
-        <br>★ ABS Gap / ABS Market은 WTI와 역상관 (ABS Gap: WTI $1↑ → Gap $17.75↓)
+        <br>★ ABS Gap: WTI $1↑ → Gap -$5.76↓ (557일 실측) | SM Margin: WTI 무상관(R²≈0)
       </div>
     </div>
   </section>
@@ -324,18 +329,19 @@
 // ── 상태 저장 (구글시트 실측 기반)
 let G = {
   wti_gs: 67.02, wti_rt: 67.02,
-  bz: 772.67, et: 710.0, bd: 1270.0, an: 1060.0,
-  nap: 637.0, sm_act: 966.5, abs_mkt_act: 1315.0,
-  // 파생 실측값 (CSV 로드 후 자동 갱신)
+  bz: 772.67, et: 710.0, bd: 1270.0, an: 1315.0,
+  nap: 637.0, sm_act: 966.5, abs_mkt_act: 1060.0,
+  // 파생 실측값 (2/27 기준 | CSV 로드 후 자동 갱신)
   sm_cost_act: 968.0, sm_margin_act: -1.0,
   abs_cost_act: 1099.0, abs_gap_act: -39.0,
 };
 
-// ── 민감도 (초기값 = 9주 실측 기반, CSV 로드 후 자동 갱신)
+// ── 민감도 (557일 일간 데이터 확정값 | CSV 로드 시 자동 갱신)
 let SENS = {
-  bz:11.74, et:-3.25, bd:25.69, an:15.66, sm:9.74, nap:9.94,
-  sm_cost:8.25, sm_margin:1.50,
-  abs_cost:13.61, abs_mkt:-4.13, abs_gap:-17.75,  // ★ Gap 직접 회귀
+  bz:16.81, et:6.13, bd:20.48, an:7.87, sm:14.75, nap:6.52, pr:4.18,
+  sm_cost:14.83, sm_margin:-0.08,      // SM Margin: WTI 무상관(R²≈0)
+  abs_cost:13.89, abs_mkt:8.12,
+  abs_gap:-5.76,                       // ★ WTI $1↑ → Gap -$5.76/t
 };
 
 // ── ABS 배합비 (실측)
@@ -347,23 +353,24 @@ function fmt(v, sign=false) {
   return (sign&&v>=0?'+':'') + '$' + Math.round(v).toLocaleString();
 }
 
-// ── WTI 델타 기반 원가 계산 (Gap 직접 회귀 v5.0)
-// ABS Gap = 실측 Gap + Δ × sens.abs_gap (WTI↑=Gap↓ 현실 반영)
-// ABS Market = 실측가 + Δ × sens.abs_mkt (역상관)
+// ── WTI 델타 기반 원가 계산 (557일 확정 민감도 v6.0)
+// ABS Gap = 실측 Gap + Δ × -5.76  → WTI↑=Gap↓ 현실 반영
+// SM Margin = 실측값 유지 (WTI 무상관 R²≈0)
+// Risk Premium = ABS Market + Gap에 직접 가산
 function calcFromG(wti, risk=0) {
   const d   = wti - G.wti_gs;
-  const bz  = G.bz         + d * SENS.bz;
-  const et  = G.et         + d * SENS.et;
-  const bd  = G.bd         + d * SENS.bd;
-  const an  = G.an         + d * SENS.an;
-  const sm  = G.sm_act     + d * SENS.sm;
+  const bz  = G.bz          + d * SENS.bz;
+  const et  = G.et          + d * SENS.et;
+  const bd  = G.bd          + d * SENS.bd;
+  const an  = G.an          + d * SENS.an;
+  const sm  = G.sm_act      + d * SENS.sm;
   // SM Cost / Margin
-  const smC = G.sm_cost_act  + d * SENS.sm_cost;
-  const smM = G.sm_margin_act + d * SENS.sm_margin;
-  // ABS Cost / Market / Gap - 직접 회귀 보정 ★
+  const smC = G.sm_cost_act   + d * SENS.sm_cost;
+  const smM = G.sm_margin_act + d * SENS.sm_margin;  // R²≈0 → 거의 고정
+  // ABS - Gap 직접 회귀 ★
   const absC = G.abs_cost_act + d * SENS.abs_cost;
-  const absM = G.abs_mkt_act  + d * SENS.abs_mkt + risk;  // 역상관 + 리스크
-  const absG = G.abs_gap_act  + d * SENS.abs_gap + risk;  // Gap 직접 보정 ★
+  const absM = G.abs_mkt_act  + d * SENS.abs_mkt + risk;
+  const absG = G.abs_gap_act  + d * SENS.abs_gap + risk;  // WTI↑=Gap↓
   return { wti, bz, et, bd, an, sm, smC, smM, absC, absM, absG, risk };
 }
 
