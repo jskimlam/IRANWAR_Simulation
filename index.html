@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
   <style>
     body { font-family: 'Pretendard','Apple SD Gothic Neo',sans-serif; background:#ddeef9; color:#1e293b; }
     @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.4} }
@@ -263,6 +264,82 @@
             <button onclick="setWtiScenario(100,200)"  class="text-xs bg-red-950/80     text-red-700     border border-red-900     rounded-lg px-3 py-1.5 hover:bg-red-900     transition">Crisis $100</button>
             <button onclick="resetWtiSlider()" class="text-xs bg-slate-700 text-slate-300 border border-slate-500 rounded-lg px-3 py-1.5 hover:bg-slate-600 transition ml-auto">↺ 실시간 동기화</button>
           </div>
+
+          <!-- ── SM / ABS 원가 구조 실시간 패널 ── -->
+          <div class="mt-3 rounded-xl border border-slate-600 bg-slate-800/60 p-3 text-xs space-y-3">
+            <div class="text-slate-300 font-black uppercase tracking-widest text-[10px] mb-1">📐 SM / ABS 원가 구조 (실시간)</div>
+
+            <!-- SM 원가 분해 -->
+            <div class="bg-slate-700/50 rounded-lg p-2.5">
+              <div class="text-blue-300 font-bold mb-2">① SM Cost 실측 = BZ×0.67 + ET×0.25 + NAP×0.05 + $150</div>
+              <div class="grid grid-cols-4 gap-1 text-center">
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-purple-300 text-[10px]">BZ×0.67</div>
+                  <div id="exp-bz-sm" class="font-black text-purple-200">$--</div>
+                </div>
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-emerald-300 text-[10px]">ET×0.25</div>
+                  <div id="exp-et-sm" class="font-black text-emerald-200">$--</div>
+                </div>
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-slate-300 text-[10px]">NAP×0.05</div>
+                  <div id="exp-nap-sm" class="font-black text-slate-200">$--</div>
+                </div>
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-slate-400 text-[10px]">고정비</div>
+                  <div class="font-black text-slate-300">$150</div>
+                </div>
+              </div>
+              <div class="mt-2 flex justify-between items-center border-t border-slate-600 pt-1.5">
+                <span class="text-slate-300">SM Cost 합계</span>
+                <span id="exp-sm-cost-total" class="font-black text-blue-300 text-sm">$--</span>
+              </div>
+              <div class="mt-1 flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">SM 시장가 (WTI만 반응 · 이란리스크 미전가)</span>
+                <span id="exp-sm-mkt" class="font-black text-blue-200">$--</span>
+              </div>
+              <div class="mt-1 flex justify-between items-center">
+                <span class="text-slate-300">SM Margin (시장가 − Cost)</span>
+                <span id="exp-sm-margin" class="font-black text-sm">$--</span>
+              </div>
+            </div>
+
+            <!-- ABS 원가 분해 -->
+            <div class="bg-slate-700/50 rounded-lg p-2.5">
+              <div class="text-emerald-300 font-bold mb-2">② ABS Cost = SM×0.60 + AN×0.25 + BD×0.15</div>
+              <div class="grid grid-cols-3 gap-1 text-center">
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-blue-300 text-[10px]">SM×0.60</div>
+                  <div id="exp-sm-abs" class="font-black text-blue-200">$--</div>
+                </div>
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-violet-300 text-[10px]">AN×0.25</div>
+                  <div id="exp-an-abs" class="font-black text-violet-200">$--</div>
+                </div>
+                <div class="bg-slate-800/70 rounded p-1.5">
+                  <div class="text-orange-300 text-[10px]">BD×0.15</div>
+                  <div id="exp-bd-abs" class="font-black text-orange-200">$--</div>
+                </div>
+              </div>
+              <div class="mt-2 flex justify-between items-center border-t border-slate-600 pt-1.5">
+                <span class="text-slate-300">ABS Cost 합계</span>
+                <span id="exp-abs-cost-total" class="font-black text-emerald-300 text-sm">$--</span>
+              </div>
+              <div class="mt-1 flex justify-between items-center text-[10px]">
+                <span class="text-slate-400">ABS Gap 회귀 기준 (WTI +$1 → Gap −$5.76 | R²=0.54)</span>
+                <span id="exp-abs-gap-sens" class="font-black text-slate-300">--</span>
+              </div>
+              <div class="mt-1 flex justify-between items-center">
+                <span class="text-emerald-300 font-bold">ABS Gap 실측 ③</span>
+                <span id="exp-abs-gap" class="font-black text-sm">$--</span>
+              </div>
+              <div class="mt-2 pt-2 border-t border-slate-600 text-[10px] text-slate-400 leading-relaxed">
+                ★ 가격 전가 탄성: 원료(Cost) &gt; SM시장가 &gt; ABS시장가 순으로 둔감<br>
+                WTI↑ → Cost 빠르게 상승 → Gap 축소 (다운스트림 마진 압박)<br>
+                WTI↓ → Cost 빠르게 하락 → Gap 개선 (스프레드 회복)
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 결과 -->
@@ -312,15 +389,16 @@
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
         <div>
           <h3 class="text-slate-700 font-black text-sm">📊 WTI 시뮬레이션 차트</h3>
-          <p class="text-xs text-slate-600 mt-0.5">슬라이더 조작 시 실시간 반영</p>
+          <p class="text-xs text-slate-600 mt-0.5">슬라이더 조작 시 실시간 반영 | SM Margin · ABS Gap 중심</p>
         </div>
         <!-- 차트 타입 전환 -->
         <div class="flex gap-2 flex-wrap items-center">
           <span class="text-xs text-slate-700 font-bold">차트:</span>
-          <button onclick="setWtiChartMode('radar')"  id="wct-radar"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600">민감도</button>
-          <button onclick="setWtiChartMode('bar')"    id="wct-bar"    class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">변동폭</button>
-          <button onclick="setWtiChartMode('donut')"  id="wct-donut"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">원가비중</button>
-          <button onclick="setWtiChartMode('gauge')"  id="wct-gauge"  class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">갭게이지</button>
+          <button onclick="setWtiChartMode('gap_scenario')" id="wct-gap_scenario" class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600">시나리오 Gap</button>
+          <button onclick="setWtiChartMode('gap_curve')"    id="wct-gap_curve"    class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">유가별 Gap곡선</button>
+          <button onclick="setWtiChartMode('cost_stack')"   id="wct-cost_stack"   class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">원가구조</button>
+          <button onclick="setWtiChartMode('waterfall')"    id="wct-waterfall"    class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">기여분해</button>
+          <button onclick="setWtiChartMode('gauge')"        id="wct-gauge"        class="wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300">갭게이지</button>
           <span class="text-xs text-slate-600 mx-1">|</span>
           <!-- 품목 토글 (레이더/변동폭 모드용) -->
           <span class="text-xs text-slate-700 font-bold">품목:</span>
@@ -1009,6 +1087,7 @@
 // ══════════════════════════════════════════════
 // datalabels 플러그인 전역 등록
 if (window.ChartDataLabels) Chart.register(ChartDataLabels);
+if (window.ChartAnnotation) Chart.register(ChartAnnotation);
 function showTab(id, btn) {
   ['tab-main','tab-wti','tab-cracker','tab-scenario','tab-chart','tab-sens','tab-forecast']
     .forEach(t => document.getElementById(t).classList.add('hidden'));
@@ -1018,7 +1097,7 @@ function showTab(id, btn) {
   if (id === 'tab-scenario') renderScenarios();
   if (id === 'tab-forecast') renderForecast();
   if (id === 'tab-cracker') setTimeout(() => renderCrackerHistoryChart(crackerViewMode === 'all' ? null : crackerViewMode), 150);
-  if (id === 'tab-wti') setTimeout(() => { setWtiChartMode('radar'); onWtiSlider(); }, 150);
+  if (id === 'tab-wti') setTimeout(() => { setWtiChartMode('gap_scenario'); onWtiSlider(); }, 150);
   if (id === 'tab-sens') renderSensCharts();
   if (id === 'tab-sens') setTimeout(renderSensCharts, 150);
 }
@@ -1208,6 +1287,39 @@ function onWtiSlider() {
 
   document.getElementById('wsim-abs-gap-th').textContent = fmt(r.absGapTh, true);
   document.getElementById('wti-strategy').innerHTML      = buildStrategy(r);
+
+  // ── SM/ABS 원가 구조 패널 실시간 업데이트
+  const setT = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  const fmtC = v => '$' + Math.round(v);  // 원가 표시용 (부호 없음)
+
+  // SM Cost 분해
+  setT('exp-bz-sm',        fmtC(r.bz * 0.67));
+  setT('exp-et-sm',        fmtC(r.et * 0.25));
+  setT('exp-nap-sm',       fmtC(r.nap * 0.05));
+  setT('exp-sm-cost-total', fmtC(r.smCost));
+  setT('exp-sm-mkt',       fmtC(r.sm));
+
+  const expSmMEl = document.getElementById('exp-sm-margin');
+  if (expSmMEl) {
+    expSmMEl.textContent = fmt(r.smMargin, true);
+    expSmMEl.className = 'font-black text-sm ' + (r.smMargin >= 0 ? 'text-emerald-300' : 'text-red-400');
+  }
+
+  // ABS Cost 분해
+  setT('exp-sm-abs',        fmtC(r.sm  * 0.60));
+  setT('exp-an-abs',        fmtC(r.an  * 0.25));
+  setT('exp-bd-abs',        fmtC(r.bd  * 0.15));
+  setT('exp-abs-cost-total', fmtC(r.absCost));
+
+  // ABS Gap: 회귀 민감도 표시 + 실측값
+  const dWtiDisp = parseFloat(document.getElementById('slider-wti').value) - G.wti_gs;
+  setT('exp-abs-gap-sens', `현재 dWTI ${dWtiDisp>=0?'+':''}${dWtiDisp.toFixed(1)} → Gap변화 ${(dWtiDisp*SENS.abs_gap).toFixed(0)}`);
+  const gapEl = document.getElementById('exp-abs-gap');
+  if (gapEl) {
+    gapEl.textContent = fmt(r.absGap, true);
+    gapEl.className = 'font-black text-sm ' + (r.absGap < 0 ? 'text-red-400 alert-blink' : r.absGap < 150 ? 'text-amber-300' : 'text-emerald-300');
+  }
+
   renderWtiChart();
 }
 
@@ -1230,7 +1342,7 @@ function resetWtiSlider() {
 // WTI 시뮬 차트
 // ══════════════════════════════════════════════
 let wtiSimChart = null;
-let wtiChartMode = 'radar';  // radar | bar | donut | gauge
+let wtiChartMode = 'gap_scenario';  // gap_scenario | gap_curve | cost_stack | waterfall | gauge
 
 // 품목 표시 여부
 const WTI_ITEMS = {
@@ -1254,6 +1366,7 @@ function toggleWtiItem(key) {
 
 function setWtiChartMode(mode) {
   wtiChartMode = mode;
+  // 버튼 활성화 스타일
   document.querySelectorAll('.wct-btn').forEach(b => b.className = 'wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-sky-50 text-slate-600 border-slate-300');
   const active = document.getElementById('wct-'+mode);
   if (active) active.className = 'wct-btn text-xs px-2 py-1 rounded border font-bold transition bg-slate-700 text-white border-slate-600';
@@ -1275,138 +1388,277 @@ function renderWtiChart() {
 
   const canvas = document.getElementById('wti-sim-chart');
   if (!canvas) return;
-  const newCanvas = canvas.cloneNode(true);
+  // 기존 차트 완전 파괴 후 canvas 교체 (중복 인스턴스 방지)
+  if (wtiSimChart) { try { wtiSimChart.destroy(); } catch(e){} wtiSimChart = null; }
+  const newCanvas = canvas.cloneNode(false);  // false: 자식 없이 복사
   canvas.parentNode.replaceChild(newCanvas, canvas);
 
   const wti  = parseFloat(document.getElementById('slider-wti').value);
   const risk = parseFloat(document.getElementById('slider-risk').value);
   const r    = calcAll(wti, risk);
-  const base = calcAll(G.wti_rt, 0);  // 현재가 기준
 
-  // 활성 품목만
-  const active = Object.entries(WTI_ITEMS).filter(([,v]) => v.on);
+  // 5개 시나리오 (Base는 항상 G.wti_rt 기준)
+  const SCENS = [
+    { label: 'Base $'+Math.round(G.wti_rt), wti: G.wti_rt, risk: 0,   color: '#10b981' },
+    { label: 'Mild $70',                     wti: 70,        risk: 50,  color: '#f59e0b' },
+    { label: 'Moderate $80',                 wti: 80,        risk: 100, color: '#f97316' },
+    { label: 'Severe $90',                   wti: 90,        risk: 150, color: '#ef4444' },
+    { label: 'Crisis $100',                  wti: 100,       risk: 200, color: '#b91c1c' },
+  ];
+  const scData   = SCENS.map(s => calcAll(s.wti, s.risk));
+  const scLabels = SCENS.map(s => s.label);
 
-  if (wtiChartMode === 'radar') {
-    // 레이더: WTI $1 변동 시 품목별 민감도(SENS) — 단위 통일로 비교 의미 있음
-    const sensMap = { NAP: SENS.nap, BZ: SENS.bz, ET: SENS.et, BD: SENS.bd, AN: SENS.an, SM: SENS.sm };
-    const labels  = active.map(([k]) => k);
-    const sensV   = active.map(([k]) => Math.round(sensMap[k] * 10) / 10);  // 소수1자리
+  // 공통 옵션
+  const commonPlugins = {
+    legend: { display: true, position: 'top', labels: { font:{size:11}, color:'#334155', boxWidth:12 } },
+    datalabels: { display: false },
+  };
 
-    wtiSimChart = new Chart(newCanvas, {
-      type: 'radar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'WTI $1 상승 시 가격 변화 ($/mt)',
-          data: sensV,
-          borderColor: 'rgba(239,68,68,0.9)',
-          backgroundColor: 'rgba(239,68,68,0.15)',
-          pointBackgroundColor: active.map(([,v]) => v.color + '1)'),
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          borderWidth: 2.5,
-          pointRadius: 6,
-          datalabels: {
-            display: true,
-            color: '#1e293b',
-            font: { size: 10, weight: 'bold' },
-            formatter: v => '+$' + v,
-          }
-        }]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: {
-          legend: { display: true, position: 'top', labels: { font:{size:11}, color:'#334155' } },
-          datalabels: { display: true },
-          tooltip: { callbacks: { label: ctx => ` WTI +$1 → ${ctx.chart.data.labels[ctx.dataIndex]} +$${ctx.parsed.r}` } }
-        },
-        scales: {
-          r: {
-            beginAtZero: true,
-            ticks: { color:'#64748b', font:{size:10}, callback: v => '+$'+v },
-            grid:  { color:'rgba(148,163,184,0.3)' },
-            pointLabels: { color:'#334155', font:{size:13, weight:'bold'} }
-          }
+  // 기준선 annotation 헬퍼 (annotation 플러그인 없을 때 안전하게)
+  const hasAnnotation = !!(window.ChartAnnotation);
+
+  // ════════════════════════════════════
+  // ① 시나리오별 Gap 비교
+  // ════════════════════════════════════
+  if (wtiChartMode === 'gap_scenario') {
+    const smMgns  = scData.map(d => Math.round(d.smMargin));
+    const absGaps = scData.map(d => Math.round(d.absGap));
+
+    const gapBgColors = absGaps.map(g =>
+      g < 0 ? 'rgba(239,68,68,0.85)' : g < 150 ? 'rgba(245,158,11,0.85)' : 'rgba(16,185,129,0.85)'
+    );
+
+    const plugins = {
+      ...commonPlugins,
+      datalabels: { display: true },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + (ctx.parsed.y >= 0 ? '+' : '') + '$' + ctx.parsed.y } },
+    };
+    if (hasAnnotation) {
+      plugins.annotation = {
+        annotations: {
+          zero: { type:'line', scaleID:'y', value:0,   borderColor:'rgba(239,68,68,0.6)', borderWidth:1.5, borderDash:[5,4] },
+          safe: { type:'line', scaleID:'y', value:150, borderColor:'rgba(16,185,129,0.5)', borderWidth:1.5, borderDash:[5,4] },
         }
-      }
-    });
-
-  } else if (wtiChartMode === 'bar') {
-    // 수평 바: 현재가 대비 변동폭
-    const labels  = active.map(([,v]) => v.label);
-    const deltas  = active.map(([,v]) => Math.round((r[v.key]||0) - (base[v.key]||0)));
-    const colors  = deltas.map(d => d >= 0 ? 'rgba(239,68,68,0.8)' : 'rgba(59,130,246,0.8)');
+      };
+    }
 
     wtiSimChart = new Chart(newCanvas, {
       type: 'bar',
       data: {
-        labels,
-        datasets: [{
-          label: 'WTI 변동 시 가격 변화 ($/mt)',
-          data: deltas,
-          backgroundColor: colors,
-          borderRadius: 6,
-          datalabels: {
-            display: true,
-            anchor: d => deltas[d.dataIndex] >= 0 ? 'end' : 'start',
-            align:  d => deltas[d.dataIndex] >= 0 ? 'right' : 'left',
-            color: '#1e293b',
-            font: { size:11, weight:'bold' },
-            formatter: v => (v>=0?'+':'')+'$'+v,
+        labels: scLabels,
+        datasets: [
+          {
+            label: 'ABS Gap ③',
+            data: absGaps,
+            backgroundColor: gapBgColors,
+            borderColor: gapBgColors.map(c => c.replace('0.85','1')),
+            borderWidth: 2, borderRadius: 5, order: 2,
+            datalabels: { display:true, anchor:'end', align:'top', color:'#1e293b', font:{size:11,weight:'bold'}, formatter: v => (v>=0?'+':'')+'$'+v }
+          },
+          {
+            type: 'line',
+            label: 'SM Margin',
+            data: smMgns,
+            borderColor: 'rgba(59,130,246,0.9)',
+            backgroundColor: 'rgba(59,130,246,0.0)',
+            pointBackgroundColor: smMgns.map(m => m<0?'#ef4444':'#3b82f6'),
+            pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 6,
+            tension: 0.3, borderWidth: 2.5, borderDash: [5,3], order: 1,
+            datalabels: { display:true, anchor:'end', align:'bottom', color:'#1d4ed8', font:{size:10,weight:'bold'}, formatter: v => (v>=0?'+':'')+'$'+v }
           }
-        }]
+        ]
       },
       options: {
-        indexAxis: 'y',
-        responsive:true, maintainAspectRatio:false,
-        plugins: {
-          legend:{ display:false },
-          datalabels:{ display:true },
-          tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.x>=0?'+':''}$${ctx.parsed.x}` } }
-        },
+        responsive: true, maintainAspectRatio: false,
+        plugins,
         scales: {
-          x: { ticks:{ color:'#334155', callback: v=>(v>=0?'+':'')+'$'+v }, grid:{ color:'rgba(148,163,184,0.2)' } },
-          y: { ticks:{ color:'#334155', font:{size:12, weight:'bold'} } }
+          x: { ticks:{color:'#334155',font:{size:11,weight:'bold'}}, grid:{color:'rgba(148,163,184,0.1)'} },
+          y: { position:'left', ticks:{color:'#334155', callback: v=>(v>=0?'+':'')+'$'+v}, grid:{color:'rgba(148,163,184,0.2)'},
+               title:{display:true, text:'Gap / SM Margin ($/mt)', color:'#64748b', font:{size:10}} }
         }
       }
     });
+  }
 
-  } else if (wtiChartMode === 'donut') {
-    // 도넛: ABS 원가 비중
-    const smC  = r.sm  * ABS_R.sm;
-    const anC  = r.an  * ABS_R.an;
-    const bdC  = r.bd  * ABS_R.bd;
-    const fixC = 150;
-    const total = smC + anC + bdC + fixC;
+  // ════════════════════════════════════
+  // ② 유가별 Gap 곡선 ($50~$120)
+  // ════════════════════════════════════
+  else if (wtiChartMode === 'gap_curve') {
+    const wtiRange = [];
+    for (let w = 50; w <= 120; w += 2) wtiRange.push(w);
+    const smCurve  = wtiRange.map(w => Math.round(calcAll(w, 0).smMargin));
+    const gapCurve = wtiRange.map(w => Math.round(calcAll(w, 0).absGap));
+
+    // 현재 WTI 인덱스 (가장 가까운 값)
+    const curIdx = wtiRange.reduce((best, w, i) => Math.abs(w - wti) < Math.abs(wtiRange[best] - wti) ? i : best, 0);
+
+    const pointRadiusFn  = (ctx) => ctx.dataIndex === curIdx ? 8 : 0;
+    const pointRadiusFn2 = (ctx) => ctx.dataIndex === curIdx ? 7 : 0;
+
+    const plugins2 = {
+      ...commonPlugins,
+      tooltip: { mode:'index', intersect:false, callbacks:{
+        title: ctx => 'WTI ' + ctx[0].label,
+        label: ctx => ' ' + ctx.dataset.label + ': ' + (ctx.parsed.y>=0?'+':'') + '$' + ctx.parsed.y
+      }},
+    };
+    if (hasAnnotation) {
+      plugins2.annotation = {
+        annotations: {
+          zero: { type:'line', scaleID:'y', value:0,   borderColor:'rgba(239,68,68,0.5)', borderWidth:1.5, borderDash:[5,4],
+                  label:{content:'역마진', display:true, position:'start', color:'#ef4444', font:{size:9}} },
+          safe: { type:'line', scaleID:'y', value:150, borderColor:'rgba(16,185,129,0.4)', borderWidth:1.5, borderDash:[5,4],
+                  label:{content:'정상', display:true, position:'start', color:'#10b981', font:{size:9}} },
+          cur:  { type:'line', scaleID:'x', value:curIdx, borderColor:'rgba(239,68,68,0.8)', borderWidth:2,
+                  label:{content:'현재 $'+Math.round(wti), display:true, position:'start', color:'#ef4444', font:{size:9,weight:'bold'}} },
+        }
+      };
+    }
 
     wtiSimChart = new Chart(newCanvas, {
-      type: 'doughnut',
+      type: 'line',
       data: {
-        labels: ['SM 원가', 'AN 원가', 'BD 원가', '고정비'],
-        datasets: [{
-          data: [Math.round(smC), Math.round(anC), Math.round(bdC), fixC],
-          backgroundColor: ['rgba(59,130,246,0.8)','rgba(124,58,237,0.8)','rgba(249,115,22,0.8)','rgba(100,116,139,0.6)'],
-          borderColor: ['#2563eb','#7c3aed','#ea580c','#64748b'],
-          borderWidth: 2,
-          hoverOffset: 8,
-          datalabels: {
-            display: true,
-            color: '#fff',
-            font: { size:11, weight:'bold' },
-            formatter: (v, ctx) => {
-              const pct = ((v/total)*100).toFixed(1);
-              return ctx.chart.data.labels[ctx.dataIndex] + '\n$'+v+'\n('+pct+'%)';
-            }
+        labels: wtiRange.map(w => '$'+w),
+        datasets: [
+          {
+            label: 'ABS Gap ③',
+            data: gapCurve,
+            borderColor: 'rgba(16,185,129,0.9)',
+            backgroundColor: 'rgba(16,185,129,0.12)',
+            fill: true, tension: 0.4, borderWidth: 2.5,
+            pointRadius: pointRadiusFn,
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#fff', pointBorderWidth: 2,
+          },
+          {
+            label: 'SM Margin',
+            data: smCurve,
+            borderColor: 'rgba(59,130,246,0.9)',
+            backgroundColor: 'transparent',
+            fill: false, tension: 0.4, borderWidth: 2,
+            borderDash: [6,3],
+            pointRadius: pointRadiusFn2,
+            pointBackgroundColor: '#3b82f6',
+            pointBorderColor: '#fff', pointBorderWidth: 2,
           }
-        }]
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: plugins2,
+        scales: {
+          x: { ticks:{color:'#64748b', font:{size:9}, maxTicksLimit:18}, grid:{color:'rgba(148,163,184,0.1)'} },
+          y: { ticks:{color:'#334155', callback: v=>(v>=0?'+':'')+'$'+v}, grid:{color:'rgba(148,163,184,0.2)'},
+               title:{display:true, text:'SM Margin / ABS Gap ($/mt)', color:'#64748b', font:{size:10}} }
+        }
+      }
+    });
+  }
+
+  // ════════════════════════════════════
+  // ③ 원가 구조 스택 + Gap 오버레이
+  // ════════════════════════════════════
+  else if (wtiChartMode === 'cost_stack') {
+    const smParts = scData.map(d => Math.round(d.sm  * ABS_R.sm));
+    const anParts = scData.map(d => Math.round(d.an  * ABS_R.an));
+    const bdParts = scData.map(d => Math.round(d.bd  * ABS_R.bd));
+    const absGaps = scData.map(d => Math.round(d.absGap));
+    const smMgns  = scData.map(d => Math.round(d.smMargin));
+
+    wtiSimChart = new Chart(newCanvas, {
+      type: 'bar',
+      data: {
+        labels: scLabels,
+        datasets: [
+          { label:'SM×0.60', data:smParts, backgroundColor:'rgba(59,130,246,0.8)',  borderColor:'#2563eb', borderWidth:1, stack:'cost', yAxisID:'yCost',
+            borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4} },
+          { label:'AN×0.25', data:anParts, backgroundColor:'rgba(124,58,237,0.8)',  borderColor:'#7c3aed', borderWidth:1, stack:'cost', yAxisID:'yCost' },
+          { label:'BD×0.15', data:bdParts, backgroundColor:'rgba(249,115,22,0.8)',  borderColor:'#ea580c', borderWidth:1, stack:'cost', yAxisID:'yCost',
+            borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0} },
+          { type:'line', label:'ABS Gap ③', data:absGaps, yAxisID:'yGap',
+            borderColor:'rgba(16,185,129,0.9)', backgroundColor:'transparent',
+            pointBackgroundColor: absGaps.map(g=>g<0?'#ef4444':g<150?'#f59e0b':'#10b981'),
+            pointBorderColor:'#fff', pointBorderWidth:2, pointRadius:7,
+            tension:0.3, borderWidth:2.5, order:1,
+            datalabels:{display:true,anchor:'end',align:'top',color:'#065f46',font:{size:10,weight:'bold'},formatter:v=>(v>=0?'+':'')+'$'+v} },
+          { type:'line', label:'SM Margin', data:smMgns, yAxisID:'yGap',
+            borderColor:'rgba(59,130,246,0.8)', backgroundColor:'transparent',
+            pointBackgroundColor:'#2563eb', pointBorderColor:'#fff', pointBorderWidth:2, pointRadius:5,
+            tension:0.3, borderWidth:2, borderDash:[5,3], order:1,
+            datalabels:{display:true,anchor:'start',align:'bottom',color:'#1d4ed8',font:{size:10,weight:'bold'},formatter:v=>(v>=0?'+':'')+'$'+v} },
+        ]
       },
       options: {
         responsive:true, maintainAspectRatio:false,
-        plugins: {
-          legend:{ display:true, position:'right', labels:{ font:{size:11}, color:'#334155' } },
-          tooltip:{ callbacks:{ label: ctx => ` ${ctx.label}: $${ctx.parsed} (${((ctx.parsed/total)*100).toFixed(1)}%)` } },
-          datalabels:{ display:true },
+        plugins: { ...commonPlugins, datalabels:{display:true},
+          tooltip:{mode:'index',intersect:false} },
+        scales: {
+          x:     { ticks:{color:'#334155',font:{size:10,weight:'bold'}}, grid:{color:'rgba(148,163,184,0.1)'} },
+          yCost: { position:'left',  stacked:true, ticks:{color:'#64748b',callback:v=>'$'+v},
+                   title:{display:true,text:'ABS Cost 구성 ($/mt)',color:'#64748b',font:{size:10}}, grid:{color:'rgba(148,163,184,0.15)'} },
+          yGap:  { position:'right', ticks:{color:'#334155',callback:v=>(v>=0?'+':'')+'$'+v},
+                   title:{display:true,text:'Gap / Margin ($/mt)',color:'#64748b',font:{size:10}}, grid:{drawOnChartArea:false} }
+        }
+      }
+    });
+  }
+
+  // ════════════════════════════════════
+  // ④ 기여분해 워터폴
+  // ════════════════════════════════════
+  else if (wtiChartMode === 'waterfall') {
+    const base   = calcAll(G.wti_rt, 0);
+    const dWtiV  = wti - G.wti_rt;
+
+    const items = [
+      { label:'BZ 기여',  val: Math.round((r.bz  - base.bz)  * 0.67 * ABS_R.sm), color:'rgba(168,85,247,0.85)'  },
+      { label:'ET 기여',  val: Math.round((r.et  - base.et)  * 0.25 * ABS_R.sm), color:'rgba(16,185,129,0.85)'  },
+      { label:'NAP 기여', val: Math.round((r.nap - base.nap) * 0.05 * ABS_R.sm), color:'rgba(100,116,139,0.85)' },
+      { label:'AN 기여',  val: Math.round((r.an  - base.an)  * ABS_R.an),         color:'rgba(124,58,237,0.85)'  },
+      { label:'BD 기여',  val: Math.round((r.bd  - base.bd)  * ABS_R.bd),         color:'rgba(249,115,22,0.85)'  },
+    ];
+    const costDelta  = items.reduce((s,i)=>s+i.val, 0);
+    const smMgnDelta = Math.round(r.smMargin - base.smMargin);
+    const absGapDelt = Math.round(r.absGap   - base.absGap);
+
+    const allVals   = [...items.map(i=>i.val), costDelta, smMgnDelta, absGapDelt];
+    const allLabels = [...items.map(i=>i.label), 'ABS Cost\n변화', 'SM Margin\n변화', 'ABS Gap\n변화'];
+    const allColors = [
+      ...items.map(i=>i.color),
+      costDelta>=0  ? 'rgba(239,68,68,0.85)' : 'rgba(16,185,129,0.85)',
+      smMgnDelta>=0 ? 'rgba(59,130,246,0.85)': 'rgba(239,68,68,0.85)',
+      absGapDelt>=0 ? 'rgba(16,185,129,0.85)': 'rgba(239,68,68,0.85)',
+    ];
+
+    wtiSimChart = new Chart(newCanvas, {
+      type:'bar',
+      data:{
+        labels: allLabels,
+        datasets:[{
+          label: 'Base $'+Math.round(G.wti_rt)+' → 현재 $'+Math.round(wti)+' (변화량)',
+          data: allVals,
+          backgroundColor: allColors,
+          borderColor: allColors.map(c=>c.replace(/[\d.]+\)$/,'1)')),
+          borderWidth:2, borderRadius:5,
+          datalabels:{
+            display:true,
+            anchor: (ctx) => allVals[ctx.dataIndex]>=0 ? 'end'   : 'start',
+            align:  (ctx) => allVals[ctx.dataIndex]>=0 ? 'top'   : 'bottom',
+            color:'#1e293b', font:{size:10,weight:'bold'},
+            formatter: v=>(v>=0?'+':'')+'$'+v
+          }
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          ...commonPlugins, datalabels:{display:true},
+          tooltip:{callbacks:{label:ctx=>' '+(ctx.parsed.y>=0?'+':'')+'$'+ctx.parsed.y+'/mt (Base 대비)'}},
+        },
+        scales:{
+          x:{ticks:{color:'#334155',font:{size:10,weight:'bold'}}, grid:{color:'rgba(148,163,184,0.1)'}},
+          y:{ticks:{color:'#64748b',callback:v=>(v>=0?'+':'')+'$'+v}, grid:{color:'rgba(148,163,184,0.2)'},
+             title:{display:true, text:'WTI '+(dWtiV>=0?'+':'')+'$'+dWtiV.toFixed(1)+' 시 변화 ($/mt)', color:'#64748b', font:{size:10}}}
         }
       }
     });
