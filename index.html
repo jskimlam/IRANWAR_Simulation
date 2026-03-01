@@ -380,6 +380,47 @@
             </div>
           </div>
           <div id="wti-strategy" class="p-3 rounded-lg bg-sky-50 border border-slate-300 text-xs mt-1"></div>
+
+          <!-- ── 실데이터 회귀 레퍼런스 ── -->
+          <div class="mt-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-xs">
+            <div class="text-amber-700 font-black text-[10px] uppercase tracking-widest mb-2">📊 실데이터 회귀 레퍼런스 (2024~2026 · 544일)</div>
+            <div class="grid grid-cols-4 gap-1 text-center mb-2">
+              <div class="bg-white border border-emerald-200 rounded p-1.5">
+                <div class="text-slate-500 text-[10px]">$50–60</div>
+                <div class="font-black text-emerald-700">+$299</div>
+              </div>
+              <div class="bg-white border border-emerald-200 rounded p-1.5">
+                <div class="text-slate-500 text-[10px]">$60–70</div>
+                <div class="font-black text-emerald-600">+$293</div>
+              </div>
+              <div class="bg-white border border-amber-200 rounded p-1.5">
+                <div class="text-slate-500 text-[10px]">$70–80</div>
+                <div class="font-black text-amber-600">+$218</div>
+              </div>
+              <div class="bg-white border border-orange-200 rounded p-1.5">
+                <div class="text-slate-500 text-[10px]">$80–90</div>
+                <div class="font-black text-orange-600">+$179</div>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-600 space-y-1 border-t border-amber-200 pt-2">
+              <div class="flex justify-between">
+                <span>회귀: Gap = −$5.76×WTI + $656</span>
+                <span>R² = <b class="text-slate-800">0.541</b></span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">회귀 예측 Gap</span>
+                <span id="ref-gap-pred2" class="font-black text-slate-800">$--</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">시뮬 Gap ③</span>
+                <span id="ref-gap-actual2" class="font-black">$--</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">차이 (시뮬−회귀)</span>
+                <span id="ref-gap-diff2" class="font-black">--</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1367,21 +1408,29 @@ function onWtiSlider() {
     gapEl.className = 'font-black text-sm ' + (r.absGap < 0 ? 'text-red-600 alert-blink' : r.absGap < 150 ? 'text-amber-600' : 'text-emerald-700');
   }
 
-  // ── 회귀 레퍼런스 실시간 업데이트
+  // ── 회귀 레퍼런스 실시간 업데이트 (차트 아래 + 오른쪽 패널 동시)
   const refPred = Math.round(-5.76 * wti + 656);  // 실데이터 회귀식
+  const predStr  = (refPred>=0?'+':'') + '$' + refPred;
+  const gapColor = r.absGap < 0 ? 'text-red-600' : r.absGap < 150 ? 'text-amber-600' : 'text-emerald-700';
+  const diff     = Math.round(r.absGap - refPred);
+  const diffStr  = (diff>=0?'+':'') + '$' + diff;
+  const diffColor= Math.abs(diff) < 50 ? 'text-slate-600' : 'text-orange-600';
+
+  // 차트 아래 ref
   const refPredEl = document.getElementById('ref-gap-pred');
-  if (refPredEl) refPredEl.textContent = (refPred>=0?'+':'') + '$' + refPred;
+  if (refPredEl) refPredEl.textContent = predStr;
   const refActEl = document.getElementById('ref-gap-actual');
-  if (refActEl) {
-    refActEl.textContent = fmt(r.absGap, true);
-    refActEl.className = 'font-black ' + (r.absGap < 0 ? 'text-red-600' : r.absGap < 150 ? 'text-amber-600' : 'text-emerald-700');
-  }
-  const diff = Math.round(r.absGap - refPred);
+  if (refActEl) { refActEl.textContent = fmt(r.absGap, true); refActEl.className = 'font-black ' + gapColor; }
   const diffEl = document.getElementById('ref-gap-diff');
-  if (diffEl) {
-    diffEl.textContent = (diff>=0?'+':'') + '$' + diff;
-    diffEl.className = 'font-bold ' + (Math.abs(diff) < 50 ? 'text-slate-600' : 'text-orange-600');
-  }
+  if (diffEl) { diffEl.textContent = diffStr; diffEl.className = 'font-bold ' + diffColor; }
+
+  // 오른쪽 패널 ref
+  const refPredEl2 = document.getElementById('ref-gap-pred2');
+  if (refPredEl2) refPredEl2.textContent = predStr;
+  const refActEl2 = document.getElementById('ref-gap-actual2');
+  if (refActEl2) { refActEl2.textContent = fmt(r.absGap, true); refActEl2.className = 'font-black ' + gapColor; }
+  const diffEl2 = document.getElementById('ref-gap-diff2');
+  if (diffEl2) { diffEl2.textContent = diffStr; diffEl2.className = 'font-black ' + diffColor; }
 
   renderWtiChart();
 }
@@ -1845,7 +1894,7 @@ function onCrackerSlider() {
     const bannerBorder= revGap >= 0 ? '#6ee7b7' : '#fca5a5';
     const bannerHtml  = `<div class="col-span-2 md:col-span-4 rounded-xl p-3 mb-1 text-xs border" style="background:${bannerBg};border-color:${bannerBorder}">
       <div class="font-black mb-1" style="color:${bannerColor}">
-        ⚠ 정상 스프레드가는 크래커 종합 마진과 다릅니다
+        ⚗ Cracker Margin Breakdown
       </div>
       <div class="text-slate-600 leading-relaxed">
         <span class="font-mono text-slate-800">
