@@ -397,7 +397,7 @@
         크래커마진 = ET×<b>0.32</b> + PR×<b>0.16</b> + BD×<b>0.05</b> + BZ×<b>0.07</b> - NAP - $50 (실제 납사크래커 수율 기반)
         | BD타이트 프리미엄 = 신공식 4주평균 기준 자동 계산 → ABS Cost 반영
       </p>
-      <!-- ★ 품목별 적정가격 현황 패널 -->
+      <!-- ★ 품목별 정상 스프레드가 패널 -->
       <div id="cr-target-panel" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 text-xs"></div>
 
       <div class="grid md:grid-cols-2 gap-6">
@@ -413,7 +413,7 @@
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$300</span><span>$600</span><span>$900</span><span>$1200</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-green-700">현재 실측: <span id="cr-et-actual" class="text-green-500 font-bold">$710</span></span>
-              <span class="text-amber-700 font-bold">적정가: <span id="cr-et-target" class="text-amber-600">$--</span> <span id="cr-et-gap" class="text-xs"></span></span>
+              <span class="text-amber-700 font-bold">정상 스프레드가: <span id="cr-et-target" class="text-amber-600">$--</span> <span id="cr-et-gap" class="text-xs"></span></span>
             </div>
           </div>
 
@@ -441,7 +441,7 @@
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$700</span><span>$1000</span><span>$1200</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-cyan-700">현재가: <span id="cr-pr-cur" class="font-bold">$870</span></span>
-              <span class="text-amber-700 font-bold">적정가: <span id="cr-pr-target" class="text-amber-600">$--</span> <span id="cr-pr-gap" class="text-xs"></span></span>
+              <span class="text-amber-700 font-bold">정상 스프레드가: <span id="cr-pr-target" class="text-amber-600">$--</span> <span id="cr-pr-gap" class="text-xs"></span></span>
             </div>
           </div>
 
@@ -455,7 +455,7 @@
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$800</span><span>$1200</span><span>$1500</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-purple-700">현재가: <span id="cr-bz-cur" class="font-bold">$772</span></span>
-              <span class="text-amber-700 font-bold">적정가: <span id="cr-bz-target" class="text-amber-600">$--</span> <span id="cr-bz-gap" class="text-xs"></span></span>
+              <span class="text-amber-700 font-bold">정상 스프레드가: <span id="cr-bz-target" class="text-amber-600">$--</span> <span id="cr-bz-gap" class="text-xs"></span></span>
             </div>
           </div>
 
@@ -469,7 +469,7 @@
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$600</span><span>$1300</span><span>$2000</span><span>$2500</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-orange-700">현재가: <span id="cr-bd-cur" class="font-bold">$1270</span></span>
-              <span class="text-amber-700 font-bold">적정가: <span id="cr-bd-target" class="text-amber-600">$--</span> <span id="cr-bd-gap" class="text-xs"></span></span>
+              <span class="text-amber-700 font-bold">정상 스프레드가: <span id="cr-bd-target" class="text-amber-600">$--</span> <span id="cr-bd-gap" class="text-xs"></span></span>
             </div>
           </div>
 
@@ -1515,29 +1515,49 @@ function onCrackerSlider() {
   showTarget('cr-bz-target', 'cr-bz-gap', bz, targets.bz);
 
   // ── 품목별 적정가격 카드 패널 업데이트
-  // ── 손익분기 ET 미리 계산 (카드에서 사용)
-  const breakEtCalc = (nap + 50 - pr*CR_Y.pr - bd*CR_Y.bd - bz*CR_Y.bz) / CR_Y.et;
+  // ── 손익분기 기여액 계산
+  const totalNeeded = nap + 50;          // 크래커 손익분기에 필요한 총 기여액
+  const revenueNow  = et*CR_Y.et + pr*CR_Y.pr + bd*CR_Y.bd + bz*CR_Y.bz;
+  const revGap      = revenueNow - totalNeeded; // 음수 = 부족
 
   const items = [
-    { label:'ET 에틸렌', cur:et,  target:targets.et,  spread:et-nap,  reqSpread:CR_SPREAD.et,  yieldStr:'32%', isET:true },
-    { label:'PR 프로필렌',cur:pr, target:targets.pr,  spread:pr-nap,  reqSpread:CR_SPREAD.pr,  yieldStr:'16%', isET:false },
-    { label:'BD 부타디엔',cur:bd, target:targets.bd,  spread:bd-nap,  reqSpread:CR_SPREAD.bd,  yieldStr:'5%',  isET:false },
-    { label:'BZ 벤젠',    cur:bz, target:targets.bz,  spread:bz-nap,  reqSpread:CR_SPREAD.bz,  yieldStr:'7%',  isET:false },
+    { label:'ET 에틸렌',  cur:et,  target:targets.et,  spread:et-nap,  reqSpread:CR_SPREAD.et,  yld:CR_Y.et, yieldStr:'32%' },
+    { label:'PR 프로필렌',cur:pr,  target:targets.pr,  spread:pr-nap,  reqSpread:CR_SPREAD.pr,  yld:CR_Y.pr, yieldStr:'16%' },
+    { label:'BD 부타디엔',cur:bd,  target:targets.bd,  spread:bd-nap,  reqSpread:CR_SPREAD.bd,  yld:CR_Y.bd, yieldStr:'5%'  },
+    { label:'BZ 벤젠',    cur:bz,  target:targets.bz,  spread:bz-nap,  reqSpread:CR_SPREAD.bz,  yld:CR_Y.bz, yieldStr:'7%'  },
   ];
   const panel = document.getElementById('cr-target-panel');
   if (panel) {
-    panel.innerHTML = items.map(it => {
-      const spreadGap = it.spread - it.reqSpread; // 시장 적정 스프레드 대비
-      const pct = Math.min(Math.max(0, (it.spread / it.reqSpread) * 100), 140).toFixed(0);
-      const barColor = spreadGap >= 0 ? '#10b981' : (pct > 60 ? '#f59e0b' : '#ef4444');
+    // ── 설명 배너 (카드 위)
+    const bannerColor = revGap >= 0 ? '#059669' : '#dc2626';
+    const bannerBg    = revGap >= 0 ? '#ecfdf5' : '#fff1f2';
+    const bannerBorder= revGap >= 0 ? '#6ee7b7' : '#fca5a5';
+    const bannerHtml  = `<div class="col-span-2 md:col-span-4 rounded-xl p-3 mb-1 text-xs border" style="background:${bannerBg};border-color:${bannerBorder}">
+      <div class="font-black mb-1" style="color:${bannerColor}">
+        ⚠ 정상 스프레드가는 크래커 종합 마진과 다릅니다
+      </div>
+      <div class="text-slate-600 leading-relaxed">
+        각 품목의 <b>정상 스프레드가</b>는 <b>해당 품목이 납사(NAP) 대비 역사적으로 정상 수익을 내는 가격</b>입니다.
+        4품목 모두 정상 스프레드를 달성해도 크래커 전체가 흑자가 되는 것은 아닙니다.<br>
+        <b>크래커 흑자 조건:</b>
+        <span class="font-mono" style="color:#1e293b">
+          ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 ≥ NAP + $50
+        </span>
+        <span style="color:${bannerColor}">
+          → 현재 수익합 <b>$${Math.round(revenueNow)}</b> vs 필요 <b>$${Math.round(totalNeeded)}</b>
+          = <b>${revGap>=0?'+':''}$${Math.round(revGap)}</b>
+        </span>
+      </div>
+    </div>`;
+
+    panel.innerHTML = bannerHtml + items.map(it => {
+      const contrib     = Math.round(it.cur * it.yld);       // 현재 기여액
+      const spreadGap   = it.spread - it.reqSpread;           // 정상 스프레드 대비 갭
+      const pct         = Math.min(Math.max(0, (it.spread / it.reqSpread) * 100), 140).toFixed(0);
+      const barColor    = spreadGap >= 0 ? '#10b981' : (pct > 60 ? '#f59e0b' : '#ef4444');
       const spreadEmoji = spreadGap >= 0 ? '🟢' : (pct > 60 ? '🟡' : '🔴');
-      // ET는 손익분기가 추가 표시
-      const breakLine = it.isET
-        ? `<div class="text-xs mt-1 pt-1 border-t border-slate-100" style="color:${et>=breakEtCalc?'#10b981':'#ef4444'}">
-            손익분기가: <b>$${Math.round(breakEtCalc)}</b>
-            <span>(현재 ${et>=breakEtCalc?'+':''}$${Math.round(et-breakEtCalc)})</span>
-           </div>`
-        : '';
+      const contribPct  = Math.round((contrib / totalNeeded) * 100); // 전체 필요 기여 중 비중
+
       return `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
         <div class="flex justify-between items-center mb-1">
           <span class="font-black text-slate-800 text-xs">${spreadEmoji} ${it.label}</span>
@@ -1545,14 +1565,16 @@ function onCrackerSlider() {
         </div>
         <div class="text-lg font-black text-slate-900">$${Math.round(it.cur)}</div>
         <div class="text-xs text-amber-700 mb-1">
-          시장적정가 $${Math.round(it.target)}
+          정상 스프레드가: <b>$${Math.round(it.target)}</b>
           <span style="color:${barColor}">(${spreadGap>=0?'+':''}${Math.round(spreadGap)})</span>
         </div>
         <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
           <div style="width:${Math.min(pct,100)}%;background:${barColor}" class="h-2 rounded-full transition-all duration-300"></div>
         </div>
-        <div class="text-xs text-slate-500">대NAP 스프레드: ${it.spread>=0?'+':''}$${Math.round(it.spread)} / 적정 +$${it.reqSpread}</div>
-        ${breakLine}
+        <div class="text-xs text-slate-500">
+          대NAP: ${it.spread>=0?'+':''}$${Math.round(it.spread)} / 정상 +$${it.reqSpread}
+          &nbsp;|&nbsp; 크래커기여: <b>$${contrib}</b> (${contribPct}%)
+        </div>
       </div>`;
     }).join('');
   }
@@ -1721,7 +1743,7 @@ function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC,
 
     // 시장스프레드 기준은 참고용으로만
     const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
-    html += `<div class="mt-1 text-xs text-slate-400">※ 시장적정 스프레드(ET+$300 등)는 참고값. 실제 손익분기는 위 계산 기준.</div>`;
+    html += `<div class="mt-1 text-xs text-slate-400">※ 정상 스프레드가(ET+$300 등)는 품목별 대NAP 기준값. 크래커 종합 손익분기는 위 계산 기준.</div>`;
   } else {
     html += `<div class="text-green-300 font-bold mt-1 text-xs">✅ 크래커 흑자 — 정상 가동 유인 존재. BD 공급 안정적.</div>`;
   }
@@ -3514,7 +3536,7 @@ function setCrackerView(item) {
             <div class="font-black text-base" style="color:${m.color}">$${Math.round(latest.price)}</div>
           </div>
           <div class="bg-white rounded-lg p-2 border">
-            <div class="text-slate-500 text-xs">적정가 (4주NAP+$${m.spread})</div>
+            <div class="text-slate-500 text-xs">정상 스프레드가 (NAP+$${m.spread})</div>
             <div class="font-black text-base text-amber-600">$${tgtPrice}</div>
           </div>
           <div class="bg-white rounded-lg p-2 border">
@@ -3536,8 +3558,8 @@ function setCrackerView(item) {
         </div>
         <div class="bg-white rounded-lg p-2 border text-xs text-slate-600">
           ${gapVsTgt >= 0
-            ? `✅ <b>${m.label}</b>는 적정가 달성. 역마진 기여 없음.`
-            : `🔴 <b>${m.label}</b>가 적정가 대비 <b style="color:#ef4444">$${Math.abs(Math.round(gapVsTgt))} 부족</b>. 역마진의 <b>${shareStr}</b> 기인. 적정가 <b>$${tgtPrice}</b> 회복 필요.`
+            ? `✅ <b>${m.label}</b>는 정상 스프레드 달성. (크래커 종합마진과 별개)`
+            : `🔴 <b>${m.label}</b>가 정상 스프레드가 대비 <b style="color:#ef4444">$${Math.abs(Math.round(gapVsTgt))} 부족</b>. 정상 스프레드가 <b>$${tgtPrice}</b> 회복 필요.`
           }<br><span class="text-slate-500">${m.note}</span>
         </div>
       </div>
