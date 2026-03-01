@@ -1515,29 +1515,44 @@ function onCrackerSlider() {
   showTarget('cr-bz-target', 'cr-bz-gap', bz, targets.bz);
 
   // ── 품목별 적정가격 카드 패널 업데이트
+  // ── 손익분기 ET 미리 계산 (카드에서 사용)
+  const breakEtCalc = (nap + 50 - pr*CR_Y.pr - bd*CR_Y.bd - bz*CR_Y.bz) / CR_Y.et;
+
   const items = [
-    { label:'ET 에틸렌', cur:et,  target:targets.et,  spread:et-nap,  reqSpread:CR_SPREAD.et,  yield:'32%', color:'green',  emoji: et>=targets.et?'🟢':'🔴' },
-    { label:'PR 프로필렌',cur:pr, target:targets.pr,  spread:pr-nap,  reqSpread:CR_SPREAD.pr,  yield:'16%', color:'cyan',   emoji: pr>=targets.pr?'🟢':pr>=(targets.pr-30)?'🟡':'🔴' },
-    { label:'BD 부타디엔',cur:bd, target:targets.bd,  spread:bd-nap,  reqSpread:CR_SPREAD.bd,  yield:'5%',  color:'orange', emoji: bd>=targets.bd?'🟢':'🟡' },
-    { label:'BZ 벤젠',    cur:bz, target:targets.bz,  spread:bz-nap,  reqSpread:CR_SPREAD.bz,  yield:'7%',  color:'purple', emoji: bz>=targets.bz?'🟢':bz>=(targets.bz-20)?'🟡':'🔴' },
+    { label:'ET 에틸렌', cur:et,  target:targets.et,  spread:et-nap,  reqSpread:CR_SPREAD.et,  yieldStr:'32%', isET:true },
+    { label:'PR 프로필렌',cur:pr, target:targets.pr,  spread:pr-nap,  reqSpread:CR_SPREAD.pr,  yieldStr:'16%', isET:false },
+    { label:'BD 부타디엔',cur:bd, target:targets.bd,  spread:bd-nap,  reqSpread:CR_SPREAD.bd,  yieldStr:'5%',  isET:false },
+    { label:'BZ 벤젠',    cur:bz, target:targets.bz,  spread:bz-nap,  reqSpread:CR_SPREAD.bz,  yieldStr:'7%',  isET:false },
   ];
   const panel = document.getElementById('cr-target-panel');
   if (panel) {
     panel.innerHTML = items.map(it => {
-      const gap = it.cur - it.target;
+      const spreadGap = it.spread - it.reqSpread; // 시장 적정 스프레드 대비
       const pct = Math.min(Math.max(0, (it.spread / it.reqSpread) * 100), 140).toFixed(0);
-      const barColor = gap >= 0 ? '#10b981' : (pct > 60 ? '#f59e0b' : '#ef4444');
+      const barColor = spreadGap >= 0 ? '#10b981' : (pct > 60 ? '#f59e0b' : '#ef4444');
+      const spreadEmoji = spreadGap >= 0 ? '🟢' : (pct > 60 ? '🟡' : '🔴');
+      // ET는 손익분기가 추가 표시
+      const breakLine = it.isET
+        ? `<div class="text-xs mt-1 pt-1 border-t border-slate-100" style="color:${et>=breakEtCalc?'#10b981':'#ef4444'}">
+            손익분기가: <b>$${Math.round(breakEtCalc)}</b>
+            <span>(현재 ${et>=breakEtCalc?'+':''}$${Math.round(et-breakEtCalc)})</span>
+           </div>`
+        : '';
       return `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
         <div class="flex justify-between items-center mb-1">
-          <span class="font-black text-slate-800 text-xs">${it.emoji} ${it.label}</span>
-          <span class="text-xs text-slate-500">수율 ${it.yield}</span>
+          <span class="font-black text-slate-800 text-xs">${spreadEmoji} ${it.label}</span>
+          <span class="text-xs text-slate-500">수율 ${it.yieldStr}</span>
         </div>
         <div class="text-lg font-black text-slate-900">$${Math.round(it.cur)}</div>
-        <div class="text-xs text-amber-700 mb-1">적정가 $${Math.round(it.target)} <span style="color:${barColor}">(${gap>=0?'+':''}${Math.round(gap)})</span></div>
+        <div class="text-xs text-amber-700 mb-1">
+          시장적정가 $${Math.round(it.target)}
+          <span style="color:${barColor}">(${spreadGap>=0?'+':''}${Math.round(spreadGap)})</span>
+        </div>
         <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
           <div style="width:${Math.min(pct,100)}%;background:${barColor}" class="h-2 rounded-full transition-all duration-300"></div>
         </div>
-        <div class="text-xs text-slate-500">스프레드 ${it.spread>=0?'+':''}$${Math.round(it.spread)} / 적정 +$${it.reqSpread} (${pct}%)</div>
+        <div class="text-xs text-slate-500">대NAP 스프레드: ${it.spread>=0?'+':''}$${Math.round(it.spread)} / 적정 +$${it.reqSpread}</div>
+        ${breakLine}
       </div>`;
     }).join('');
   }
@@ -1654,43 +1669,61 @@ function buildCrackerStrategy(margin, bdTight, absGap, etRoom) {
 
 // ── 역마진 해설 빌더 (신공식 기반)
 function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC, bzC, napBase) {
-  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
-  if (!napBase) napBase = Math.max(nap, nap4w); // 미전달 시 자동 계산
-  const etGap  = et  - targets.et;
-  const prGap  = pr  - targets.pr;
-  const bdGap  = bd  - targets.bd;
-  const bzGap  = bz  - targets.bz;
+  // ── 핵심: 크래커마진 = ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 - NAP - 50
+  // 역마진 해소는 "가중합 >= NAP+50" 이 유일한 조건
 
-  // 역마진 기여 분해: 각 품목이 적정가였다면 마진 개선액
-  const etImprove  = Math.max(0, -etGap) * CR_Y.et;
-  const prImprove  = Math.max(0, -prGap) * CR_Y.pr;
-  const bdImprove  = Math.max(0, -bdGap) * CR_Y.bd;
-  const bzImprove  = Math.max(0, -bzGap) * CR_Y.bz;
-  const totalImprove = etImprove + prImprove + bdImprove + bzImprove;
-  const etShare = totalImprove > 0 ? (etImprove/totalImprove*100).toFixed(0) : 0;
+  const revenueSum = etC + prC + bdC + bzC;         // 현재 수익 가중합
+  const costTotal  = nap + 50;                       // NAP + OPEX
+  const shortfall  = -margin;                        // 역마진 해소 필요액 (양수)
 
-  const shortfall = -margin; // 역마진 해소 필요액
-  const etNeeded  = shortfall / CR_Y.et; // ET 단독 해소 필요 상승폭
-  const napNeeded = shortfall; // NAP 단독 하락 필요폭
+  // ── 손익분기 기준: 현재 PR/BD/BZ 고정 시 ET가 얼마여야 마진=0?
+  const breakEt  = (costTotal - pr*CR_Y.pr - bd*CR_Y.bd - bz*CR_Y.bz) / CR_Y.et;
+  // ── NAP이 얼마 내려야 마진=0?
+  const breakNap = revenueSum - 50;
+  // ── 각 품목 현재 기여 vs 손익분기 기여 (PR/BD/BZ 합산)
+  const nonEtRev   = prC + bdC + bzC;
+  const etBreakRev = costTotal - nonEtRev; // ET가 채워야 할 손익분기 기여액
+  const etDeficit  = etBreakRev - etC;     // ET 기여 부족분 (양수=부족, 음수=초과)
 
-  let html = `<div class="font-bold text-yellow-300 mb-2">📊 역마진 구조 해설 (수율 기반)</div>`;
-  html += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">`;
-  html += `<div>• ET 기여: <b class="text-green-300">$${Math.round(etC)}</b> (적정 $${Math.round(targets.et*CR_Y.et)}, 부족 <span class="text-red-300">-$${Math.round(etImprove)}</span>)</div>`;
-  html += `<div>• PR 기여: <b class="text-cyan-300">$${Math.round(prC)}</b> (적정 $${Math.round(targets.pr*CR_Y.pr)}, ${prGap>=0?`<span class="text-green-300">+$${Math.round(prGap*CR_Y.pr)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-prGap*CR_Y.pr)} 부족</span>`})</div>`;
-  html += `<div>• BD 기여: <b class="text-orange-300">$${Math.round(bdC)}</b> (적정 $${Math.round(targets.bd*CR_Y.bd)}, ${bdGap>=0?`<span class="text-green-300">+$${Math.round(bdGap*CR_Y.bd)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-bdGap*CR_Y.bd)} 부족</span>`})</div>`;
-  html += `<div>• BZ 기여: <b class="text-purple-300">$${Math.round(bzC)}</b> (적정 $${Math.round(targets.bz*CR_Y.bz)}, ${bzGap>=0?`<span class="text-green-300">+$${Math.round(bzGap*CR_Y.bz)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-bzGap*CR_Y.bz)} 부족</span>`})</div>`;
+  // ── 4품목 기여 분해 표시 (손익분기 기준)
+  let html = `<div class="font-bold text-yellow-300 mb-2">📊 역마진 구조 해설 — 손익분기 기준</div>`;
+  html += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 mb-2 text-xs">`;
+
+  // ET: 손익분기 기여액 vs 현재
+  const etStr = etDeficit > 0
+    ? `<span class="text-red-300">손익분기 대비 -$${Math.round(etDeficit)} 부족</span>`
+    : `<span class="text-green-300">손익분기 대비 +$${Math.round(-etDeficit)} 초과</span>`;
+  html += `<div>• ET 기여: <b class="text-green-300">$${Math.round(etC)}</b> / 필요 $${Math.round(etBreakRev)} ${etStr}</div>`;
+  html += `<div>• PR 기여: <b class="text-cyan-300">$${Math.round(prC)}</b> (PR $${Math.round(pr)} × 0.16)</div>`;
+  html += `<div>• BD 기여: <b class="text-orange-300">$${Math.round(bdC)}</b> (BD $${Math.round(bd)} × 0.05)</div>`;
+  html += `<div>• BZ 기여: <b class="text-purple-300">$${Math.round(bzC)}</b> (BZ $${Math.round(bz)} × 0.07)</div>`;
+  html += `</div>`;
+
+  // ── 수지 요약
+  html += `<div class="text-xs mb-2 p-2 rounded" style="background:rgba(255,255,255,0.07)">`;
+  html += `수익합 <b class="text-white">$${Math.round(revenueSum)}</b>`;
+  html += ` — NAP+OPEX <b class="text-red-300">$${Math.round(costTotal)}</b>`;
+  html += ` = <b style="color:${margin>=0?'#10b981':'#ef4444'}">${margin>=0?'+':''}$${Math.round(margin)}</b>`;
   html += `</div>`;
 
   if (margin < 0) {
-    html += `<div class="border-t border-slate-600 pt-2 mt-1">`;
-    html += `<span class="text-red-300 font-bold">역마진 -$${Math.round(shortfall)} 해소 조건:</span><br>`;
-    html += `① ET 단독: $${Math.round(et)} → <b class="text-yellow-300">$${Math.round(et+etNeeded)}</b> (+$${Math.round(etNeeded)} 필요)<br>`;
-    html += `② NAP 단독: $${Math.round(nap)} → <b class="text-yellow-300">$${Math.round(nap-napNeeded)}</b> (-$${Math.round(napNeeded)} 필요)<br>`;
-    html += `③ 복합: ET +$${Math.round(etNeeded*0.5)} + NAP -$${Math.round(shortfall*0.5)} 동시 달성 시 해소 가능`;
+    const etNeeded  = shortfall / CR_Y.et;   // ET 단독 해소 필요 상승폭
+    const etShare   = revenueSum > 0 ? Math.min(100, Math.round((etC / revenueSum) * 100)) : 0;
+
+    html += `<div class="border-t border-slate-600 pt-2 text-xs">`;
+    html += `<span class="text-red-300 font-bold">역마진 -$${Math.round(shortfall)} 해소 조건 (현재 PR/BD/BZ 고정):</span><br>`;
+    html += `① ET 단독: $${Math.round(et)} → <b class="text-yellow-300">$${Math.round(breakEt)}</b>`;
+    html += ` (+$${Math.round(breakEt - et)} 필요)<br>`;
+    html += `② NAP 단독: $${Math.round(nap)} → <b class="text-yellow-300">$${Math.round(breakNap)}</b>`;
+    html += ` (-$${Math.round(nap - breakNap)} 필요)<br>`;
+    html += `③ 복합: ET +$${Math.round(etNeeded*0.5)} + NAP -$${Math.round(shortfall*0.5)} 동시 달성 시 해소`;
     html += `</div>`;
-    if (etImprove > 0) html += `<div class="mt-1 text-xs text-slate-300">※ 역마진의 <b class="text-yellow-200">${etShare}%</b>가 ET 가격 부진에서 기인 (기준 NAP $${Math.round(napBase)} / 4주평균 $${Math.round(nap4w)})</div>`;
+
+    // 시장스프레드 기준은 참고용으로만
+    const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+    html += `<div class="mt-1 text-xs text-slate-400">※ 시장적정 스프레드(ET+$300 등)는 참고값. 실제 손익분기는 위 계산 기준.</div>`;
   } else {
-    html += `<div class="text-green-300 font-bold mt-1">✅ 크래커 흑자 — 정상 가동 유인 존재. BD 공급 안정적.</div>`;
+    html += `<div class="text-green-300 font-bold mt-1 text-xs">✅ 크래커 흑자 — 정상 가동 유인 존재. BD 공급 안정적.</div>`;
   }
   return html;
 }
