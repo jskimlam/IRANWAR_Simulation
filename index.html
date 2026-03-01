@@ -815,7 +815,7 @@
           </p>
         </div>
         <div class="flex gap-2 shrink-0 flex-wrap">
-          <button onclick="setFcScenario('flat')"   id="fc-btn-flat"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-emerald-900/60 text-emerald-700 border-emerald-700">Flat $67</button>
+          <button onclick="setFcScenario('flat')"   id="fc-btn-flat"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-emerald-900/60 text-emerald-700 border-emerald-700">Flat <span id="fc-flat-wti-label">$--</span></button>
           <button onclick="setFcScenario('up')"     id="fc-btn-up"     class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-sky-50 text-slate-700 border-slate-300">Up +$1/w</button>
           <button onclick="setFcScenario('down')"   id="fc-btn-down"   class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-sky-50 text-slate-700 border-slate-300">Down -$1/w</button>
           <button onclick="setFcScenario('custom')" id="fc-btn-custom" class="fc-btn text-xs border rounded-lg px-3 py-1.5 transition bg-sky-50 text-slate-700 border-slate-300">Custom</button>
@@ -965,6 +965,9 @@
             <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
               <input type="checkbox" id="fc-show-price" onchange="renderFcChart()" checked class="accent-emerald-600"> 가격표시
             </label>
+            <label class="flex items-center gap-1 text-xs text-slate-600 cursor-pointer">
+              <input type="checkbox" id="fc-show-flat" onchange="renderFcChart()" checked class="accent-gray-500"> Flat 기준선
+            </label>
           </div>
         </div>
         <div class="relative" style="height:320px">
@@ -974,6 +977,7 @@
           <span>● 실선: 예측 중심값</span>
           <span>▓ 음영: 95% 신뢰구간</span>
           <span>◇ 점선: 계절성 기여분 (현재가 기준)</span>
+          <span>─ ─ 회색점선: Flat 기준선 (현재 WTI 고정)</span>
           <span>│ 세로선: 월 구분</span>
         </div>
         <!-- 계절성 상세 설명 -->
@@ -2118,6 +2122,9 @@ function updateDashboard() {
 
   // 헤더 KPI
   document.getElementById('hdr-wti').textContent    = `$${G.wti_rt.toFixed(2)}`;
+  // Flat 버튼 레이블 실시간 WTI 반영
+  const flatLabel = document.getElementById('fc-flat-wti-label');
+  if (flatLabel) flatLabel.textContent = `$${G.wti_rt.toFixed(1)}`;
   const cmEl = document.getElementById('hdr-cracker');
   cmEl.textContent = fmt(rt.crackerSim, true);
   cmEl.className   = 'text-2xl font-black ' + (rt.crackerSim >= 0 ? 'text-emerald-700' : 'text-red-700');
@@ -2539,6 +2546,7 @@ function renderFcChart() {
   const showCI      = document.getElementById('fc-show-ci')?.checked ?? true;
   const showSeasonal= document.getElementById('fc-show-seasonal')?.checked ?? true;
   const showPrice   = document.getElementById('fc-show-price')?.checked ?? true;
+  const showFlat    = document.getElementById('fc-show-flat')?.checked ?? true;
 
   const curWTI = G.wti_rt;
   const s0 = {
@@ -2548,9 +2556,9 @@ function renderFcChart() {
   };
   const curPrices = {SM: G.sm_act, AN: G.an, BD: G.bd};
   const colors = {
-    SM: {line:'#2563eb', ci:'rgba(37,99,235,0.12)', seas:'rgba(37,99,235,0.5)'},
-    AN: {line:'#d97706', ci:'rgba(217,119,6,0.12)',  seas:'rgba(217,119,6,0.5)'},
-    BD: {line:'#ea580c', ci:'rgba(234,88,12,0.12)',  seas:'rgba(234,88,12,0.5)'},
+    SM: {line:'#2563eb', ci:'rgba(37,99,235,0.12)', seas:'rgba(37,99,235,0.5)', flat:'rgba(37,99,235,0.35)'},
+    AN: {line:'#d97706', ci:'rgba(217,119,6,0.12)',  seas:'rgba(217,119,6,0.5)',  flat:'rgba(217,119,6,0.35)'},
+    BD: {line:'#ea580c', ci:'rgba(234,88,12,0.12)',  seas:'rgba(234,88,12,0.5)',  flat:'rgba(234,88,12,0.35)'},
   };
 
   // 라벨: W(현재) + W+1~W+13
@@ -2569,12 +2577,17 @@ function renderFcChart() {
     const lo    = [null];
     const hi    = [null];
     const seas  = [curPrices[label]];
+    const flat  = [curPrices[label]];  // Flat 기준선 (WTI 고정)
 
     FC_WEEKS.forEach(w => {
       const wti   = getFcWti(w.n);
       const dWti  = wti - curWTI;
       let seasDelta = (SEASONAL[label][w.wn]||0) - s0[label];
       let pred    = curPrices[label] + dWti * sens + seasDelta;
+
+      // Flat 기준선: WTI 변동 없이 계절성만 반영
+      const flatDWti = 0;  // WTI 고정
+      let flatPred = curPrices[label] + flatDWti * sens + seasDelta;
 
       // BD: 크래커 타이트 추가
       if (label === 'BD') {
@@ -2584,6 +2597,10 @@ function renderFcChart() {
         const napSim = G.nap   + dWti * SENS.nap;
         const crSim  = calcCrackerMargin(etSim, prSim, pred, bzSim, napSim);
         pred += calcBdTight(crSim);
+
+        // Flat BD: 크래커도 flat 기준
+        const crFlat = calcCrackerMargin(G.et, G.pr_act, flatPred, G.bz, G.nap);
+        flatPred += calcBdTight(crFlat);
       }
 
       const ci = std * Math.sqrt(w.n) * 1.96;
@@ -2591,6 +2608,7 @@ function renderFcChart() {
       lo.push(Math.round(pred - ci));
       hi.push(Math.round(pred + ci));
       seas.push(Math.round(curPrices[label] + (SEASONAL[label][w.wn]||0) - s0[label]));
+      flat.push(Math.round(flatPred));
     });
 
     const chartT = fcChartType === 'bar' ? 'bar' : 'line';
@@ -2654,6 +2672,24 @@ function renderFcChart() {
         borderDash: [5, 4],
         borderWidth: 1.5,
         pointRadius: 2,
+        tension, order: 2,
+        type: 'line',
+        fill: false,
+        datalabels: { display: false },
+      });
+    }
+
+    // Flat 기준선 (현재 WTI 고정 + 계절성만 반영) — 현재 시나리오와 비교용
+    if (showFlat && fcMode !== 'flat' && chartT !== 'bar') {
+      datasets.push({
+        label: `${label} Flat기준`,
+        data: flat,
+        borderColor: c.flat,
+        backgroundColor: 'transparent',
+        borderDash: [3, 5],
+        borderWidth: 1.8,
+        pointRadius: 2,
+        pointStyle: 'rect',
         tension, order: 2,
         type: 'line',
         fill: false,
