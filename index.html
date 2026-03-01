@@ -389,9 +389,14 @@
     <div class="bg-sky-50/90 border border-orange-200 rounded-2xl p-5">
       <div class="flex items-center justify-between mb-1">
         <h2 class="text-orange-700 text-xs font-bold uppercase tracking-widest">⚗ 나프타 크래커 마진 시뮬레이터 v6.5 — 수율기반</h2>
-        <button onclick="resetCrackerSliders()" class="text-xs bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-          🔄 현재가로 초기화
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="manualRefreshData()" id="btn-refresh-data" class="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            📡 시장가격 갱신
+          </button>
+          <button onclick="resetCrackerSliders()" class="text-xs bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+            🔄 현재가로 초기화
+          </button>
+        </div>
       </div>
       <p class="text-slate-700 text-xs mb-2">
         크래커마진 = ET×<b>0.32</b> + PR×<b>0.16</b> + BD×<b>0.05</b> + BZ×<b>0.07</b> - NAP - $50 (실제 납사크래커 수율 기반)
@@ -409,7 +414,7 @@
               <label class="text-sm text-green-700 font-black">ET (에틸렌) CFR NEA</label>
               <span id="cr-et-val" class="text-green-700 font-black text-lg">$710/mt</span>
             </div>
-            <input type="range" id="cr-slider-et" min="300" max="1200" step="10" value="710" class="w-full green-thumb" oninput="onCrackerSlider()">
+            <input type="range" id="cr-slider-et" min="300" max="1200" step="10" value="710" class="w-full green-thumb" oninput="crackerUserEdited=true; onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$300</span><span>$600</span><span>$900</span><span>$1200</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-green-700">현재 실측: <span id="cr-et-actual" class="text-green-500 font-bold">$710</span></span>
@@ -423,7 +428,7 @@
               <label class="text-sm text-slate-700 font-black">NAP (나프타) C+F Japan</label>
               <span id="cr-nap-val" class="text-slate-700 font-black text-lg">$637/mt</span>
             </div>
-            <input type="range" id="cr-slider-nap" min="400" max="1000" step="10" value="637" class="w-full" oninput="onCrackerSlider()">
+            <input type="range" id="cr-slider-nap" min="400" max="1000" step="10" value="637" class="w-full" oninput="crackerUserEdited=true; onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$600</span><span>$800</span><span>$1000</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-slate-700">현재 실측: <span id="cr-nap-actual" class="text-slate-700 font-bold">$637</span></span>
@@ -437,7 +442,7 @@
               <label class="text-sm text-cyan-700 font-bold">PR (프로필렌) CFR China</label>
               <span id="cr-pr-val" class="text-cyan-700 font-black text-lg">$870/mt</span>
             </div>
-            <input type="range" id="cr-slider-pr" min="400" max="1200" step="10" value="870" class="w-full blue-thumb" oninput="onCrackerSlider()">
+            <input type="range" id="cr-slider-pr" min="400" max="1200" step="10" value="870" class="w-full blue-thumb" oninput="crackerUserEdited=true; onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$700</span><span>$1000</span><span>$1200</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-cyan-700">현재가: <span id="cr-pr-cur" class="font-bold">$870</span></span>
@@ -451,7 +456,7 @@
               <label class="text-sm text-purple-700 font-bold">BZ (벤젠) FOB Korea</label>
               <span id="cr-bz-val" class="text-purple-700 font-black text-lg">$772/mt</span>
             </div>
-            <input type="range" id="cr-slider-bz" min="400" max="1500" step="10" value="772" class="w-full" oninput="onCrackerSlider()">
+            <input type="range" id="cr-slider-bz" min="400" max="1500" step="10" value="772" class="w-full" oninput="crackerUserEdited=true; onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$800</span><span>$1200</span><span>$1500</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-purple-700">현재가: <span id="cr-bz-cur" class="font-bold">$772</span></span>
@@ -465,7 +470,7 @@
               <label class="text-sm text-orange-700 font-bold">BD (부타디엔) CFR China</label>
               <span id="cr-bd-val" class="text-orange-700 font-black text-lg">$1270/mt</span>
             </div>
-            <input type="range" id="cr-slider-bd" min="600" max="2500" step="10" value="1270" class="w-full red-thumb" oninput="onCrackerSlider()">
+            <input type="range" id="cr-slider-bd" min="600" max="2500" step="10" value="1270" class="w-full red-thumb" oninput="crackerUserEdited=true; onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$600</span><span>$1300</span><span>$2000</span><span>$2500</span></div>
             <div class="flex justify-between items-center mt-1">
               <span class="text-orange-700">현재가: <span id="cr-bd-cur" class="font-bold">$1270</span></span>
@@ -1660,6 +1665,7 @@ function onCrackerSlider() {
 }
 
 function resetCrackerSliders() {
+  crackerUserEdited = false; // 초기화 버튼 누르면 플래그 리셋
   document.getElementById('cr-slider-et').value  = Math.round(G.et);
   document.getElementById('cr-slider-nap').value = Math.round(G.nap);
   document.getElementById('cr-slider-pr').value  = Math.round(G.pr_act);
@@ -2420,7 +2426,17 @@ function updateDashboard() {
   // 슬라이더 동기화
   document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
   onWtiSlider();
-  resetCrackerSliders();
+  // 크래커 슬라이더: 사용자가 직접 조작 중이면 갱신 안 함 (조작값 보존)
+  if (!crackerUserEdited) {
+    resetCrackerSliders();
+  } else {
+    // 실측값 표시만 업데이트 (슬라이더 위치는 유지)
+    document.getElementById('cr-et-actual').textContent  = `$${Math.round(G.et)}`;
+    document.getElementById('cr-nap-actual').textContent = `$${Math.round(G.nap)}`;
+    document.getElementById('cr-pr-cur').textContent     = `$${Math.round(G.pr_act)}`;
+    document.getElementById('cr-bz-cur').textContent     = `$${Math.round(G.bz)}`;
+    document.getElementById('cr-bd-cur').textContent     = `$${Math.round(G.bd)}`;
+  }
 }
 
 function alertBadge(absGap, bdTight) {
@@ -2481,6 +2497,74 @@ function loadCSV() {
       updateDashboard();
     },
     error() { document.getElementById('update-time').textContent = 'CSV 로드 실패'; }
+  });
+}
+
+// ── 수동 시장가격 갱신 (📡 버튼용) — 전체 데이터 갱신 후 슬라이더 초기화
+function manualRefreshData() {
+  const btn = document.getElementById('btn-refresh-data');
+  if (btn) {
+    btn.textContent = '⏳ 갱신 중...';
+    btn.disabled = true;
+  }
+  Papa.parse('simulation_result.csv?t='+Date.now(), {
+    download:true, header:true, skipEmptyLines:true,
+    complete(res) {
+      if (!res.data?.length) {
+        if (btn) { btn.textContent = '❌ 실패'; btn.disabled = false; }
+        return;
+      }
+      const d = res.data[0];
+      // 전체 주간가격 갱신
+      G.wti_rt        = parseFloat(d.WTI)               || G.wti_rt;
+      G.wti_gs        = parseFloat(d.WTI_GSheet)        || G.wti_gs;
+      G.bz            = parseFloat(d.BZ_Actual)         || G.bz;
+      G.et            = parseFloat(d.ET_Actual)         || G.et;
+      G.bd            = parseFloat(d.BD_Actual)         || G.bd;
+      G.an            = parseFloat(d.AN_Actual)         || G.an;
+      G.nap           = parseFloat(d.NAP)               || G.nap;
+      G.sm_act        = parseFloat(d.SM_Actual)         || G.sm_act;
+      G.abs_mkt_act   = parseFloat(d.ABS_Mkt_Actual)    || G.abs_mkt_act;
+      G.pr_act        = parseFloat(d.PR_Actual)         || G.pr_act;
+      G.bz_ara_act    = parseFloat(d.BZ_ARA_Actual)     || G.bz_ara_act;
+      G.bz_usg_mt_act = parseFloat(d.BZ_USG_Actual)    || G.bz_usg_mt_act;
+      G.sm_margin_act = parseFloat(d.SM_Margin_Actual)  || G.sm_margin_act;
+      G.cracker_act   = parseFloat(d.Cracker_Margin_Act)|| G.cracker_act;
+      document.getElementById('update-time').textContent = '갱신: '+(d.UpdateTime||'');
+      document.getElementById('gs-date').textContent     = '구글시트: '+(d.GSheet_Date||'');
+      // 대시보드 전체 갱신 + 슬라이더 초기화
+      crackerUserEdited = false;
+      updateDashboard();
+      if (btn) {
+        btn.textContent = '✅ 갱신 완료';
+        btn.disabled = false;
+        setTimeout(() => { btn.textContent = '📡 시장가격 갱신'; }, 2000);
+      }
+    },
+    error() {
+      if (btn) { btn.textContent = '❌ 실패'; btn.disabled = false;
+        setTimeout(() => { btn.textContent = '📡 시장가격 갱신'; }, 2000);
+      }
+    }
+  });
+}
+
+// ── WTI만 갱신 (30초 interval용) — 주간가격은 건드리지 않음
+function loadWTIOnly() {
+  Papa.parse('simulation_result.csv?t='+Date.now(), {
+    download:true, header:true, skipEmptyLines:true,
+    complete(res) {
+      if (!res.data?.length) return;
+      const d = res.data[0];
+      // WTI 실시간 가격만 갱신
+      const newWti = parseFloat(d.WTI) || G.wti_rt;
+      if (Math.abs(newWti - G.wti_rt) < 0.001) return; // 변화 없으면 스킵
+      G.wti_rt = newWti;
+      // WTI 슬라이더 및 헤더 KPI만 업데이트
+      document.getElementById('slider-wti').value = G.wti_rt.toFixed(2);
+      document.getElementById('update-time').textContent = '갱신: '+(d.UpdateTime||'');
+      onWtiSlider();
+    }
   });
 }
 
@@ -3452,6 +3536,7 @@ function renderCrackerHistoryChart(focusItem) {
 
 // ── 품목 토글 컨트롤러
 let crackerViewMode = 'all';
+let crackerUserEdited = false; // 사용자가 크래커 슬라이더를 직접 조작했는지 여부
 function setCrackerView(item) {
   crackerViewMode = item;
 
@@ -3577,8 +3662,11 @@ function setCrackerView(item) {
 
 // 초기화
 updateDashboard();
+// 최초 전체 데이터 로드 (주간가격 + WTI)
 loadCSV();
-setInterval(loadCSV, 30000);
+// WTI만 30초마다 갱신 (야후파이낸스 실시간)
+setInterval(loadWTIOnly, 30000);
+// 리포트 이미지 5분마다 갱신
 setInterval(refreshImg, 300000);
 </script>
 </body>
