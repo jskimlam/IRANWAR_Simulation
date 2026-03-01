@@ -328,7 +328,6 @@ def calc_costs(latest, wti_rt, sens, risk_premium=0, et_override=None):
     # ★ BD 타이트 프리미엄: 크래커마진이 기준(실측) 대비 하락분에 비례
     # 크래커마진 하락 → 크래커 가동률 하락 → BD 공급 감소 → BD 타이트
     cracker_delta = cracker_sim - cracker_act   # 음수면 악화
-CRACKER_OPEX   = 50    # 전환비용 $/mt NAP (아시아 기준 운전비)
     bd_tight_prem = min(max(0, -cracker_delta) * BD_TIGHT_SCALE, BD_TIGHT_MAX)
 
     # BD = WTI 회귀 보정 + 크래커마진 악화 타이트 프리미엄
@@ -657,7 +656,6 @@ def generate_report(current, hist8, latest, sens, r2, n_reg, wti_source):
 
     fig.text(0.5, 0.005,
              f'LAM Advanced Procurement  |  v6.4  |  '
-CRACKER_OPEX   = 50    # 전환비용 $/mt NAP (아시아 기준 운전비)
              f'크래커마진→BD타이트(scale={BD_TIGHT_SCALE}, max={BD_TIGHT_MAX})  |  '
              f'수급신호 4종(SM실측/이론/ABS실측/이론)  |  {wti_source}',
              ha='center', fontsize=7, color='#475569')
@@ -722,7 +720,6 @@ def save_csv(current, sens, r2, n_reg, wti_source, gs_date):
         'Sens_SM_MARGIN': sens['sm_margin'],
         'Sens_SM_COST': sens['sm_cost'],
         'NAP_Sens_Equiv_Basis': NAP_SENS_FOR_EQUIV,
-CRACKER_OPEX   = 50    # 전환비용 $/mt NAP (아시아 기준 운전비)
         'BD_Tight_Scale': BD_TIGHT_SCALE,
         'BD_Tight_Max': BD_TIGHT_MAX,
         'Cracker_Yields_ET': CRACKER_YIELDS['et'],
