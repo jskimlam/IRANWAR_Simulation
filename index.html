@@ -543,7 +543,8 @@ function calcFromG(wti, risk=0) {
   const supplySignal = smC - smCTheory;
 
   // ABS Cost (원료 상승 반영)
-  const absC = G.abs_cost_act + d_total * SENS.abs_cost;
+  // ★ v6.2 수정: SM×0.60 + AN×0.25 + BD×0.15 직접 계산 (앵커 오차 제거)
+  const absC = sm * 0.60 + an * 0.25 + bd * 0.15;
   // ABS Market: 실시간 WTI 회귀 + 리스크 flat
   const absM = G.abs_mkt_act + d_wti * SENS.abs_mkt + risk;
   // ABS Gap = Market - Cost (착시 제거)
