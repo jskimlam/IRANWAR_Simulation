@@ -1566,8 +1566,8 @@ function onCrackerSlider() {
   else { labelEl.textContent='🔴 크래커 적자 — 가동률 하락 압력'; labelEl.style.color='#ef4444'; }
 
   // 패널 색상
-  const panel = document.getElementById('cr-result-panel');
-  panel.className = 'rounded-2xl p-5 border text-center ' + crackerColor(margin);
+  const panel2 = document.getElementById('cr-result-panel');
+  if (panel2) panel2.className = 'rounded-2xl p-5 border text-center ' + crackerColor(margin);
 
   // BD 타이트 계산
   const crRes = calcCrackerDirect(et, pr, bd, bz, nap, G.sm_act, G.an, G.abs_mkt_act);
