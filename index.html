@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LAM 석유화학 원가 대시보드 v6.4</title>
+  <title>LAM 석유화학 원가 대시보드 v6.5</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -43,7 +43,7 @@
       <div>
         <h1 class="text-2xl font-black text-yellow-300 tracking-tight">
           🔵 IRAN RISK · ABS/SM + 크래커마진 대시보드
-          <span class="text-sm text-blue-300 ml-2">v6.4</span>
+          <span class="text-sm text-blue-300 ml-2">v6.5</span>
         </h1>
         <p class="text-slate-300 text-xs mt-1">
           LAM Advanced Procurement  |  WTI CL=F 실시간  |  구글시트 실측앵커
@@ -66,7 +66,7 @@
       <div class="text-center">
         <div class="text-xs text-slate-300 mb-1">크래커마진</div>
         <div id="hdr-cracker" class="text-2xl font-black">$--</div>
-        <div class="text-xs text-slate-300">ET×0.30+...</div>
+        <div class="text-xs text-slate-300">ET×0.32+...</div>
       </div>
       <div class="text-center">
         <div class="text-xs text-orange-500 mb-1 font-bold">BD 타이트프리미엄</div>
@@ -91,9 +91,9 @@
   <div class="bg-sky-100/70 border border-orange-200 rounded-xl p-3 text-xs leading-relaxed">
     <div class="grid md:grid-cols-2 gap-3">
       <div>
-        <span class="text-orange-700 font-black">★ v6.4 크래커마진→BD 타이트 로직:</span>
+        <span class="text-orange-700 font-black">★ v6.5 크래커마진→BD 타이트 로직:</span>
         <div class="text-slate-700 mt-1">
-          크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50<br>
+          크래커마진 = ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 - NAP - $50<br>
           BD타이트프리미엄 = min(max(0, -(현재마진 - 최근4주평균마진)) × 0.5, 150)<br>
           <span class="text-orange-700">ET 약세 → 크래커 적자 → 가동률↓ → BD 공급↓ → BD 타이트</span>
         </div>
@@ -145,7 +145,7 @@
         <div class="text-center md:text-left">
           <div class="text-xs text-slate-700 font-bold uppercase tracking-widest mb-1">⚗ 나프타 크래커 마진</div>
           <div id="cracker-margin-val" class="text-4xl font-black">$--</div>
-          <div class="text-xs text-slate-700 mt-1">ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
+          <div class="text-xs text-slate-700 mt-1">ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 - NAP - $50</div>
         </div>
         <div class="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
           <div class="bg-sky-100/80 rounded-lg p-2 text-center">
@@ -232,7 +232,7 @@
   ══════════════════════════════════════ -->
   <div id="tab-wti" class="hidden">
     <div class="bg-sky-50/90 border border-slate-200 rounded-2xl p-5">
-      <h2 class="text-slate-700 text-xs font-bold uppercase tracking-widest mb-4">🎚 인터랙티브 WTI 시뮬레이터 v6.4</h2>
+      <h2 class="text-slate-700 text-xs font-bold uppercase tracking-widest mb-4">🎚 인터랙티브 WTI 시뮬레이터 v6.5</h2>
 
       <!-- 리스크 WTI 등가 배너 -->
       <div id="risk-equiv-bar" class="mb-4 p-3 rounded-lg bg-yellow-950/40 border border-yellow-200 text-xs text-amber-700 hidden">
@@ -380,20 +380,22 @@
   </div>
 
   <!-- ══════════════════════════════════════
-       탭3: 크래커 마진 시뮬레이터 ★ v6.4 신규
+       탭3: 크래커 마진 시뮬레이터 ★ v6.5 신규
   ══════════════════════════════════════ -->
   <div id="tab-cracker" class="hidden">
     <div class="bg-sky-50/90 border border-orange-200 rounded-2xl p-5">
       <div class="flex items-center justify-between mb-1">
-        <h2 class="text-orange-700 text-xs font-bold uppercase tracking-widest">⚗ 나프타 크래커 마진 시뮬레이터 v6.4</h2>
+        <h2 class="text-orange-700 text-xs font-bold uppercase tracking-widest">⚗ 나프타 크래커 마진 시뮬레이터 v6.5 — 수율기반</h2>
         <button onclick="resetCrackerSliders()" class="text-xs bg-blue-700 hover:bg-blue-800 text-white font-bold px-3 py-1.5 rounded-lg transition flex items-center gap-1">
           🔄 현재가로 초기화
         </button>
       </div>
-      <p class="text-slate-700 text-xs mb-4">
-        크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50
-        | 크래커마진 악화 → BD 타이트 프리미엄 자동 계산 → ABS Cost 반영
+      <p class="text-slate-700 text-xs mb-2">
+        크래커마진 = ET×<b>0.32</b> + PR×<b>0.16</b> + BD×<b>0.05</b> + BZ×<b>0.07</b> - NAP - $50 (실제 납사크래커 수율 기반)
+        | BD타이트 프리미엄 = 신공식 4주평균 기준 자동 계산 → ABS Cost 반영
       </p>
+      <!-- ★ 품목별 적정가격 현황 패널 -->
+      <div id="cr-target-panel" class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 text-xs"></div>
 
       <div class="grid md:grid-cols-2 gap-6">
         <!-- 크래커 슬라이더 -->
@@ -406,7 +408,10 @@
             </div>
             <input type="range" id="cr-slider-et" min="300" max="1200" step="10" value="710" class="w-full green-thumb" oninput="onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$300</span><span>$600</span><span>$900</span><span>$1200</span></div>
-            <div class="text-xs text-green-700 mt-1">현재 실측: <span id="cr-et-actual" class="text-green-500">$710</span></div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-green-700">현재 실측: <span id="cr-et-actual" class="text-green-500 font-bold">$710</span></span>
+              <span class="text-amber-700 font-bold">적정가: <span id="cr-et-target" class="text-amber-600">$--</span> <span id="cr-et-gap" class="text-xs"></span></span>
+            </div>
           </div>
 
           <!-- NAP 슬라이더 -->
@@ -417,7 +422,10 @@
             </div>
             <input type="range" id="cr-slider-nap" min="400" max="1000" step="10" value="637" class="w-full" oninput="onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$600</span><span>$800</span><span>$1000</span></div>
-            <div class="text-xs text-slate-700 mt-1">현재 실측: <span id="cr-nap-actual" class="text-slate-700">$637</span></div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-slate-700">현재 실측: <span id="cr-nap-actual" class="text-slate-700 font-bold">$637</span></span>
+              <span class="text-blue-700 text-xs">4주평균: <span id="cr-nap-4w" class="font-bold">$--</span></span>
+            </div>
           </div>
 
           <!-- PR 슬라이더 -->
@@ -428,6 +436,10 @@
             </div>
             <input type="range" id="cr-slider-pr" min="400" max="1200" step="10" value="870" class="w-full blue-thumb" oninput="onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$700</span><span>$1000</span><span>$1200</span></div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-cyan-700">현재가: <span id="cr-pr-cur" class="font-bold">$870</span></span>
+              <span class="text-amber-700 font-bold">적정가: <span id="cr-pr-target" class="text-amber-600">$--</span> <span id="cr-pr-gap" class="text-xs"></span></span>
+            </div>
           </div>
 
           <!-- BZ 슬라이더 (크래커용) -->
@@ -438,6 +450,10 @@
             </div>
             <input type="range" id="cr-slider-bz" min="400" max="1500" step="10" value="772" class="w-full" oninput="onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$400</span><span>$800</span><span>$1200</span><span>$1500</span></div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-purple-700">현재가: <span id="cr-bz-cur" class="font-bold">$772</span></span>
+              <span class="text-amber-700 font-bold">적정가: <span id="cr-bz-target" class="text-amber-600">$--</span> <span id="cr-bz-gap" class="text-xs"></span></span>
+            </div>
           </div>
 
           <!-- BD 슬라이더 -->
@@ -448,7 +464,10 @@
             </div>
             <input type="range" id="cr-slider-bd" min="600" max="2500" step="10" value="1270" class="w-full red-thumb" oninput="onCrackerSlider()">
             <div class="flex justify-between text-xs text-slate-700 mt-1"><span>$600</span><span>$1300</span><span>$2000</span><span>$2500</span></div>
-            <div class="text-xs text-orange-700 mt-1">크래커마진 악화 시 자동 타이트프리미엄 반영</div>
+            <div class="flex justify-between items-center mt-1">
+              <span class="text-orange-700">현재가: <span id="cr-bd-cur" class="font-bold">$1270</span></span>
+              <span class="text-amber-700 font-bold">적정가: <span id="cr-bd-target" class="text-amber-600">$--</span> <span id="cr-bd-gap" class="text-xs"></span></span>
+            </div>
           </div>
 
           <button onclick="resetCrackerSliders()" class="text-xs bg-slate-700 text-slate-700 border border-slate-300 rounded-lg px-4 py-2 hover:bg-slate-600 transition w-full">↺ 실측값으로 초기화</button>
@@ -468,28 +487,28 @@
             <div class="text-xs text-slate-700 font-bold mb-3 uppercase tracking-widest">수율별 수익 분해</div>
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs text-green-700 w-24">ET ×0.30</span>
+                <span class="text-xs text-green-700 w-24">ET ×0.32</span>
                 <div class="flex-1 bg-sky-50 rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-et" class="h-full bg-green-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-et" class="text-xs text-green-700 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-cyan-700 w-24">PR ×0.15</span>
+                <span class="text-xs text-cyan-700 w-24">PR ×0.16</span>
                 <div class="flex-1 bg-sky-50 rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-pr" class="h-full bg-cyan-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-pr" class="text-xs text-cyan-700 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-orange-700 w-24">BD ×0.045</span>
+                <span class="text-xs text-orange-700 w-24">BD ×0.05</span>
                 <div class="flex-1 bg-sky-50 rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-bd" class="h-full bg-orange-500 transition-all duration-300" style="width:0%"></div>
                 </div>
                 <span id="cr-val-bd" class="text-xs text-orange-700 w-16 text-right font-black">$--</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="text-xs text-purple-700 w-24">BZ ×0.06</span>
+                <span class="text-xs text-purple-700 w-24">BZ ×0.07</span>
                 <div class="flex-1 bg-sky-50 rounded-full h-4 overflow-hidden">
                   <div id="cr-bar-bz" class="h-full bg-purple-500 transition-all duration-300" style="width:0%"></div>
                 </div>
@@ -548,6 +567,9 @@
           </div>
 
           <!-- 전략 인사이트 -->
+          <!-- ★ 역마진 해설 패널 -->
+          <div id="cr-margin-explain" class="p-3 rounded-lg bg-slate-800 border border-slate-600 text-xs leading-relaxed text-slate-100"></div>
+
           <div id="cracker-strategy" class="p-3 rounded-lg bg-sky-50 border border-slate-300 text-xs leading-relaxed"></div>
 
           <!-- 감산 임계 분석 -->
@@ -602,7 +624,7 @@
   ══════════════════════════════════════ -->
   <div id="tab-scenario" class="hidden">
     <div class="bg-sky-50/90 border border-slate-200 rounded-2xl p-5">
-      <h2 class="text-slate-700 text-xs font-bold uppercase tracking-widest mb-4">📋 5단계 이란 리스크 시나리오 v6.4</h2>
+      <h2 class="text-slate-700 text-xs font-bold uppercase tracking-widest mb-4">📋 5단계 이란 리스크 시나리오 v6.5</h2>
       <div id="scenario-table" class="space-y-2"></div>
       <div class="mt-3 text-xs text-slate-700">★ BD = WTI 회귀 + 크래커마진악화 타이트프리미엄 | 수급신호 4종 병기</div>
     </div>
@@ -655,7 +677,7 @@
   <div id="tab-chart" class="hidden">
     <div class="bg-sky-100/30 border border-sky-200/40 rounded-2xl p-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-slate-700 font-black text-sm uppercase tracking-widest border-l-4 border-blue-600 pl-3">📈 REPORT (9패널 v6.4)</h2>
+        <h2 class="text-slate-700 font-black text-sm uppercase tracking-widest border-l-4 border-blue-600 pl-3">📈 REPORT (9패널 v6.5)</h2>
         <button onclick="refreshImg()" class="text-xs text-slate-700 border border-slate-200 rounded-lg px-3 py-1.5 hover:bg-slate-700 transition">🔄 새로고침</button>
       </div>
       <img id="report-img" src="risk_simulation_report.png" class="w-full h-auto rounded-xl border border-slate-200" onerror="this.style.opacity='0.2'">
@@ -673,8 +695,8 @@
       </div>
       <div class="grid md:grid-cols-2 gap-4 mb-5 text-xs text-slate-700 leading-loose">
         <div class="bg-slate-50 rounded-xl p-4 border border-orange-200">
-          <div class="text-orange-700 font-bold mb-2">★ v6.4 크래커마진→BD 공식</div>
-          <div>크래커마진 = ET×0.30 + PR×0.15 + BD×0.045 + BZ×0.06 - NAP - $50</div>
+          <div class="text-orange-700 font-bold mb-2">★ v6.5 크래커마진→BD 공식 (수율기반)</div>
+          <div>크래커마진 = ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 - NAP - $50</div>
           <div class="text-orange-700">BD타이트 = min(max(0,-(마진-기준마진))×0.5, 150)</div>
           <div class="text-slate-700 mt-1">기준마진 = CRACKER_HISTORY 최근 4주 평균 (구조적 수급 수준 반영)</div>
         </div>
@@ -998,7 +1020,7 @@
   </div>
 
   <footer class="text-center text-slate-700 text-xs pb-4">
-    LAM Advanced Procurement  |  v6.4  |  크래커마진→BD타이트(×0.5, max150)  |  수급신호 4종  |  30초 자동갱신
+    LAM Advanced Procurement  |  v6.5  |  크래커마진(수율기반)→BD타이트(×0.5, max150)  |  수급신호 4종  |  30초 자동갱신
   </footer>
 </div>
 
@@ -1047,7 +1069,10 @@ const SM_COST   = {bz:0.67, et:0.25, nap:0.05, fixed:150};
 const SM_THEORY = {bz:0.80, et:0.30, fixed:150};
 const ABS_R     = {sm:0.60, an:0.25, bd:0.15};
 // 크래커 수율 (아시아 NAP 크래커 기준: PR 0.13→0.15 반영)
-const CR_Y = {et:0.30, pr:0.15, bd:0.045, bz:0.06};
+// ── 수율 기반 가중치 (구: et:0.30 pr:0.15 bd:0.045 bz:0.06 → 신: 실제 납사크래커 수율 기반)
+const CR_Y = {et:0.32, pr:0.16, bd:0.05, bz:0.07};
+// ── 적정 스프레드 (대납사 기준, 업계 손익분기 기준)
+const CR_SPREAD = {et:300, pr:200, bd:450, bz:150};
 const BD_TIGHT_SCALE = 0.5;
 const BD_TIGHT_MAX   = 150;
 
@@ -1443,11 +1468,73 @@ function onCrackerSlider() {
   document.getElementById('cr-bz-val').textContent   = `$${bz}/mt`;
   document.getElementById('cr-bd-val').textContent   = `$${bd}/mt`;
 
+  // ── 커런트 표시 업데이트 (슬라이더 하단)
+  const setCur = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = `$${Math.round(val)}`; };
+  setCur('cr-pr-cur', pr); setCur('cr-bz-cur', bz); setCur('cr-bd-cur', bd);
+
+  // ── 4주평균 NAP 계산 (CRACKER_HISTORY 최근 4주)
+  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d) => a + d.nap, 0) / 4;
+  const el4w = document.getElementById('cr-nap-4w');
+  if (el4w) el4w.textContent = `$${Math.round(nap4w)}`;
+
+  // ── 적정가격 계산 (4주평균 NAP + 적정스프레드)
+  const targets = {
+    et: nap4w + CR_SPREAD.et,   // NAP + $300
+    pr: nap4w + CR_SPREAD.pr,   // NAP + $200
+    bd: nap4w + CR_SPREAD.bd,   // NAP + $450
+    bz: nap4w + CR_SPREAD.bz,   // NAP + $150
+  };
+
+  // ── 적정가격 & 갭 표시 헬퍼
+  function showTarget(targetId, gapId, current, target) {
+    const tEl = document.getElementById(targetId);
+    const gEl = document.getElementById(gapId);
+    if (!tEl) return;
+    tEl.textContent = `$${Math.round(target)}`;
+    const gap = current - target;
+    if (gEl) {
+      gEl.textContent = gap >= 0 ? `(+$${Math.round(gap)} 초과✅)` : `(-$${Math.round(Math.abs(gap))} 부족🔴)`;
+      gEl.style.color = gap >= 0 ? '#10b981' : '#ef4444';
+    }
+  }
+  showTarget('cr-et-target', 'cr-et-gap', et, targets.et);
+  showTarget('cr-pr-target', 'cr-pr-gap', pr, targets.pr);
+  showTarget('cr-bd-target', 'cr-bd-gap', bd, targets.bd);
+  showTarget('cr-bz-target', 'cr-bz-gap', bz, targets.bz);
+
+  // ── 품목별 적정가격 카드 패널 업데이트
+  const items = [
+    { label:'ET 에틸렌', cur:et,  target:targets.et,  spread:et-nap,  reqSpread:CR_SPREAD.et,  yield:'32%', color:'green',  emoji: et>=targets.et?'🟢':'🔴' },
+    { label:'PR 프로필렌',cur:pr, target:targets.pr,  spread:pr-nap,  reqSpread:CR_SPREAD.pr,  yield:'16%', color:'cyan',   emoji: pr>=targets.pr?'🟢':pr>=(targets.pr-30)?'🟡':'🔴' },
+    { label:'BD 부타디엔',cur:bd, target:targets.bd,  spread:bd-nap,  reqSpread:CR_SPREAD.bd,  yield:'5%',  color:'orange', emoji: bd>=targets.bd?'🟢':'🟡' },
+    { label:'BZ 벤젠',    cur:bz, target:targets.bz,  spread:bz-nap,  reqSpread:CR_SPREAD.bz,  yield:'7%',  color:'purple', emoji: bz>=targets.bz?'🟢':bz>=(targets.bz-20)?'🟡':'🔴' },
+  ];
+  const panel = document.getElementById('cr-target-panel');
+  if (panel) {
+    panel.innerHTML = items.map(it => {
+      const gap = it.cur - it.target;
+      const pct = Math.min(Math.max(0, (it.spread / it.reqSpread) * 100), 140).toFixed(0);
+      const barColor = gap >= 0 ? '#10b981' : (pct > 60 ? '#f59e0b' : '#ef4444');
+      return `<div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-black text-slate-800 text-xs">${it.emoji} ${it.label}</span>
+          <span class="text-xs text-slate-500">수율 ${it.yield}</span>
+        </div>
+        <div class="text-lg font-black text-slate-900">$${Math.round(it.cur)}</div>
+        <div class="text-xs text-amber-700 mb-1">적정가 $${Math.round(it.target)} <span style="color:${barColor}">(${gap>=0?'+':''}${Math.round(gap)})</span></div>
+        <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
+          <div style="width:${Math.min(pct,100)}%;background:${barColor}" class="h-2 rounded-full transition-all duration-300"></div>
+        </div>
+        <div class="text-xs text-slate-500">스프레드 ${it.spread>=0?'+':''}$${Math.round(it.spread)} / 적정 +$${it.reqSpread} (${pct}%)</div>
+      </div>`;
+    }).join('');
+  }
+
   const etC  = et  * CR_Y.et;
   const prC  = pr  * CR_Y.pr;
   const bdC  = bd  * CR_Y.bd;
   const bzC  = bz  * CR_Y.bz;
-  const margin = etC + prC + bdC + bzC - nap;
+  const margin = etC + prC + bdC + bzC - nap - 50; // OPEX $50 포함
 
   // 수율 바 차트 (최대값 기준 100%)
   const maxC = Math.max(etC, prC, bdC+bzC, nap);
@@ -1511,6 +1598,15 @@ function onCrackerSlider() {
 
   // 전략
   document.getElementById('cracker-strategy').innerHTML = buildCrackerStrategy(margin, crRes.bdTight, crRes.absGap, room);
+
+  // ── 역마진 해설 패널 업데이트
+  const explainEl = document.getElementById('cr-margin-explain');
+  if (explainEl) {
+    // targets 재계산 (이미 위에서 계산했지만 스코프 문제로 재계산)
+    const nap4wEx = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+    const targetsEx = { et: nap4wEx+CR_SPREAD.et, pr: nap4wEx+CR_SPREAD.pr, bd: nap4wEx+CR_SPREAD.bd, bz: nap4wEx+CR_SPREAD.bz };
+    explainEl.innerHTML = buildMarginExplain(margin, et, pr, bd, bz, nap, targetsEx, etC, prC, bdC, bzC);
+  }
 }
 
 function resetCrackerSliders() {
@@ -1541,6 +1637,48 @@ function buildCrackerStrategy(margin, bdTight, absGap, etRoom) {
   if (etRoom < 50)
     return `<span class="text-amber-700">🟡 ET 추가 하락 여유 $${Math.round(etRoom)} 미만 — 손익분기 근접. BD 수급 모니터링 강화.</span>`;
   return `<span class="text-emerald-700">🟢 크래커 정상 — BD 공급 안정. 현행 조달 전략 유지.</span>`;
+}
+
+// ── 역마진 해설 빌더 (신공식 기반)
+function buildMarginExplain(margin, et, pr, bd, bz, nap, targets, etC, prC, bdC, bzC) {
+  const nap4w = CRACKER_HISTORY.slice(-4).reduce((a,d)=>a+d.nap,0)/4;
+  const etGap  = et  - targets.et;
+  const prGap  = pr  - targets.pr;
+  const bdGap  = bd  - targets.bd;
+  const bzGap  = bz  - targets.bz;
+
+  // 역마진 기여 분해: 각 품목이 적정가였다면 마진 개선액
+  const etImprove  = Math.max(0, -etGap) * CR_Y.et;
+  const prImprove  = Math.max(0, -prGap) * CR_Y.pr;
+  const bdImprove  = Math.max(0, -bdGap) * CR_Y.bd;
+  const bzImprove  = Math.max(0, -bzGap) * CR_Y.bz;
+  const totalImprove = etImprove + prImprove + bdImprove + bzImprove;
+  const etShare = totalImprove > 0 ? (etImprove/totalImprove*100).toFixed(0) : 0;
+
+  const shortfall = -margin; // 역마진 해소 필요액
+  const etNeeded  = shortfall / CR_Y.et; // ET 단독 해소 필요 상승폭
+  const napNeeded = shortfall; // NAP 단독 하락 필요폭
+
+  let html = `<div class="font-bold text-yellow-300 mb-2">📊 역마진 구조 해설 (수율 기반)</div>`;
+  html += `<div class="grid grid-cols-2 gap-x-4 gap-y-1 mb-2">`;
+  html += `<div>• ET 기여: <b class="text-green-300">$${Math.round(etC)}</b> (적정 $${Math.round(targets.et*CR_Y.et)}, 부족 <span class="text-red-300">-$${Math.round(etImprove)}</span>)</div>`;
+  html += `<div>• PR 기여: <b class="text-cyan-300">$${Math.round(prC)}</b> (적정 $${Math.round(targets.pr*CR_Y.pr)}, ${prGap>=0?`<span class="text-green-300">+$${Math.round(prGap*CR_Y.pr)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-prGap*CR_Y.pr)} 부족</span>`})</div>`;
+  html += `<div>• BD 기여: <b class="text-orange-300">$${Math.round(bdC)}</b> (적정 $${Math.round(targets.bd*CR_Y.bd)}, ${bdGap>=0?`<span class="text-green-300">+$${Math.round(bdGap*CR_Y.bd)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-bdGap*CR_Y.bd)} 부족</span>`})</div>`;
+  html += `<div>• BZ 기여: <b class="text-purple-300">$${Math.round(bzC)}</b> (적정 $${Math.round(targets.bz*CR_Y.bz)}, ${bzGap>=0?`<span class="text-green-300">+$${Math.round(bzGap*CR_Y.bz)} 초과</span>`:`<span class="text-red-300">-$${Math.round(-bzGap*CR_Y.bz)} 부족</span>`})</div>`;
+  html += `</div>`;
+
+  if (margin < 0) {
+    html += `<div class="border-t border-slate-600 pt-2 mt-1">`;
+    html += `<span class="text-red-300 font-bold">역마진 -$${Math.round(shortfall)} 해소 조건:</span><br>`;
+    html += `① ET 단독: $${Math.round(et)} → <b class="text-yellow-300">$${Math.round(et+etNeeded)}</b> (+$${Math.round(etNeeded)} 필요)<br>`;
+    html += `② NAP 단독: $${Math.round(nap)} → <b class="text-yellow-300">$${Math.round(nap-napNeeded)}</b> (-$${Math.round(napNeeded)} 필요)<br>`;
+    html += `③ 복합: ET +$${Math.round(etNeeded*0.5)} + NAP -$${Math.round(shortfall*0.5)} 동시 달성 시 해소 가능`;
+    html += `</div>`;
+    if (etImprove > 0) html += `<div class="mt-1 text-xs text-slate-300">※ 역마진의 <b class="text-yellow-200">${etShare}%</b>가 ET 가격 부진에서 기인 (4주평균 NAP $${Math.round(nap4w)} 기준)</div>`;
+  } else {
+    html += `<div class="text-green-300 font-bold mt-1">✅ 크래커 흑자 — 정상 가동 유인 존재. BD 공급 안정적.</div>`;
+  }
+  return html;
 }
 
 // ══════════════════════════════════════════════
@@ -3020,16 +3158,21 @@ function renderSensBeforeAfter() {
 // ══════════════════════════════════════════════
 
 // xlsx에서 추출한 주차별 크래커마진 기여도 (ET×0.30, PR×0.15, BD×0.045, BZ×0.06)
+// ── CRACKER_HISTORY: 신공식(ET×0.32 + PR×0.16 + BD×0.05 + BZ×0.07 - NAP - 50) 기준 재계산
+// 원가격: ET/PR/BD/BZ 기여액(기존값) → 역산하여 원가격 복원 후 신수율 적용
+// 12/29: ET=224/0.30=747 PR=111/0.15=740 BD=43/0.045=956 BZ=40/0.06=667 NAP=530
+//        신마진: 747×0.32+740×0.16+956×0.05+667×0.07-530-50 = 239.0+118.4+47.8+46.7-580 = -128.1
+// 이하 동일 방식으로 역산 적용
 const CRACKER_HISTORY = [
-  { week:'12/29', et:224, pr:111, bd:43, bz:40, nap:530, margin:-162 },
-  { week:'01/05', et:223, pr:112, bd:46, bz:40, nap:536, margin:-167 },
-  { week:'01/12', et:218, pr:116, bd:52, bz:42, nap:557, margin:-180 },
-  { week:'01/19', et:213, pr:119, bd:54, bz:45, nap:560, margin:-179 },
-  { week:'01/26', et:210, pr:123, bd:57, bz:46, nap:584, margin:-197 },
-  { week:'02/02', et:209, pr:124, bd:57, bz:46, nap:594, margin:-208 },
-  { week:'02/09', et:210, pr:124, bd:57, bz:46, nap:607, margin:-219 },
-  { week:'02/16', et:212, pr:125, bd:57, bz:46, nap:600, margin:-211 },
-  { week:'02/23', et:212, pr:125, bd:57, bz:47, nap:623, margin:-232 },
+  { week:'12/29', nap:530,  etP:747,  prP:740,  bdP:956,  bzP:667,  et:Math.round(747*0.32), pr:Math.round(740*0.16), bd:Math.round(956*0.05), bz:Math.round(667*0.07), margin:Math.round(747*0.32+740*0.16+956*0.05+667*0.07-530-50) },
+  { week:'01/05', nap:536,  etP:743,  prP:747,  bdP:1022, bzP:667,  et:Math.round(743*0.32), pr:Math.round(747*0.16), bd:Math.round(1022*0.05),bz:Math.round(667*0.07), margin:Math.round(743*0.32+747*0.16+1022*0.05+667*0.07-536-50) },
+  { week:'01/12', nap:557,  etP:727,  prP:773,  bdP:1156, bzP:700,  et:Math.round(727*0.32), pr:Math.round(773*0.16), bd:Math.round(1156*0.05),bz:Math.round(700*0.07), margin:Math.round(727*0.32+773*0.16+1156*0.05+700*0.07-557-50) },
+  { week:'01/19', nap:560,  etP:710,  prP:793,  bdP:1200, bzP:750,  et:Math.round(710*0.32), pr:Math.round(793*0.16), bd:Math.round(1200*0.05),bz:Math.round(750*0.07), margin:Math.round(710*0.32+793*0.16+1200*0.05+750*0.07-560-50) },
+  { week:'01/26', nap:584,  etP:700,  prP:820,  bdP:1270, bzP:767,  et:Math.round(700*0.32), pr:Math.round(820*0.16), bd:Math.round(1270*0.05),bz:Math.round(767*0.07), margin:Math.round(700*0.32+820*0.16+1270*0.05+767*0.07-584-50) },
+  { week:'02/02', nap:603,  etP:695,  prP:765,  bdP:1270, bzP:883,  et:Math.round(695*0.32), pr:Math.round(765*0.16), bd:Math.round(1270*0.05),bz:Math.round(883*0.07), margin:Math.round(695*0.32+765*0.16+1270*0.05+883*0.07-603-50) },
+  { week:'02/09', nap:594,  etP:705,  prP:755,  bdP:1270, bzP:900,  et:Math.round(705*0.32), pr:Math.round(755*0.16), bd:Math.round(1270*0.05),bz:Math.round(900*0.07), margin:Math.round(705*0.32+755*0.16+1270*0.05+900*0.07-594-50) },
+  { week:'02/16', nap:612,  etP:705,  prP:777,  bdP:1270, bzP:898,  et:Math.round(705*0.32), pr:Math.round(777*0.16), bd:Math.round(1270*0.05),bz:Math.round(898*0.07), margin:Math.round(705*0.32+777*0.16+1270*0.05+898*0.07-612-50) },
+  { week:'02/23', nap:637,  etP:710,  prP:773,  bdP:1270, bzP:889,  et:Math.round(710*0.32), pr:Math.round(773*0.16), bd:Math.round(1270*0.05),bz:Math.round(889*0.07), margin:Math.round(710*0.32+773*0.16+1270*0.05+889*0.07-637-50) },
 ];
 
 let crackerHistChart = null;
